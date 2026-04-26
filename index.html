@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Resource Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        input { display: block; width: 100%; margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+        button { background: #2c3e50; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
+        .resource-card { border-left: 5px solid #2c3e50; background: #f9f9f9; padding: 15px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-section">
+        <h2>Student Login</h2>
+        <p>Please sign in to access teaching resources.</p>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="signIn()">Sign In</button>
+        <button onclick="signUp()" style="background:#7f8c8d">Create Account</button>
+    </div>
+
+    <div id="portal-section" class="hidden">
+        <div style="display:flex; justify-content: space-between;">
+            <h2>Teaching Resources</h2>
+            <button onclick="signOut()" style="background:#e74c3c">Logout</button>
+        </div>
+
+        <div class="resource-card">
+            <h3>📢 Announcements</h3>
+            <p>Welcome to the new semester! Check the module list below.</p>
+        </div>
+
+        <h3>📚 Modules & Videos</h3>
+        <ul>
+            <li><a href="YOUR_VIDEO_LINK">Lecture 01: Introduction (Video)</a></li>
+            <li><a href="YOUR_PDF_LINK">Module 01: Syllabus (PDF)</a></li>
+        </ul>
+
+        <h3>📝 Assignments</h3>
+        <p>Submit your week 1 reflections via the student dashboard.</p>
+    </div>
+</div>
+
+<script>
+    // INITIALIZE SUPABASE
+    const _supabase = supabase.createClient('https://supabase.com/dashboard/project/tghxsszdgedczywtplgi/settings/general', 'tghxsszdgedczywtplgi');
+
+    async function signUp() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { error } = await _supabase.auth.signUp({ email, password });
+        if (error) alert(error.message); else alert("Check your email for confirmation!");
+    }
+
+    async function signIn() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) alert(error.message); else showPortal();
+    }
+
+    async function signOut() {
+        await _supabase.auth.signOut();
+        location.reload();
+    }
+
+    function showPortal() {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('portal-section').classList.remove('hidden');
+    }
+
+    // Check if user is already logged in
+    _supabase.auth.getSession().then(({ data }) => {
+        if (data.session) showPortal();
+    });
+</script>
+
+</body>
+</html>
