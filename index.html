@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Portal | Management System</title>
+    <title>Mathematics Class Portal | Management System</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -83,18 +83,27 @@
 
         .card { background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
-        /* --- MODULE & ASSIGNMENT STYLES --- */
-        .module-item { 
+        /* --- LIST STYLES --- */
+        .list-item { 
             padding: 20px; border: 1px solid var(--border); border-radius: 8px; 
-            display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+            display: flex; justify-content: space-between; align-items: center; transition: 0.2s; margin-bottom: 12px;
         }
-        .module-item:hover { border-color: var(--primary); background: #f8fafc; }
+        .list-item:hover { border-color: var(--primary); background: #f8fafc; }
         
-        .dropzone {
-            background: #f8fafc; border: 2px dashed var(--border); padding: 40px; 
-            text-align: center; border-radius: var(--radius); transition: 0.3s;
+        /* --- SUBMISSION MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
         }
-        .dropzone:hover { border-color: var(--primary); background: #f1f5f9; }
+        .modal-card {
+            background: white; width: 90%; max-width: 500px; padding: 32px;
+            border-radius: var(--radius); position: relative; animation: slideUp 0.3s ease-out;
+        }
+        .dropzone {
+            background: #f8fafc; border: 2px dashed var(--border); padding: 30px; 
+            text-align: center; border-radius: var(--radius); margin-top: 20px;
+        }
 
         @media (max-width: 900px) { .auth-side-brand { display: none; } .main-content { margin-left: 0; } .sidebar { display: none; } }
     </style>
@@ -105,51 +114,27 @@
     <div class="auth-side-brand">
         <div class="brand-content">
             <div class="brand-logo"><i class="fas fa-graduation-cap"></i></div>
-            <h1>Academic Excellence Portal</h1>
-            <p>Access your modules, track your assignments, and stay connected with your educators in one unified workspace.</p>
+            <h1>Mathematics Class Portal</h1>
+            <p>Access your modules, track your assignments, and stay connected with Teacher Darwin.</p>
         </div>
     </div>
-    
     <div class="auth-side-form">
         <div class="auth-card">
             <div id="login-form">
                 <h2>Welcome Back</h2>
-                <p class="subtitle">Please enter your credentials to access your dashboard.</p>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="login-email" placeholder="Email Address">
-                </div>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="Password">
-                </div>
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="Email"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Password"></div>
                 <button class="btn btn-primary" onclick="signIn()">Sign In <i class="fas fa-arrow-right"></i></button>
-                <p style="text-align:center; margin-top:24px; font-size:14px; color:var(--text-muted)">
-                    Don't have an account? <button class="btn-link" onclick="toggleAuth('register')">Create one now</button>
-                </p>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Don't have an account? <button class="btn-link" onclick="toggleAuth('register')">Create one</button></p>
             </div>
-
             <div id="register-form" class="hidden">
                 <h2>Join the Portal</h2>
-                <p class="subtitle">Set up your student profile to get started.</p>
                 <div class="input-group"><i class="fas fa-user"></i><input type="text" id="reg-username" placeholder="Full Name"></div>
                 <div class="input-group"><i class="fas fa-id-card"></i><input type="text" id="reg-id" placeholder="Student ID"></div>
-                <div style="display:flex; gap:12px; margin-bottom:0;">
-                    <div class="input-group" style="flex:1">
-                        <select id="reg-grade" style="padding-left:14px;">
-                            <option value="">Grade</option>
-                            <option value="Grade 11">11</option>
-                            <option value="Grade 12">12</option>
-                        </select>
-                    </div>
-                    <div class="input-group" style="flex:1"><i class="fas fa-users" style="left:10px;"></i><input type="text" id="reg-section" placeholder="Section" style="padding-left:34px;"></div>
-                </div>
                 <div class="input-group"><i class="fas fa-at"></i><input type="email" id="reg-email" placeholder="Email"></div>
                 <div class="input-group"><i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="Password"></div>
-                <button class="btn btn-primary" onclick="signUp()">Create Account <i class="fas fa-user-plus"></i></button>
-                <p style="text-align:center; margin-top:24px; font-size:14px; color:var(--text-muted)">
-                    Already have an account? <button class="btn-link" onclick="toggleAuth('login')">Sign In</button>
-                </p>
+                <button class="btn btn-primary" onclick="signUp()">Create Account</button>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Already have an account? <button class="btn-link" onclick="toggleAuth('login')">Sign In</button></p>
             </div>
         </div>
     </div>
@@ -160,9 +145,8 @@
         <div class="profile-header">
             <h3 id="display-name">Loading...</h3>
             <div class="profile-info">
-                <span><i class="fas fa-id-badge" style="width:14px"></i> <strong id="display-id">---</strong></span>
-                <span><i class="fas fa-layer-group" style="width:14px"></i> <strong id="display-level">---</strong></span>
-                <span style="display:block; margin-top:5px; opacity:0.7; font-size:11px" id="display-email"></span>
+                <span><i class="fas fa-id-badge"></i> <strong id="display-id">---</strong></span><br>
+                <span><i class="fas fa-layer-group"></i> <strong id="display-level">---</strong></span>
             </div>
         </div>
         <nav style="flex:1">
@@ -170,7 +154,7 @@
             <button class="nav-link" id="nav-modules" onclick="showTab('modules')"><i class="fas fa-folder-open"></i> Learning Modules</button>
             <button class="nav-link" id="nav-assignments" onclick="showTab('assignments')"><i class="fas fa-clipboard-list"></i> Assignments</button>
         </nav>
-        <button class="btn btn-logout" style="background:#334155; color:#fca5a5; margin-bottom:10px;" onclick="signOut()"><i class="fas fa-power-off"></i> Logout</button>
+        <button class="btn btn-logout" style="background:#334155; color:#fca5a5;" onclick="signOut()"><i class="fas fa-power-off"></i> Logout</button>
     </aside>
 
     <main class="main-content">
@@ -178,48 +162,63 @@
         
         <div id="tab-dashboard" class="tab-content">
             <div class="card" style="border-top: 4px solid var(--primary);">
-                <h3 style="display:flex; align-items:center; gap:10px;"><i class="fas fa-sparkles" style="color:#eab308"></i> Welcome Back</h3>
-                <p style="margin-top:15px; color:var(--text-muted);">All your course materials and upcoming deadlines are synchronized.</p>
+                <h3><i class="fas fa-sparkles" style="color:#eab308"></i> Welcome Back</h3>
+                <p style="margin-top:15px; color:var(--text-muted);">Stay on top of your studies. Check your modules and assignments below.</p>
             </div>
         </div>
 
         <div id="tab-modules" class="tab-content hidden">
             <div class="card">
-                <h3><i class="fas fa-book-open"></i> Curriculum Modules</h3>
-                <p style="color:var(--text-muted); margin-bottom: 25px;">Download your learning resources.</p>
-                <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <div class="module-item">
-                        <div>
-                            <h4 style="margin:0">01. Web Development Fundamentals</h4>
-                            <span style="font-size: 12px; color: var(--text-muted)">PDF Document • 3.2 MB</span>
-                        </div>
-                        <a href="#" class="btn btn-primary" style="width: auto; padding: 8px 16px; font-size: 14px;">Download</a>
-                    </div>
-                    <div class="module-item">
-                        <div>
-                            <h4 style="margin:0">02. Introduction to Supabase</h4>
-                            <span style="font-size: 12px; color: var(--text-muted)">Video Lecture • 12 mins</span>
-                        </div>
-                        <a href="#" class="btn btn-primary" style="width: auto; padding: 8px 16px; font-size: 14px;">Watch Now</a>
-                    </div>
+                <h3>Curriculum Modules</h3>
+                <div class="list-item">
+                    <div><h4>01. Intro to HTML/CSS</h4><span style="font-size:12px; color:var(--text-muted)">PDF Document</span></div>
+                    <button class="btn btn-primary" style="width:auto; padding:8px 16px;">Download</button>
                 </div>
             </div>
         </div>
 
         <div id="tab-assignments" class="tab-content hidden">
             <div class="card">
-                <h3><i class="fas fa-upload"></i> Submit Assignment</h3>
-                <p style="color:var(--text-muted); margin-bottom: 25px;">Upload your work for review.</p>
-                <div class="dropzone">
-                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
-                    <h4>Click or Drag to Upload</h4>
-                    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Support for PDF, DOCX, and ZIP</p>
-                    <input type="file" id="file-upload" style="margin-bottom: 20px; font-size: 13px;">
-                    <button class="btn btn-primary" style="max-width: 250px; margin: 0 auto;" onclick="alert('Submission received!')">Submit to Instructor</button>
+                <h3>Active Assignments</h3>
+                <p style="color:var(--text-muted); margin-bottom: 20px;">Review your tasks and click submit to upload your work.</p>
+                
+                <div class="list-item">
+                    <div>
+                        <h4 style="margin:0">Exercise 1: Basic Web Layout</h4>
+                        <span style="font-size: 12px; color: #ef4444; font-weight: 600;">Due: Today, 11:59 PM</span>
+                    </div>
+                    <button class="btn btn-primary" style="width: auto; padding: 8px 16px;" onclick="openSubmitModal('Exercise 1: Basic Web Layout')">
+                        <i class="fas fa-upload"></i> Submit
+                    </button>
+                </div>
+
+                <div class="list-item">
+                    <div>
+                        <h4 style="margin:0">Exercise 2: Responsive Navigation</h4>
+                        <span style="font-size: 12px; color: var(--text-muted)">Due: Friday, May 1st</span>
+                    </div>
+                    <button class="btn btn-primary" style="width: auto; padding: 8px 16px;" onclick="openSubmitModal('Exercise 2: Responsive Navigation')">
+                        <i class="fas fa-upload"></i> Submit
+                    </button>
                 </div>
             </div>
         </div>
     </main>
+</div>
+
+<div id="submit-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <button onclick="closeSubmitModal()" style="position:absolute; top:20px; right:20px; border:none; background:none; cursor:pointer; font-size:1.2rem; color:var(--text-muted)"><i class="fas fa-times"></i></button>
+        <h3 id="modal-task-name">Submit Assignment</h3>
+        <p style="font-size:14px; color:var(--text-muted)">Please ensure your file is named with your Student ID.</p>
+        
+        <div class="dropzone">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 10px;"></i>
+            <h4 style="font-size:15px">Click or Drag File</h4>
+            <input type="file" id="file-upload" style="margin: 15px 0; font-size: 12px; width: 100%;">
+            <button class="btn btn-primary" onclick="handleUpload()">Confirm Submission</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -239,6 +238,24 @@
         document.getElementById('nav-' + tabName).classList.add('active');
     }
 
+    // Modal Control Functions
+    function openSubmitModal(taskName) {
+        document.getElementById('modal-task-name').innerText = taskName;
+        document.getElementById('submit-modal').classList.remove('hidden');
+    }
+
+    function closeSubmitModal() {
+        document.getElementById('submit-modal').classList.add('hidden');
+        document.getElementById('file-upload').value = ""; // Reset file input
+    }
+
+    function handleUpload() {
+        const file = document.getElementById('file-upload').files[0];
+        if(!file) return alert("Please select a file first.");
+        alert("Submission Received for: " + document.getElementById('modal-task-name').innerText);
+        closeSubmitModal();
+    }
+
     async function signUp() {
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
@@ -247,7 +264,7 @@
             options: { data: { 
                 display_name: document.getElementById('reg-username').value,
                 student_id: document.getElementById('reg-id').value,
-                level_info: `${document.getElementById('reg-grade').value} - ${document.getElementById('reg-section').value}`
+                level_info: "Student"
             }}
         });
         if (error) alert(error.message); else alert("Check your email!");
@@ -267,7 +284,6 @@
         document.getElementById('display-name').innerText = meta.display_name || "New Student";
         document.getElementById('display-id').innerText = meta.student_id || "N/A";
         document.getElementById('display-level').innerText = meta.level_info || "N/A";
-        document.getElementById('display-email').innerText = user.email;
     }
 
     async function signOut() { await _supabase.auth.signOut(); location.reload(); }
