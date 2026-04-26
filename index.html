@@ -19,20 +19,20 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; }
 
         /* AUTH SECTION */
         .auth-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        .auth-card { background: var(--white); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
-        .auth-card h2 { text-align: center; margin-bottom: 24px; }
+        .auth-card { background: var(--white); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
+        .auth-card h2 { text-align: center; margin-bottom: 20px; }
 
         /* LAYOUT */
         .portal-layout { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 10; }
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 24px; position: fixed; height: 100vh; z-index: 10; display: flex; flex-direction: column; }
         
         /* STUDENT PROFILE DATA (TOP LEFT) */
         .profile-header { background: #1e293b; padding: 16px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #334155; }
-        .profile-header h3 { font-size: 0.95rem; color: var(--white); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; }
+        .profile-header h3 { font-size: 0.95rem; color: var(--white); margin-bottom: 4px; }
         .profile-info { font-size: 0.75rem; color: #94a3b8; line-height: 1.4; }
         .profile-info span { display: block; margin-bottom: 2px; }
         .profile-info strong { color: #cbd5e1; }
@@ -44,38 +44,60 @@
         .nav-link:hover, .nav-link.active { background: #334155; color: white; }
         .nav-link i { margin-right: 10px; width: 20px; }
 
-        /* UI ELEMENTS */
         .hidden { display: none !important; }
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; }
         .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
         .btn-logout { background: #fee2e2; color: #ef4444; width: 100%; margin-top: auto; }
 
         .card { background: var(--white); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; }
-        .resource-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; }
-        .resource-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
 
 <div id="login-section" class="auth-container">
     <div class="auth-card">
-        <h2>Student Access</h2>
-        <input type="email" id="email" placeholder="student@university.edu">
-        <input type="password" id="password" placeholder="Password">
-        <button class="btn btn-primary" style="width:100%" onclick="signIn()">Sign In</button>
-        <button class="btn" style="width:100%; margin-top:10px; background: #f1f5f9;" onclick="signUp()">Register Account</button>
+        <div id="login-form">
+            <h2>Student Sign In</h2>
+            <input type="email" id="login-email" placeholder="Email Address">
+            <input type="password" id="login-password" placeholder="Password">
+            <button class="btn btn-primary" onclick="signIn()">Sign In</button>
+            <p style="text-align:center; margin-top:15px; font-size:14px; color:var(--text-muted)">
+                New here? <a href="#" onclick="toggleAuth('register')" style="color:var(--primary)">Create Account</a>
+            </p>
+        </div>
+
+        <div id="register-form" class="hidden">
+            <h2>Create Account</h2>
+            <input type="text" id="reg-username" placeholder="Full Name / Preferred Username">
+            <input type="text" id="reg-id" placeholder="Student ID (e.g. 2026-1002)">
+            <div style="display:flex; gap:10px;">
+                <select id="reg-grade">
+                    <option value="">Select Grade</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                    <option value="College">College</option>
+                </select>
+                <input type="text" id="reg-section" placeholder="Section (e.g. STEM-A)">
+            </div>
+            <input type="email" id="reg-email" placeholder="School Email Address">
+            <input type="password" id="reg-password" placeholder="Create Password">
+            <button class="btn btn-primary" onclick="signUp()">Register & Join</button>
+            <p style="text-align:center; margin-top:15px; font-size:14px; color:var(--text-muted)">
+                Already have an account? <a href="#" onclick="toggleAuth('login')" style="color:var(--primary)">Sign In</a>
+            </p>
+        </div>
     </div>
 </div>
 
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
         <div class="profile-header">
-            <h3 id="display-name">Student Name</h3>
+            <h3 id="display-name">Loading...</h3>
             <div class="profile-info">
-                <span>ID: <strong id="display-id">2026-0001</strong></span>
-                <span>Level: <strong id="display-grade">Grade 12 - Section A</strong></span>
-                <span>Email: <strong id="display-email">email@edu.ph</strong></span>
+                <span>ID: <strong id="display-id">---</strong></span>
+                <span>Level: <strong id="display-level">---</strong></span>
+                <span>Email: <strong id="display-email">---</strong></span>
             </div>
         </div>
 
@@ -89,44 +111,27 @@
     </aside>
 
     <main class="main-content">
-        <div class="header">
-            <h2 id="tab-title">Dashboard</h2>
-        </div>
-
+        <h2 id="tab-title" style="margin-bottom:30px;">Dashboard</h2>
+        
         <div id="tab-dashboard" class="tab-content">
             <div class="card" style="border-left: 5px solid var(--primary);">
-                <h3 style="color: var(--primary)"><i class="fas fa-bullhorn"></i> Announcements</h3>
-                <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
-                <p><strong>Apr 26:</strong> Welcome to the portal! Check the Modules tab for the latest resources.</p>
+                <h3><i class="fas fa-bullhorn"></i> Welcome to the Portal</h3>
+                <p style="margin-top:10px;">Select a tab on the left to access your resources or submit assignments.</p>
             </div>
         </div>
 
-        <div id="tab-modules" class="tab-content hidden">
-            <h3>Course Materials</h3>
-            <div class="card" style="padding: 0; margin-top: 20px;">
-                <div class="resource-item">
-                    <div><i class="fas fa-file-pdf" style="color: #3b82f6; margin-right: 10px;"></i> <strong>Module 01: Core Theory</strong></div>
-                    <a href="#" class="btn" style="background: #f1f5f9; font-size: 12px;">Download</a>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-assignments" class="tab-content hidden">
-            <h3>Pending Tasks</h3>
-            <div class="card" style="margin-top: 20px;">
-                <h4>Assignment 01: Reflection Paper</h4>
-                <p style="color: var(--text-muted); font-size: 14px;">Upload your link to your shared Google Doc below.</p>
-                <div style="margin-top: 20px;">
-                    <textarea id="assign1-submit" rows="2" placeholder="Paste link here..."></textarea>
-                    <button class="btn btn-primary" onclick="alert('Submitted!')">Submit</button>
-                </div>
-            </div>
-        </div>
+        <div id="tab-modules" class="tab-content hidden"><div class="card">Modules content goes here.</div></div>
+        <div id="tab-assignments" class="tab-content hidden"><div class="card">Assignments content goes here.</div></div>
     </main>
 </div>
 
 <script>
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
+
+    function toggleAuth(type) {
+        document.getElementById('login-form').classList.toggle('hidden', type === 'register');
+        document.getElementById('register-form').classList.toggle('hidden', type === 'login');
+    }
 
     function showTab(tabName) {
         document.getElementById('tab-title').innerText = tabName.charAt(0).toUpperCase() + tabName.slice(1);
@@ -137,17 +142,46 @@
     }
 
     async function signUp() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const { error } = await _supabase.auth.signUp({ email, password });
-        if (error) alert(error.message); else alert("Check your email!");
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const username = document.getElementById('reg-username').value;
+        const studentId = document.getElementById('reg-id').value;
+        const grade = document.getElementById('reg-grade').value;
+        const section = document.getElementById('reg-section').value;
+
+        const { data, error } = await _supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    display_name: username,
+                    student_id: studentId,
+                    level_info: `${grade} - ${section}`
+                }
+            }
+        });
+
+        if (error) alert(error.message);
+        else alert("Registration successful! Check your email to confirm.");
     }
 
     async function signIn() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
         const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) alert(error.message); else showPortal(data.user.email);
+        if (error) alert(error.message); else showPortal(data.user);
+    }
+
+    function showPortal(user) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('portal-section').classList.remove('hidden');
+        
+        // Extract data from Supabase Metadata
+        const meta = user.user_metadata;
+        document.getElementById('display-name').innerText = meta.display_name || "New Student";
+        document.getElementById('display-id').innerText = meta.student_id || "N/A";
+        document.getElementById('display-level').innerText = meta.level_info || "Not Set";
+        document.getElementById('display-email').innerText = user.email;
     }
 
     async function signOut() {
@@ -155,20 +189,8 @@
         location.reload();
     }
 
-    function showPortal(email) {
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('portal-section').classList.remove('hidden');
-        
-        // Update Sidebar Credentials
-        document.getElementById('display-email').innerText = email;
-        document.getElementById('display-name').innerText = email.split('@')[0].toUpperCase();
-        // ID and Grade are placeholders for now
-        document.getElementById('display-id').innerText = "2026-" + Math.floor(1000 + Math.random() * 9000);
-        document.getElementById('display-grade').innerText = "Grade 12 - STEM";
-    }
-
     _supabase.auth.getSession().then(({ data }) => {
-        if (data.session) showPortal(data.session.user.email);
+        if (data.session) showPortal(data.session.user);
     });
 </script>
 
