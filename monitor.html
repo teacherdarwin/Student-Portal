@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Console | Mathematics Class Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --teacher-accent: #8b5cf6; /* Purple accent for teacher role */
+            --sidebar-bg: #0f172a;
+            --bg-body: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; height: 100vh; overflow: hidden; }
+
+        /* --- AUTH INTERFACE --- */
+        .auth-wrapper { display: flex; min-height: 100vh; width: 100%; background: #fff; }
+        .auth-side-brand {
+            flex: 1.2;
+            background: linear-gradient(135deg, #1e293b 0%, #8b5cf6 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; padding: 60px; position: relative;
+        }
+        .brand-content { position: relative; z-index: 2; text-align: center; max-width: 450px; }
+        .brand-logo { font-size: 3rem; margin-bottom: 20px; }
+        .brand-content h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
+
+        .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background: var(--white); }
+        .auth-card { width: 100%; max-width: 400px; animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group i { position: absolute; left: 14px; top: 16px; color: var(--text-muted); }
+        input { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; }
+
+        .btn { width: 100%; padding: 14px; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-teacher { background: var(--teacher-accent); color: white; }
+        .btn-teacher:hover { filter: brightness(1.1); }
+
+        .hidden { display: none !important; }
+
+        /* --- PORTAL LAYOUT --- */
+        .portal-layout { display: flex; min-height: 100vh; background: var(--bg-body); }
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 24px; position: fixed; height: 100vh; display: flex; flex-direction: column; }
+        .main-content { flex: 1; margin-left: 280px; padding: 40px; height: 100vh; overflow-y: auto; }
+        
+        .role-badge { background: var(--teacher-accent); color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; display: inline-block; }
+
+        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: #334155; color: white; }
+
+        .card { background: var(--white); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; }
+        
+        /* --- TABLE STYLES --- */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 12px; color: var(--text-muted); font-size: 13px; border-bottom: 1px solid var(--border); }
+        td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        
+        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #dcfce7; color: #166534; }
+
+        @media (max-width: 900px) { .auth-side-brand { display: none; } .main-content { margin-left: 0; } .sidebar { display: none; } }
+    </style>
+</head>
+<body>
+
+<div id="login-section" class="auth-wrapper">
+    <div class="auth-side-brand">
+        <div class="brand-content">
+            <div class="brand-logo"><i class="fas fa-chalkboard-teacher"></i></div>
+            <h1>Teacher Console</h1>
+            <p>Manage curriculum modules, create assignments, and review student submissions.</p>
+        </div>
+    </div>
+    <div class="auth-side-form">
+        <div class="auth-card">
+            <div id="login-form">
+                <h2>Teacher Login</h2>
+                <p style="color:var(--text-muted); margin-bottom:20px;">Access your management dashboard</p>
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="Faculty Email"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Password"></div>
+                <button class="btn btn-teacher" onclick="signIn()">Enter Dashboard</button>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Need access? <button style="color:var(--teacher-accent); border:none; background:none; cursor:pointer;" onclick="toggleAuth('register')">Register as Faculty</button></p>
+            </div>
+            <div id="register-form" class="hidden">
+                <h2>Faculty Registration</h2>
+                <div class="input-group"><i class="fas fa-user-tie"></i><input type="text" id="reg-username" placeholder="Full Name"></div>
+                <div class="input-group"><i class="fas fa-id-card"></i><input type="text" id="reg-id" placeholder="Employee ID"></div>
+                <div class="input-group"><i class="fas fa-at"></i><input type="email" id="reg-email" placeholder="Email"></div>
+                <div class="input-group"><i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="Create Password"></div>
+                <button class="btn btn-teacher" onclick="signUp()">Create Faculty Account</button>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Already registered? <button style="color:var(--teacher-accent); border:none; background:none; cursor:pointer;" onclick="toggleAuth('login')">Sign In</button></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="portal-section" class="portal-layout hidden">
+    <aside class="sidebar">
+        <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: var(--radius); margin-bottom: 25px;">
+            <span class="role-badge">Faculty Access</span>
+            <h3 id="display-name" style="font-size: 1rem;">Prof. Name</h3>
+            <p id="display-id" style="font-size: 0.8rem; color: #94a3b8;">ID: 0000</p>
+        </div>
+        <nav style="flex:1">
+            <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-chart-line"></i> Overview</button>
+            <button class="nav-link" id="nav-manage-modules" onclick="showTab('manage-modules')"><i class="fas fa-book"></i> Manage Modules</button>
+            <button class="nav-link" id="nav-manage-assignments" onclick="showTab('manage-assignments')"><i class="fas fa-tasks"></i> Assignments</button>
+            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions'); fetchSubmissions();"><i class="fas fa-inbox"></i> Student Submissions</button>
+        </nav>
+        <button class="btn" style="background:#334155; color:#fca5a5;" onclick="signOut()"><i class="fas fa-power-off"></i> Logout</button>
+    </aside>
+
+    <main class="main-content">
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px;">
+            <h2 id="tab-title" style="font-size:2rem; font-weight:800;">Overview</h2>
+            <button class="btn btn-teacher" style="width:auto; padding: 10px 20px; font-size: 14px;"><i class="fas fa-plus"></i> New Resource</button>
+        </header>
+        
+        <div id="tab-overview" class="tab-content">
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                <div class="card">
+                    <span style="color:var(--text-muted); font-size:12px;">Active Students</span>
+                    <h2 style="font-size:2rem;">42</h2>
+                </div>
+                <div class="card">
+                    <span style="color:var(--text-muted); font-size:12px;">Pending Submissions</span>
+                    <h2 style="font-size:2rem; color:var(--teacher-accent);">18</h2>
+                </div>
+                <div class="card">
+                    <span style="color:var(--text-muted); font-size:12px;">Total Modules</span>
+                    <h2 style="font-size:2rem;">12</h2>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-manage-modules" class="tab-content hidden">
+            <div class="card">
+                <h3>Live Learning Modules</h3>
+                <table>
+                    <thead>
+                        <tr><th>Module Title</th><th>Type</th><th>Visibility</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>01. Intro to HTML/CSS</td><td>PDF</td><td><span class="status-pill">Visible</span></td><td><button style="border:none; background:none; color:var(--primary); cursor:pointer;">Edit</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-submissions" class="tab-content hidden">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                    <h3>All Student Uploads</h3>
+                    <button class="btn" style="width:auto; padding:5px 15px; background:#f1f5f9; font-size:12px;" onclick="fetchSubmissions()"><i class="fas fa-sync"></i> Refresh List</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr><th>File Name (ID_Task_Name)</th><th>Size</th><th>Submission Date</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="submission-list">
+                        <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">Loading files from bucket...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
+    let currentUser = null;
+
+    function toggleAuth(type) {
+        document.getElementById('login-form').classList.toggle('hidden', type === 'register');
+        document.getElementById('register-form').classList.toggle('hidden', type === 'login');
+    }
+
+    function showTab(tabName) {
+        const titles = { overview: 'Overview', 'manage-modules': 'Manage Modules', 'manage-assignments': 'Assignments', submissions: 'Student Submissions' };
+        document.getElementById('tab-title').innerText = titles[tabName];
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        document.getElementById('nav-' + tabName).classList.add('active');
+    }
+
+    async function fetchSubmissions() {
+        const tbody = document.getElementById('submission-list');
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Accessing storage...</td></tr>";
+
+        const { data, error } = await _supabase.storage
+            .from('assignments')
+            .list('', { limit: 100, sortBy: { column: 'name', order: 'desc' }});
+
+        if (error) {
+            tbody.innerHTML = `<tr><td colspan='4' style='color:red'>Error: ${error.message}</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = "";
+        data.forEach(item => {
+            if(item.name === '.emptyFolderPlaceholder') return;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:600">${item.name}</td>
+                <td>${(item.metadata.size / 1024).toFixed(2)} KB</td>
+                <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                <td><button class="btn btn-teacher" style="padding:6px 12px; font-size:12px; width:auto;" onclick="downloadFile('${item.name}')">Download</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function downloadFile(name) {
+        const { data } = _supabase.storage.from('assignments').getPublicUrl(name);
+        window.open(data.publicUrl, '_blank');
+    }
+
+    async function signUp() {
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const { data, error } = await _supabase.auth.signUp({
+            email, password,
+            options: { data: { 
+                display_name: document.getElementById('reg-username').value,
+                employee_id: document.getElementById('reg-id').value,
+                level_info: "Faculty/Teacher"
+            }}
+        });
+        if (error) alert(error.message); else alert("Teacher account created! Verify your email.");
+    }
+
+    async function signIn() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) alert(error.message); else showPortal(data.user);
+    }
+
+    function showPortal(user) {
+        currentUser = user;
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('portal-section').classList.remove('hidden');
+        const meta = user.user_metadata;
+        document.getElementById('display-name').innerText = meta.display_name || "Faculty Member";
+        document.getElementById('display-id').innerText = "ID: " + (meta.employee_id || "N/A");
+    }
+
+    async function signOut() { await _supabase.auth.signOut(); location.reload(); }
+
+    _supabase.auth.getSession().then(({ data }) => { if (data.session) showPortal(data.session.user); });
+</script>
+
+</body>
+</html>
