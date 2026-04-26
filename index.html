@@ -10,6 +10,7 @@
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
+            --sidebar-bg: #0f172a;
             --bg-body: #f8fafc;
             --text-main: #1e293b;
             --text-muted: #64748b;
@@ -20,39 +21,33 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; }
 
-        /* AUTH STYLES */
+        /* AUTH SECTION */
         .auth-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
         .auth-card { background: var(--white); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
-        .auth-card h2 { font-size: 1.5rem; margin-bottom: 8px; text-align: center; }
-        .auth-card p { color: var(--text-muted); text-align: center; margin-bottom: 24px; font-size: 0.9rem; }
+        .auth-card h2 { text-align: center; margin-bottom: 24px; }
 
-        /* PORTAL LAYOUT */
+        /* LAYOUT */
         .portal-layout { display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: #0f172a; color: white; padding: 24px; display: flex; flex-direction: column; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; }
         .sidebar h1 { font-size: 1.2rem; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
-        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px; border-radius: 8px; margin-bottom: 8px; transition: 0.3s; display: block; }
-        .nav-link:hover, .nav-link.active { background: #1e293b; color: white; }
         
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+        .main-content { flex: 1; margin-left: 260px; padding: 40px; }
+
+        /* NAVIGATION */
+        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px; border-radius: 8px; margin-bottom: 8px; transition: 0.3s; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; font-size: 1rem; }
+        .nav-link:hover, .nav-link.active { background: #1e293b; color: white; }
+        .nav-link i { margin-right: 10px; width: 20px; }
 
         /* UI ELEMENTS */
         .hidden { display: none !important; }
-        input { display: block; width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; transition: border 0.3s; }
-        input:focus { outline: none; border-color: var(--primary); ring: 2px var(--primary); }
-        
-        .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; }
+        .btn { padding: 12px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); margin-top: 10px; }
-        .btn-logout { width: auto; background: #fee2e2; color: #ef4444; padding: 8px 16px; }
+        .btn-logout { background: #fee2e2; color: #ef4444; padding: 8px 16px; }
 
         .card { background: var(--white); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; }
         .resource-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; }
         .resource-item:last-child { border-bottom: none; }
-        .resource-item:hover { background: #f1f5f9; }
-        
-        .badge { font-size: 12px; padding: 4px 8px; border-radius: 4px; background: #e0f2fe; color: #0369a1; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -60,11 +55,10 @@
 <div id="login-section" class="auth-container">
     <div class="auth-card">
         <h2>Student Access</h2>
-        <p>Sign in to view your course materials</p>
         <input type="email" id="email" placeholder="student@university.edu">
-        <input type="password" id="password" placeholder="••••••••">
-        <button class="btn btn-primary" onclick="signIn()">Sign In</button>
-        <button class="btn btn-outline" onclick="signUp()">Register New Account</button>
+        <input type="password" id="password" placeholder="Password">
+        <button class="btn btn-primary" style="width:100%" onclick="signIn()">Sign In</button>
+        <button class="btn" style="width:100%; margin-top:10px; background: #f1f5f9;" onclick="signUp()">Register Account</button>
     </div>
 </div>
 
@@ -72,55 +66,83 @@
     <aside class="sidebar">
         <h1><i class="fas fa-graduation-cap"></i> EduPortal</h1>
         <nav>
-            <a href="#" class="nav-link active"><i class="fas fa-home"></i> Dashboard</a>
-            <a href="#" class="nav-link"><i class="fas fa-book"></i> Modules</a>
-            <a href="#" class="nav-link"><i class="fas fa-tasks"></i> Assignments</a>
+            <button class="nav-link active" id="nav-dashboard" onclick="showTab('dashboard')"><i class="fas fa-home"></i> Dashboard</button>
+            <button class="nav-link" id="nav-modules" onclick="showTab('modules')"><i class="fas fa-book"></i> Modules</button>
+            <button class="nav-link" id="nav-assignments" onclick="showTab('assignments')"><i class="fas fa-tasks"></i> Assignments</button>
         </nav>
+        <button class="nav-link" style="margin-top:auto" onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </aside>
 
     <main class="main-content">
         <div class="header">
-            <div>
-                <h2 id="user-welcome">Welcome back, Student</h2>
-                <p style="color: var(--text-muted)">Here is what's new in your courses.</p>
+            <h2 id="tab-title">Dashboard</h2>
+            <p id="user-welcome" style="color: var(--text-muted)"></p>
+        </div>
+
+        <div id="tab-dashboard" class="tab-content">
+            <div class="card" style="border-left: 5px solid var(--primary);">
+                <h3 style="color: var(--primary)"><i class="fas fa-bullhorn"></i> Announcements</h3>
+                <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+                <p><strong>Apr 26:</strong> Final project rubrics are now available in the Assignments tab.</p>
+                <p style="margin-top: 10px;"><strong>Apr 20:</strong> Please review Module 01 before our next session.</p>
             </div>
-            <button class="btn btn-logout" onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
 
-        <div class="card" style="background: #eff6ff; border-color: #bfdbfe;">
-            <h3 style="color: #1e40af; margin-bottom: 8px;"><i class="fas fa-bullhorn"></i> Latest Announcement</h3>
-            <p style="color: #1e3a8a;">The mid-term project requirements have been updated. Please review Module 01 below.</p>
+        <div id="tab-modules" class="tab-content hidden">
+            <h3>Course Materials</h3>
+            <div class="card" style="padding: 0; margin-top: 20px;">
+                <div class="resource-item">
+                    <div><i class="fas fa-video" style="color: #ef4444; margin-right: 10px;"></i> <strong>Lecture 01: Introduction</strong></div>
+                    <a href="YOUR_VIDEO_LINK" class="btn" style="background: #f1f5f9; font-size: 12px;">Watch</a>
+                </div>
+                <div class="resource-item">
+                    <div><i class="fas fa-file-pdf" style="color: #3b82f6; margin-right: 10px;"></i> <strong>Module 01: Core Theory</strong></div>
+                    <a href="YOUR_PDF_LINK" class="btn" style="background: #f1f5f9; font-size: 12px;">Download</a>
+                </div>
+            </div>
         </div>
 
-        <h3>Course Materials</h3>
-        <div class="card" style="padding: 0;">
-            <a href="YOUR_VIDEO_LINK" class="resource-item">
-                <div>
-                    <i class="fas fa-play-circle" style="color: #ef4444; margin-right: 10px;"></i>
-                    <strong>Lecture 01: Course Orientation</strong>
+        <div id="tab-assignments" class="tab-content hidden">
+            <h3>Pending Tasks</h3>
+            <div class="card" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <h4>Assignment 01: Reflection Paper</h4>
+                    <span style="color: #e11d48; font-weight: bold; font-size: 12px;">DUE MAY 10</span>
                 </div>
-                <span class="badge">VIDEO</span>
-            </a>
-            <a href="YOUR_PDF_LINK" class="resource-item">
-                <div>
-                    <i class="fas fa-file-pdf" style="color: #3b82f6; margin-right: 10px;"></i>
-                    <strong>Module 01: Core Fundamentals</strong>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">Upload your link to your shared Google Doc or GitHub Repo.</p>
+                
+                <div style="margin-top: 20px;">
+                    <textarea id="assign1-submit" rows="2" placeholder="Paste your submission link here..."></textarea>
+                    <button class="btn btn-primary" style="padding: 8px 16px;" onclick="alert('Assignment Submitted!')">Submit Work</button>
                 </div>
-                <span class="badge">PDF</span>
-            </a>
+            </div>
         </div>
     </main>
 </div>
 
 <script>
-    // INITIALIZE SUPABASE
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
 
+    // TAB SWITCHING LOGIC
+    function showTab(tabName) {
+        // Update Title
+        document.getElementById('tab-title').innerText = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+        
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        
+        // Show selected tab
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        document.getElementById('nav-' + tabName).classList.add('active');
+    }
+
+    // AUTH LOGIC
     async function signUp() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const { error } = await _supabase.auth.signUp({ email, password });
-        if (error) alert(error.message); else alert("Registration successful! Please check your email.");
+        if (error) alert(error.message); else alert("Check your email for confirmation!");
     }
 
     async function signIn() {
@@ -138,7 +160,7 @@
     function showPortal(email) {
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
-        if(email) document.getElementById('user-welcome').innerText = `Welcome, ${email.split('@')[0]}`;
+        document.getElementById('user-welcome').innerText = `Logged in as: ${email}`;
     }
 
     _supabase.auth.getSession().then(({ data }) => {
