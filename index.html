@@ -157,16 +157,19 @@
                 </div>
                 <div class="input-group">
                     <i class="fas fa-id-card"></i>
-                    <input type="text" id="reg-id" placeholder="Student ID (e.g. 2026-1002)">
+                    <input type="text" id="reg-id" placeholder="Student ID">
                 </div>
                 
                 <div style="display:flex; gap:12px; margin-bottom:0;">
                     <div class="input-group" style="flex:1">
                         <select id="reg-grade" style="padding-left:14px;">
                             <option value="">Grade</option>
+                            <option value="Grade 7">7</option>
+                            <option value="Grade 8">8</option>
+                            <option value="Grade 9">9</option>
+                            <option value="Grade 10">10</option>
                             <option value="Grade 11">11</option>
                             <option value="Grade 12">12</option>
-                            <option value="College">College</option>
                         </select>
                     </div>
                     <div class="input-group" style="flex:1">
@@ -177,7 +180,7 @@
 
                 <div class="input-group">
                     <i class="fas fa-at"></i>
-                    <input type="email" id="reg-email" placeholder="School Email">
+                    <input type="email" id="reg-email" placeholder="Email">
                 </div>
                 <div class="input-group">
                     <i class="fas fa-key"></i>
@@ -189,7 +192,7 @@
                 </button>
                 
                 <p style="text-align:center; margin-top:24px; font-size:14px; color:var(--text-muted)">
-                    Already a student? <button class="btn-link" onclick="toggleAuth('login')">Sign In</button>
+                    Already have an account? <button class="btn-link" onclick="toggleAuth('login')">Sign In</button>
                 </p>
             </div>
         </div>
