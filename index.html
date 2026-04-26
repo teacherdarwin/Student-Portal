@@ -3,89 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Portal | Student Dashboard</title>
+    <title>Academic Portal | Management System</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
             --sidebar-bg: #0f172a;
-            --bg-body: #f8fafc;
+            --bg-body: #f1f5f9;
             --text-main: #1e293b;
             --text-muted: #64748b;
             --white: #ffffff;
             --border: #e2e8f0;
+            --radius: 12px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; height: 100vh; overflow: hidden; }
 
-        /* AUTH SECTION */
-        .auth-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        .auth-card { background: var(--white); padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
-        .auth-card h2 { text-align: center; margin-bottom: 20px; }
+        /* --- MODERN AUTH INTERFACE --- */
+        .auth-wrapper { display: flex; min-height: 100vh; width: 100%; background: #fff; }
 
-        /* LAYOUT */
-        .portal-layout { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 24px; position: fixed; height: 100vh; z-index: 10; display: flex; flex-direction: column; }
+        /* Left Side: Visual/Branding */
+        .auth-side-brand {
+            flex: 1.2;
+            background: linear-gradient(135deg, #1e293b 0%, #2563eb 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 60px;
+            position: relative;
+        }
+
+        .auth-side-brand::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('https://www.transparenttextures.com/patterns/cubes.png');
+            opacity: 0.1;
+        }
+
+        .brand-content { position: relative; z-index: 2; text-align: center; max-width: 450px; }
+        .brand-logo { font-size: 3rem; margin-bottom: 20px; }
+        .brand-content h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
+        .brand-content p { font-size: 1.1rem; color: #bfdbfe; font-weight: 300; }
+
+        /* Right Side: Form */
+        .auth-side-form {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: var(--white);
+        }
+
+        .auth-card { width: 100%; max-width: 400px; animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .auth-card h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+        .auth-card p.subtitle { color: var(--text-muted); margin-bottom: 32px; font-size: 0.95rem; }
+
+        /* Form Controls */
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group i { position: absolute; left: 14px; top: 16px; color: var(--text-muted); transition: 0.3s; }
         
-        /* STUDENT PROFILE DATA (TOP LEFT) */
-        .profile-header { background: #1e293b; padding: 16px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #334155; }
-        .profile-header h3 { font-size: 0.95rem; color: var(--white); margin-bottom: 4px; }
-        .profile-info { font-size: 0.75rem; color: #94a3b8; line-height: 1.4; }
-        .profile-info span { display: block; margin-bottom: 2px; }
-        .profile-info strong { color: #cbd5e1; }
+        input, select {
+            width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius);
+            font-size: 15px; transition: 0.2s; background: #f8fafc; color: var(--text-main);
+        }
 
-        .main-content { flex: 1; margin-left: 280px; padding: 40px; }
+        input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+        input:focus + i { color: var(--primary); }
 
-        /* NAVIGATION */
-        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px; border-radius: 8px; margin-bottom: 8px; transition: 0.3s; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; font-size: 0.95rem; }
-        .nav-link:hover, .nav-link.active { background: #334155; color: white; }
-        .nav-link i { margin-right: 10px; width: 20px; }
+        .btn { 
+            width: 100%; padding: 14px; border-radius: var(--radius); border: none; font-weight: 600; 
+            cursor: pointer; transition: 0.3s; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .btn-link { background: none; color: var(--primary); width: auto; padding: 0; font-size: 14px; margin-left: 5px; text-decoration: none; }
 
         .hidden { display: none !important; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; }
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-logout { background: #fee2e2; color: #ef4444; width: 100%; margin-top: auto; }
 
-        .card { background: var(--white); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; }
+        /* --- PORTAL LAYOUT --- */
+        .portal-layout { display: flex; min-height: 100vh; background: var(--bg-body); }
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 24px; position: fixed; height: 100vh; display: flex; flex-direction: column; }
+        .main-content { flex: 1; margin-left: 280px; padding: 40px; height: 100vh; overflow-y: auto; }
+        
+        .profile-header { background: rgba(255,255,255,0.05); padding: 20px; border-radius: var(--radius); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .profile-header h3 { font-size: 1rem; margin-bottom: 8px; }
+        .profile-info { font-size: 0.8rem; color: #94a3b8; line-height: 1.6; }
+
+        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background: #334155; color: white; }
+        .nav-link i { margin-right: 12px; width: 18px; text-align: center; }
+
+        .card { background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+        @media (max-width: 900px) {
+            .auth-side-brand { display: none; }
+        }
     </style>
 </head>
 <body>
 
-<div id="login-section" class="auth-container">
-    <div class="auth-card">
-        <div id="login-form">
-            <h2>Student Sign In</h2>
-            <input type="email" id="login-email" placeholder="Email Address">
-            <input type="password" id="login-password" placeholder="Password">
-            <button class="btn btn-primary" onclick="signIn()">Sign In</button>
-            <p style="text-align:center; margin-top:15px; font-size:14px; color:var(--text-muted)">
-                New here? <a href="#" onclick="toggleAuth('register')" style="color:var(--primary)">Create Account</a>
-            </p>
+<div id="login-section" class="auth-wrapper">
+    <div class="auth-side-brand">
+        <div class="brand-content">
+            <div class="brand-logo"><i class="fas fa-graduation-cap"></i></div>
+            <h1>Academic Excellence Portal</h1>
+            <p>Access your modules, track your assignments, and stay connected with your educators in one unified workspace.</p>
         </div>
-
-        <div id="register-form" class="hidden">
-            <h2>Create Account</h2>
-            <input type="text" id="reg-username" placeholder="Full Name / Preferred Username">
-            <input type="text" id="reg-id" placeholder="Student ID (e.g. 2026-1002)">
-            <div style="display:flex; gap:10px;">
-                <select id="reg-grade">
-                    <option value="">Select Grade</option>
-                    <option value="Grade 11">Grade 11</option>
-                    <option value="Grade 12">Grade 12</option>
-                    <option value="College">College</option>
-                </select>
-                <input type="text" id="reg-section" placeholder="Section (e.g. STEM-A)">
+    </div>
+    
+    <div class="auth-side-form">
+        <div class="auth-card">
+            <div id="login-form">
+                <h2>Welcome Back</h2>
+                <p class="subtitle">Please enter your credentials to access your dashboard.</p>
+                
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="login-email" placeholder="Email Address">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="Password">
+                </div>
+                
+                <button class="btn btn-primary" onclick="signIn()">
+                    Sign In <i class="fas fa-arrow-right"></i>
+                </button>
+                
+                <p style="text-align:center; margin-top:24px; font-size:14px; color:var(--text-muted)">
+                    Don't have an account? <button class="btn-link" onclick="toggleAuth('register')">Create one now</button>
+                </p>
             </div>
-            <input type="email" id="reg-email" placeholder="School Email Address">
-            <input type="password" id="reg-password" placeholder="Create Password">
-            <button class="btn btn-primary" onclick="signUp()">Register & Join</button>
-            <p style="text-align:center; margin-top:15px; font-size:14px; color:var(--text-muted)">
-                Already have an account? <a href="#" onclick="toggleAuth('login')" style="color:var(--primary)">Sign In</a>
-            </p>
+
+            <div id="register-form" class="hidden">
+                <h2>Join the Portal</h2>
+                <p class="subtitle">Set up your student profile to get started.</p>
+                
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="reg-username" placeholder="Full Name">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="reg-id" placeholder="Student ID (e.g. 2026-1002)">
+                </div>
+                
+                <div style="display:flex; gap:12px; margin-bottom:0;">
+                    <div class="input-group" style="flex:1">
+                        <select id="reg-grade" style="padding-left:14px;">
+                            <option value="">Grade</option>
+                            <option value="Grade 11">11</option>
+                            <option value="Grade 12">12</option>
+                            <option value="College">College</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="flex:1">
+                        <i class="fas fa-users" style="left:10px;"></i>
+                        <input type="text" id="reg-section" placeholder="Section" style="padding-left:34px;">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <i class="fas fa-at"></i>
+                    <input type="email" id="reg-email" placeholder="School Email">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="reg-password" placeholder="Password">
+                </div>
+
+                <button class="btn btn-primary" onclick="signUp()">
+                    Create Account <i class="fas fa-user-plus"></i>
+                </button>
+                
+                <p style="text-align:center; margin-top:24px; font-size:14px; color:var(--text-muted)">
+                    Already a student? <button class="btn-link" onclick="toggleAuth('login')">Sign In</button>
+                </p>
+            </div>
         </div>
     </div>
 </div>
@@ -95,33 +201,40 @@
         <div class="profile-header">
             <h3 id="display-name">Loading...</h3>
             <div class="profile-info">
-                <span>ID: <strong id="display-id">---</strong></span>
-                <span>Level: <strong id="display-level">---</strong></span>
-                <span>Email: <strong id="display-email">---</strong></span>
+                <span><i class="fas fa-id-badge" style="width:14px"></i> <strong id="display-id">---</strong></span>
+                <span><i class="fas fa-layer-group" style="width:14px"></i> <strong id="display-level">---</strong></span>
+                <span style="display:block; margin-top:5px; opacity:0.7; font-size:11px" id="display-email"></span>
             </div>
         </div>
 
-        <nav>
-            <button class="nav-link active" id="nav-dashboard" onclick="showTab('dashboard')"><i class="fas fa-home"></i> Dashboard</button>
-            <button class="nav-link" id="nav-modules" onclick="showTab('modules')"><i class="fas fa-book"></i> Modules</button>
-            <button class="nav-link" id="nav-assignments" onclick="showTab('assignments')"><i class="fas fa-tasks"></i> Assignments</button>
+        <nav style="flex:1">
+            <button class="nav-link active" id="nav-dashboard" onclick="showTab('dashboard')"><i class="fas fa-columns"></i> Dashboard</button>
+            <button class="nav-link" id="nav-modules" onclick="showTab('modules')"><i class="fas fa-folder-open"></i> Learning Modules</button>
+            <button class="nav-link" id="nav-assignments" onclick="showTab('assignments')"><i class="fas fa-clipboard-list"></i> Assignments</button>
         </nav>
         
-        <button class="btn btn-logout" onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        <button class="btn btn-logout" style="background:#334155; color:#fca5a5; margin-bottom:10px;" onclick="signOut()">
+            <i class="fas fa-power-off"></i> Logout
+        </button>
     </aside>
 
     <main class="main-content">
-        <h2 id="tab-title" style="margin-bottom:30px;">Dashboard</h2>
+        <h2 id="tab-title" style="font-size:2rem; font-weight:800; margin-bottom:32px;">Dashboard</h2>
         
         <div id="tab-dashboard" class="tab-content">
-            <div class="card" style="border-left: 5px solid var(--primary);">
-                <h3><i class="fas fa-bullhorn"></i> Welcome to the Portal</h3>
-                <p style="margin-top:10px;">Select a tab on the left to access your resources or submit assignments.</p>
+            <div class="card" style="border-top: 4px solid var(--primary);">
+                <h3 style="display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-sparkles" style="color:#eab308"></i> 
+                    Welcome back to your workspace
+                </h3>
+                <p style="margin-top:15px; color:var(--text-muted);">
+                    All your course materials and upcoming deadlines are synchronized and ready for you to explore.
+                </p>
             </div>
         </div>
 
-        <div id="tab-modules" class="tab-content hidden"><div class="card">Modules content goes here.</div></div>
-        <div id="tab-assignments" class="tab-content hidden"><div class="card">Assignments content goes here.</div></div>
+        <div id="tab-modules" class="tab-content hidden"><div class="card"><h3>Curriculum Modules</h3><p>Materials loading...</p></div></div>
+        <div id="tab-assignments" class="tab-content hidden"><div class="card"><h3>Active Tasks</h3><p>No pending submissions.</p></div></div>
     </main>
 </div>
 
@@ -129,12 +242,20 @@
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
 
     function toggleAuth(type) {
-        document.getElementById('login-form').classList.toggle('hidden', type === 'register');
-        document.getElementById('register-form').classList.toggle('hidden', type === 'login');
+        const login = document.getElementById('login-form');
+        const register = document.getElementById('register-form');
+        if(type === 'register') {
+            login.classList.add('hidden');
+            register.classList.remove('hidden');
+        } else {
+            register.classList.add('hidden');
+            login.classList.remove('hidden');
+        }
     }
 
     function showTab(tabName) {
-        document.getElementById('tab-title').innerText = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+        document.getElementById('tab-title').innerText = tabName === 'dashboard' ? 'Dashboard' : 
+                                                        tabName === 'modules' ? 'Learning Modules' : 'Assignments';
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
         document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.remove('hidden');
@@ -149,6 +270,8 @@
         const grade = document.getElementById('reg-grade').value;
         const section = document.getElementById('reg-section').value;
 
+        if(!email || !password) return alert("Please fill in required fields.");
+
         const { data, error } = await _supabase.auth.signUp({
             email,
             password,
@@ -162,7 +285,7 @@
         });
 
         if (error) alert(error.message);
-        else alert("Registration successful! Check your email to confirm.");
+        else alert("Registration initiated! Check your email for verification.");
     }
 
     async function signIn() {
@@ -176,11 +299,10 @@
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
         
-        // Extract data from Supabase Metadata
         const meta = user.user_metadata;
         document.getElementById('display-name').innerText = meta.display_name || "New Student";
-        document.getElementById('display-id').innerText = meta.student_id || "N/A";
-        document.getElementById('display-level').innerText = meta.level_info || "Not Set";
+        document.getElementById('display-id').innerText = meta.student_id || "No ID Set";
+        document.getElementById('display-level').innerText = meta.level_info || "Unassigned";
         document.getElementById('display-email').innerText = user.email;
     }
 
