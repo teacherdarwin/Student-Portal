@@ -153,6 +153,7 @@
             <button class="nav-link active" id="nav-dashboard" onclick="showTab('dashboard')"><i class="fas fa-columns"></i> Dashboard</button>
             <button class="nav-link" id="nav-modules" onclick="showTab('modules')"><i class="fas fa-folder-open"></i> Learning Modules</button>
             <button class="nav-link" id="nav-assignments" onclick="showTab('assignments')"><i class="fas fa-clipboard-list"></i> Assignments</button>
+            <button class="nav-link" id="nav-view" onclick="showTab('view'); fetchSubmissions();"><i class="fas fa-eye"></i> View Submissions</button>
         </nav>
         <button class="btn btn-logout" style="background:#334155; color:#fca5a5;" onclick="signOut()"><i class="fas fa-power-off"></i> Logout</button>
     </aside>
@@ -180,8 +181,6 @@
         <div id="tab-assignments" class="tab-content hidden">
             <div class="card">
                 <h3>Active Assignments</h3>
-                <p style="color:var(--text-muted); margin-bottom: 20px;">Review your tasks and click submit to upload your work.</p>
-                
                 <div class="list-item">
                     <div>
                         <h4 style="margin:0">Exercise 1: Basic Web Layout</h4>
@@ -191,15 +190,15 @@
                         <i class="fas fa-upload"></i> Submit
                     </button>
                 </div>
+            </div>
+        </div>
 
-                <div class="list-item">
-                    <div>
-                        <h4 style="margin:0">Exercise 2: Responsive Navigation</h4>
-                        <span style="font-size: 12px; color: var(--text-muted)">Due: Friday, May 1st</span>
-                    </div>
-                    <button class="btn btn-primary" style="width: auto; padding: 8px 16px;" onclick="openSubmitModal('Exercise 2: Responsive Navigation')">
-                        <i class="fas fa-upload"></i> Submit
-                    </button>
+        <div id="tab-view" class="tab-content hidden">
+            <div class="card">
+                <h3>Class Submissions</h3>
+                <p style="color:var(--text-muted); margin-bottom: 20px;">These files are currently stored in your 'assignments' bucket.</p>
+                <div id="submission-list">
+                    <p>Loading files...</p>
                 </div>
             </div>
         </div>
@@ -210,19 +209,20 @@
     <div class="modal-card">
         <button onclick="closeSubmitModal()" style="position:absolute; top:20px; right:20px; border:none; background:none; cursor:pointer; font-size:1.2rem; color:var(--text-muted)"><i class="fas fa-times"></i></button>
         <h3 id="modal-task-name">Submit Assignment</h3>
-        <p style="font-size:14px; color:var(--text-muted)">Please ensure your file is named with your Student ID.</p>
+        <p style="font-size:14px; color:var(--text-muted)">Ensure your file name includes your Student ID.</p>
         
         <div class="dropzone">
             <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 10px;"></i>
             <h4 style="font-size:15px">Click or Drag File</h4>
             <input type="file" id="file-upload" style="margin: 15px 0; font-size: 12px; width: 100%;">
-            <button class="btn btn-primary" onclick="handleUpload()">Confirm Submission</button>
+            <button id="upload-btn" class="btn btn-primary" onclick="handleUpload()">Confirm Submission</button>
         </div>
     </div>
 </div>
 
 <script>
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
+    let currentUser = null;
 
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
@@ -230,7 +230,7 @@
     }
 
     function showTab(tabName) {
-        const titles = { dashboard: 'Dashboard', modules: 'Learning Modules', assignments: 'Assignments' };
+        const titles = { dashboard: 'Dashboard', modules: 'Learning Modules', assignments: 'Assignments', view: 'Class Submissions' };
         document.getElementById('tab-title').innerText = titles[tabName];
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
         document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
@@ -238,7 +238,6 @@
         document.getElementById('nav-' + tabName).classList.add('active');
     }
 
-    // Modal Control Functions
     function openSubmitModal(taskName) {
         document.getElementById('modal-task-name').innerText = taskName;
         document.getElementById('submit-modal').classList.remove('hidden');
@@ -246,14 +245,80 @@
 
     function closeSubmitModal() {
         document.getElementById('submit-modal').classList.add('hidden');
-        document.getElementById('file-upload').value = ""; // Reset file input
+        document.getElementById('file-upload').value = "";
     }
 
-    function handleUpload() {
-        const file = document.getElementById('file-upload').files[0];
-        if(!file) return alert("Please select a file first.");
-        alert("Submission Received for: " + document.getElementById('modal-task-name').innerText);
-        closeSubmitModal();
+    // --- LOGIC TO UPLOAD TO BUCKET ---
+    async function handleUpload() {
+        const fileInput = document.getElementById('file-upload');
+        const file = fileInput.files[0];
+        const taskName = document.getElementById('modal-task-name').innerText;
+        const btn = document.getElementById('upload-btn');
+
+        if(!file) return alert("Please select a file.");
+
+        btn.innerText = "Uploading...";
+        btn.disabled = true;
+
+        // Create a unique file path: studentID_taskName_filename
+        const studentId = currentUser.user_metadata.student_id || 'unknown';
+        const fileName = `${studentId}_${taskName.replace(/\s+/g, '_')}_${file.name}`;
+
+        const { data, error } = await _supabase.storage
+            .from('assignments')
+            .upload(fileName, file);
+
+        if (error) {
+            alert("Error: " + error.message);
+            btn.innerText = "Confirm Submission";
+            btn.disabled = false;
+        } else {
+            alert("File successfully uploaded to bucket!");
+            closeSubmitModal();
+            btn.innerText = "Confirm Submission";
+            btn.disabled = false;
+        }
+    }
+
+    // --- LOGIC TO VIEW BUCKET CONTENT ---
+    async function fetchSubmissions() {
+        const listDiv = document.getElementById('submission-list');
+        listDiv.innerHTML = "<p>Scanning bucket...</p>";
+
+        const { data, error } = await _supabase.storage
+            .from('assignments')
+            .list('', { limit: 100, sortBy: { column: 'name', order: 'desc' }});
+
+        if (error) {
+            listDiv.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+            return;
+        }
+
+        if (data.length === 0) {
+            listDiv.innerHTML = "<p>No submissions found in bucket yet.</p>";
+            return;
+        }
+
+        listDiv.innerHTML = "";
+        data.forEach(item => {
+            if(item.name === '.emptyFolderPlaceholder') return;
+            
+            const div = document.createElement('div');
+            div.className = "list-item";
+            div.innerHTML = `
+                <div>
+                    <h4 style="margin:0">${item.name}</h4>
+                    <span style="font-size:12px; color:var(--text-muted)">Size: ${(item.metadata.size / 1024).toFixed(2)} KB</span>
+                </div>
+                <button class="btn btn-primary" style="width:auto; padding:8px 16px;" onclick="downloadFile('${item.name}')">View</button>
+            `;
+            listDiv.appendChild(div);
+        });
+    }
+
+    async function downloadFile(name) {
+        const { data } = _supabase.storage.from('assignments').getPublicUrl(name);
+        window.open(data.publicUrl, '_blank');
     }
 
     async function signUp() {
@@ -278,6 +343,7 @@
     }
 
     function showPortal(user) {
+        currentUser = user;
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
         const meta = user.user_metadata;
