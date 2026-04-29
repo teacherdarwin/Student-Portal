@@ -25,11 +25,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; height: 100vh; overflow: hidden; }
 
-        /* --- AUTH INTERFACE --- */
+        /* --- AUTH --- */
         .auth-wrapper { display: flex; min-height: 100vh; width: 100%; background: #fff; }
         .auth-side-brand {
-            flex: 1.2;
-            background: linear-gradient(135deg, #1e293b 0%, #8b5cf6 100%);
+            flex: 1.2; background: linear-gradient(135deg, #1e293b 0%, #8b5cf6 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             color: white; padding: 60px; position: relative;
         }
@@ -43,36 +42,33 @@
 
         .input-group { margin-bottom: 20px; position: relative; }
         .input-group i { position: absolute; left: 14px; top: 16px; color: var(--text-muted); }
-        input, select { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; }
+        input, select { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; outline: none; }
+        input:focus { border-color: var(--teacher-accent); }
 
         .btn { width: 100%; padding: 14px; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-teacher { background: var(--teacher-accent); color: white; }
-        .btn-teacher:hover { filter: brightness(1.1); }
+        .btn-teacher:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
         .hidden { display: none !important; }
 
-        /* --- PORTAL LAYOUT --- */
+        /* --- LAYOUT --- */
         .portal-layout { display: flex; min-height: 100vh; background: var(--bg-body); }
         .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 24px; position: fixed; height: 100vh; display: flex; flex-direction: column; }
         .main-content { flex: 1; margin-left: 280px; padding: 40px; height: 100vh; overflow-y: auto; }
         
         .role-badge { background: var(--teacher-accent); color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; display: inline-block; }
-
-        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; }
+        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; transition: 0.2s; }
         .nav-link:hover, .nav-link.active { background: #334155; color: white; }
 
-        .card { background: var(--white); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; }
+        .card { background: var(--white); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         
-        /* --- TABLE STYLES --- */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; padding: 12px; color: var(--text-muted); font-size: 13px; border-bottom: 1px solid var(--border); }
         td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-        
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #dcfce7; color: #166534; }
+        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #e0e7ff; color: #4338ca; }
 
-        /* --- MODAL STYLES --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 32px; border-radius: var(--radius); width: 100%; max-width: 500px; position: relative; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 32px; border-radius: var(--radius); width: 100%; max-width: 500px; position: relative; animation: slideUp 0.3s ease-out; }
 
         @media (max-width: 900px) { .auth-side-brand { display: none; } .main-content { margin-left: 0; } .sidebar { display: none; } }
     </style>
@@ -82,11 +78,11 @@
 <div id="resource-modal" class="modal-overlay hidden">
     <div class="modal-content">
         <h3 style="margin-bottom: 20px;">Add New Resource</h3>
-        <div class="input-group"><i class="fas fa-tag"></i><input type="text" id="res-title" placeholder="Title (e.g. Algebra 101)"></div>
+        <div class="input-group"><i class="fas fa-tag"></i><input type="text" id="res-title" placeholder="Title (e.g. Unit 2: Calculus)"></div>
         <div class="input-group">
             <i class="fas fa-list"></i>
             <select id="res-type" style="padding-left: 42px;">
-                <option value="Module">Module (PDF/Link)</option>
+                <option value="Module">Learning Module</option>
                 <option value="Assignment">Assignment</option>
             </select>
         </div>
@@ -110,11 +106,10 @@
         <div class="auth-card">
             <div id="login-form">
                 <h2>Teacher Login</h2>
-                <p style="color:var(--text-muted); margin-bottom:20px;">Access your management dashboard</p>
                 <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="Faculty Email"></div>
                 <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Password"></div>
                 <button class="btn btn-teacher" onclick="signIn()">Enter Dashboard</button>
-                <p style="text-align:center; margin-top:24px; font-size:14px;">Need access? <button style="color:var(--teacher-accent); border:none; background:none; cursor:pointer;" onclick="toggleAuth('register')">Register as Faculty</button></p>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Need access? <button style="color:var(--teacher-accent); border:none; background:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('register')">Register as Faculty</button></p>
             </div>
             <div id="register-form" class="hidden">
                 <h2>Faculty Registration</h2>
@@ -123,7 +118,7 @@
                 <div class="input-group"><i class="fas fa-at"></i><input type="email" id="reg-email" placeholder="Email"></div>
                 <div class="input-group"><i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="Create Password"></div>
                 <button class="btn btn-teacher" onclick="signUp()">Create Faculty Account</button>
-                <p style="text-align:center; margin-top:24px; font-size:14px;">Already registered? <button style="color:var(--teacher-accent); border:none; background:none; cursor:pointer;" onclick="toggleAuth('login')">Sign In</button></p>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Already registered? <button style="color:var(--teacher-accent); border:none; background:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('login')">Sign In</button></p>
             </div>
         </div>
     </div>
@@ -131,15 +126,15 @@
 
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
-        <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: var(--radius); margin-bottom: 25px;">
+        <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: var(--radius); margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1);">
             <span class="role-badge">Faculty Access</span>
-            <h3 id="display-name" style="font-size: 1rem;">Prof. Name</h3>
-            <p id="display-id" style="font-size: 0.8rem; color: #94a3b8;">ID: 0000</p>
+            <h3 id="display-name" style="font-size: 1rem;">Prof. Loading...</h3>
+            <p id="display-id" style="font-size: 0.8rem; color: #94a3b8;">ID: ----</p>
         </div>
         <nav style="flex:1">
             <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-chart-line"></i> Overview</button>
-            <button class="nav-link" id="nav-manage-modules" onclick="showTab('manage-modules'); fetchResources();"><i class="fas fa-book"></i> Manage Modules</button>
-            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions'); fetchSubmissions();"><i class="fas fa-inbox"></i> Student Submissions</button>
+            <button class="nav-link" id="nav-manage-modules" onclick="showTab('manage-modules')"><i class="fas fa-book"></i> Manage Modules</button>
+            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-inbox"></i> Student Submissions</button>
         </nav>
         <button class="btn" style="background:#334155; color:#fca5a5;" onclick="signOut()"><i class="fas fa-power-off"></i> Logout</button>
     </aside>
@@ -151,18 +146,14 @@
         </header>
         
         <div id="tab-overview" class="tab-content">
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
                 <div class="card">
-                    <span style="color:var(--text-muted); font-size:12px;">Active Students</span>
+                    <span style="color:var(--text-muted); font-size:12px;">Current Capacity</span>
                     <h2 style="font-size:2rem;">42</h2>
                 </div>
                 <div class="card">
-                    <span style="color:var(--text-muted); font-size:12px;">Pending Submissions</span>
-                    <h2 style="font-size:2rem; color:var(--teacher-accent);">18</h2>
-                </div>
-                <div class="card">
-                    <span style="color:var(--text-muted); font-size:12px;">Total Resources</span>
-                    <h2 id="total-res-count" style="font-size:2rem;">0</h2>
+                    <span style="color:var(--text-muted); font-size:12px;">Active Modules</span>
+                    <h2 id="total-res-count" style="font-size:2rem; color:var(--teacher-accent);">0</h2>
                 </div>
             </div>
         </div>
@@ -172,10 +163,9 @@
                 <h3>Live Learning Resources</h3>
                 <table>
                     <thead>
-                        <tr><th>Title</th><th>Type</th><th>URL</th><th>Action</th></tr>
+                        <tr><th>Title</th><th>Type</th><th>Status</th><th>Action</th></tr>
                     </thead>
-                    <tbody id="resource-list">
-                        </tbody>
+                    <tbody id="resource-list"></tbody>
                 </table>
             </div>
         </div>
@@ -183,16 +173,14 @@
         <div id="tab-submissions" class="tab-content hidden">
             <div class="card">
                 <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <h3>All Student Uploads</h3>
-                    <button class="btn" style="width:auto; padding:5px 15px; background:#f1f5f9; font-size:12px;" onclick="fetchSubmissions()"><i class="fas fa-sync"></i> Refresh List</button>
+                    <h3>Student Uploads</h3>
+                    <button class="btn" style="width:auto; padding:5px 15px; background:#f1f5f9; font-size:12px;" onclick="fetchSubmissions()"><i class="fas fa-sync"></i> Refresh</button>
                 </div>
                 <table>
                     <thead>
-                        <tr><th>File Name</th><th>Size</th><th>Date</th><th>Action</th></tr>
+                        <tr><th>Student File</th><th>Size</th><th>Date</th><th>Action</th></tr>
                     </thead>
-                    <tbody id="submission-list">
-                        <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">Loading files...</td></tr>
-                    </tbody>
+                    <tbody id="submission-list"></tbody>
                 </table>
             </div>
         </div>
@@ -203,11 +191,7 @@
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
 
-    // --- MODAL & UI HELPERS ---
-    function toggleModal(show) {
-        document.getElementById('resource-modal').classList.toggle('hidden', !show);
-    }
-
+    function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
@@ -220,67 +204,62 @@
         document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.remove('hidden');
         document.getElementById('nav-' + (tabName === 'manage-modules' ? 'manage-modules' : tabName)).classList.add('active');
+        
+        if(tabName === 'manage-modules') fetchResources();
+        if(tabName === 'submissions') fetchSubmissions();
     }
 
-    // --- DATA ACTIONS ---
+    // --- LOGIC ---
     async function saveResource() {
         const title = document.getElementById('res-title').value;
         const type = document.getElementById('res-type').value;
         const url = document.getElementById('res-url').value;
 
-        if (!title || !url) return alert("Please fill in all fields");
+        if (!title || !url) return alert("All fields are required.");
 
-        const { error } = await _supabase.from('resources').insert([
-            { title, type, url, created_by: currentUser.id }
-        ]);
+        const { error } = await _supabase.from('resources').insert([{ title, type, url, created_by: currentUser.id }]);
 
-        if (error) {
-            alert("Error saving: " + error.message);
-        } else {
-            alert("Resource Added!");
+        if (error) alert(error.message);
+        else {
+            alert("Resource Published!");
             toggleModal(false);
-            fetchResources(); // Refresh the list
+            fetchResources();
+            document.getElementById('res-title').value = "";
+            document.getElementById('res-url').value = "";
         }
     }
 
     async function fetchResources() {
         const tbody = document.getElementById('resource-list');
         const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
-
         if (error) return;
 
         document.getElementById('total-res-count').innerText = data.length;
-        tbody.innerHTML = "";
+        tbody.innerHTML = data.length ? "" : "<tr><td colspan='4'>No resources found.</td></tr>";
+        
         data.forEach(res => {
             tbody.innerHTML += `
                 <tr>
                     <td style="font-weight:600">${res.title}</td>
-                    <td><span class="status-pill" style="background:#e0e7ff; color:#4338ca">${res.type}</span></td>
-                    <td><a href="${res.url}" target="_blank" style="color:var(--primary)">View Link</a></td>
-                    <td><button onclick="deleteResource(${res.id})" style="border:none; background:none; color:#ef4444; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
-                </tr>
-            `;
+                    <td><span class="status-pill">${res.type}</span></td>
+                    <td><a href="${res.url}" target="_blank" style="color:var(--primary); text-decoration:none;">Link <i class="fas fa-external-link-alt" style="font-size:10px"></i></a></td>
+                    <td><button onclick="deleteResource(${res.id})" style="border:none; background:none; color:#ef4444; cursor:pointer;"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>`;
         });
     }
 
     async function deleteResource(id) {
-        if(!confirm("Are you sure?")) return;
-        await _supabase.from('resources').delete().eq('id', id);
-        fetchResources();
+        if(!confirm("Permanently delete this resource?")) return;
+        const { error } = await _supabase.from('resources').delete().eq('id', id);
+        if (error) alert(error.message); else fetchResources();
     }
 
     async function fetchSubmissions() {
         const tbody = document.getElementById('submission-list');
-        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Accessing storage...</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='4'>Scanning storage...</td></tr>";
 
-        const { data, error } = await _supabase.storage
-            .from('assignments')
-            .list('', { limit: 100, sortBy: { column: 'name', order: 'desc' }});
-
-        if (error) {
-            tbody.innerHTML = `<tr><td colspan='4' style='color:red'>Error: ${error.message}</td></tr>`;
-            return;
-        }
+        const { data, error } = await _supabase.storage.from('assignments').list('', { sortBy: { column: 'created_at', order: 'desc' }});
+        if (error) { tbody.innerHTML = "<tr><td colspan='4'>Error loading storage.</td></tr>"; return; }
 
         tbody.innerHTML = "";
         data.forEach(item => {
@@ -288,15 +267,14 @@
             tbody.innerHTML += `
                 <tr>
                     <td style="font-weight:600">${item.name}</td>
-                    <td>${(item.metadata.size / 1024).toFixed(2)} KB</td>
+                    <td>${(item.metadata.size / 1024).toFixed(1)} KB</td>
                     <td>${new Date(item.created_at).toLocaleDateString()}</td>
-                    <td><button class="btn btn-teacher" style="padding:6px 12px; font-size:12px; width:auto;" onclick="downloadFile('${item.name}')">Download</button></td>
-                </tr>
-            `;
+                    <td><button class="btn btn-teacher" style="padding:6px 12px; font-size:11px; width:auto;" onclick="downloadFile('${item.name}')">Download</button></td>
+                </tr>`;
         });
     }
 
-    async function downloadFile(name) {
+    function downloadFile(name) {
         const { data } = _supabase.storage.from('assignments').getPublicUrl(name);
         window.open(data.publicUrl, '_blank');
     }
@@ -309,11 +287,10 @@
             email, password,
             options: { data: { 
                 display_name: document.getElementById('reg-username').value,
-                employee_id: document.getElementById('reg-id').value,
-                level_info: "Faculty/Teacher"
+                employee_id: document.getElementById('reg-id').value
             }}
         });
-        if (error) alert(error.message); else alert("Teacher account created! Verify your email.");
+        if (error) alert(error.message); else alert("Registration complete! Check your inbox.");
     }
 
     async function signIn() {
@@ -330,11 +307,10 @@
         const meta = user.user_metadata;
         document.getElementById('display-name').innerText = meta.display_name || "Faculty Member";
         document.getElementById('display-id').innerText = "ID: " + (meta.employee_id || "N/A");
-        fetchResources(); // Load data on login
+        fetchResources();
     }
 
     async function signOut() { await _supabase.auth.signOut(); location.reload(); }
-
     _supabase.auth.getSession().then(({ data }) => { if (data.session) showPortal(data.session.user); });
 </script>
 
