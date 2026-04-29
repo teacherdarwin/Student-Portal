@@ -12,7 +12,7 @@
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
-            --teacher-accent: #8b5cf6; /* Purple accent for teacher role */
+            --teacher-accent: #8b5cf6;
             --sidebar-bg: #0f172a;
             --bg-body: #f1f5f9;
             --text-main: #1e293b;
@@ -43,7 +43,7 @@
 
         .input-group { margin-bottom: 20px; position: relative; }
         .input-group i { position: absolute; left: 14px; top: 16px; color: var(--text-muted); }
-        input { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; }
+        input, select { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; }
 
         .btn { width: 100%; padding: 14px; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-teacher { background: var(--teacher-accent); color: white; }
@@ -70,10 +70,33 @@
         
         .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #dcfce7; color: #166534; }
 
+        /* --- MODAL STYLES --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 32px; border-radius: var(--radius); width: 100%; max-width: 500px; position: relative; }
+
         @media (max-width: 900px) { .auth-side-brand { display: none; } .main-content { margin-left: 0; } .sidebar { display: none; } }
     </style>
 </head>
 <body>
+
+<div id="resource-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 20px;">Add New Resource</h3>
+        <div class="input-group"><i class="fas fa-tag"></i><input type="text" id="res-title" placeholder="Title (e.g. Algebra 101)"></div>
+        <div class="input-group">
+            <i class="fas fa-list"></i>
+            <select id="res-type" style="padding-left: 42px;">
+                <option value="Module">Module (PDF/Link)</option>
+                <option value="Assignment">Assignment</option>
+            </select>
+        </div>
+        <div class="input-group"><i class="fas fa-link"></i><input type="text" id="res-url" placeholder="Resource Link or File URL"></div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-teacher" onclick="saveResource()">Save Resource</button>
+            <button class="btn" style="background:#e2e8f0;" onclick="toggleModal(false)">Cancel</button>
+        </div>
+    </div>
+</div>
 
 <div id="login-section" class="auth-wrapper">
     <div class="auth-side-brand">
@@ -115,8 +138,7 @@
         </div>
         <nav style="flex:1">
             <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-chart-line"></i> Overview</button>
-            <button class="nav-link" id="nav-manage-modules" onclick="showTab('manage-modules')"><i class="fas fa-book"></i> Manage Modules</button>
-            <button class="nav-link" id="nav-manage-assignments" onclick="showTab('manage-assignments')"><i class="fas fa-tasks"></i> Assignments</button>
+            <button class="nav-link" id="nav-manage-modules" onclick="showTab('manage-modules'); fetchResources();"><i class="fas fa-book"></i> Manage Modules</button>
             <button class="nav-link" id="nav-submissions" onclick="showTab('submissions'); fetchSubmissions();"><i class="fas fa-inbox"></i> Student Submissions</button>
         </nav>
         <button class="btn" style="background:#334155; color:#fca5a5;" onclick="signOut()"><i class="fas fa-power-off"></i> Logout</button>
@@ -125,7 +147,7 @@
     <main class="main-content">
         <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px;">
             <h2 id="tab-title" style="font-size:2rem; font-weight:800;">Overview</h2>
-            <button class="btn btn-teacher" style="width:auto; padding: 10px 20px; font-size: 14px;"><i class="fas fa-plus"></i> New Resource</button>
+            <button class="btn btn-teacher" style="width:auto; padding: 10px 20px; font-size: 14px;" onclick="toggleModal(true)"><i class="fas fa-plus"></i> New Resource</button>
         </header>
         
         <div id="tab-overview" class="tab-content">
@@ -139,22 +161,21 @@
                     <h2 style="font-size:2rem; color:var(--teacher-accent);">18</h2>
                 </div>
                 <div class="card">
-                    <span style="color:var(--text-muted); font-size:12px;">Total Modules</span>
-                    <h2 style="font-size:2rem;">12</h2>
+                    <span style="color:var(--text-muted); font-size:12px;">Total Resources</span>
+                    <h2 id="total-res-count" style="font-size:2rem;">0</h2>
                 </div>
             </div>
         </div>
 
         <div id="tab-manage-modules" class="tab-content hidden">
             <div class="card">
-                <h3>Live Learning Modules</h3>
+                <h3>Live Learning Resources</h3>
                 <table>
                     <thead>
-                        <tr><th>Module Title</th><th>Type</th><th>Visibility</th><th>Action</th></tr>
+                        <tr><th>Title</th><th>Type</th><th>URL</th><th>Action</th></tr>
                     </thead>
-                    <tbody>
-                        <tr><td>01. Intro to HTML/CSS</td><td>PDF</td><td><span class="status-pill">Visible</span></td><td><button style="border:none; background:none; color:var(--primary); cursor:pointer;">Edit</button></td></tr>
-                    </tbody>
+                    <tbody id="resource-list">
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -167,10 +188,10 @@
                 </div>
                 <table>
                     <thead>
-                        <tr><th>File Name (ID_Task_Name)</th><th>Size</th><th>Submission Date</th><th>Action</th></tr>
+                        <tr><th>File Name</th><th>Size</th><th>Date</th><th>Action</th></tr>
                     </thead>
                     <tbody id="submission-list">
-                        <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">Loading files from bucket...</td></tr>
+                        <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted);">Loading files...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -182,18 +203,70 @@
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
 
+    // --- MODAL & UI HELPERS ---
+    function toggleModal(show) {
+        document.getElementById('resource-modal').classList.toggle('hidden', !show);
+    }
+
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
     }
 
     function showTab(tabName) {
-        const titles = { overview: 'Overview', 'manage-modules': 'Manage Modules', 'manage-assignments': 'Assignments', submissions: 'Student Submissions' };
+        const titles = { overview: 'Overview', 'manage-modules': 'Manage Modules', submissions: 'Student Submissions' };
         document.getElementById('tab-title').innerText = titles[tabName];
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
         document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.remove('hidden');
-        document.getElementById('nav-' + tabName).classList.add('active');
+        document.getElementById('nav-' + (tabName === 'manage-modules' ? 'manage-modules' : tabName)).classList.add('active');
+    }
+
+    // --- DATA ACTIONS ---
+    async function saveResource() {
+        const title = document.getElementById('res-title').value;
+        const type = document.getElementById('res-type').value;
+        const url = document.getElementById('res-url').value;
+
+        if (!title || !url) return alert("Please fill in all fields");
+
+        const { error } = await _supabase.from('resources').insert([
+            { title, type, url, created_by: currentUser.id }
+        ]);
+
+        if (error) {
+            alert("Error saving: " + error.message);
+        } else {
+            alert("Resource Added!");
+            toggleModal(false);
+            fetchResources(); // Refresh the list
+        }
+    }
+
+    async function fetchResources() {
+        const tbody = document.getElementById('resource-list');
+        const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
+
+        if (error) return;
+
+        document.getElementById('total-res-count').innerText = data.length;
+        tbody.innerHTML = "";
+        data.forEach(res => {
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-weight:600">${res.title}</td>
+                    <td><span class="status-pill" style="background:#e0e7ff; color:#4338ca">${res.type}</span></td>
+                    <td><a href="${res.url}" target="_blank" style="color:var(--primary)">View Link</a></td>
+                    <td><button onclick="deleteResource(${res.id})" style="border:none; background:none; color:#ef4444; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+                </tr>
+            `;
+        });
+    }
+
+    async function deleteResource(id) {
+        if(!confirm("Are you sure?")) return;
+        await _supabase.from('resources').delete().eq('id', id);
+        fetchResources();
     }
 
     async function fetchSubmissions() {
@@ -212,14 +285,14 @@
         tbody.innerHTML = "";
         data.forEach(item => {
             if(item.name === '.emptyFolderPlaceholder') return;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="font-weight:600">${item.name}</td>
-                <td>${(item.metadata.size / 1024).toFixed(2)} KB</td>
-                <td>${new Date(item.created_at).toLocaleDateString()}</td>
-                <td><button class="btn btn-teacher" style="padding:6px 12px; font-size:12px; width:auto;" onclick="downloadFile('${item.name}')">Download</button></td>
+            tbody.innerHTML += `
+                <tr>
+                    <td style="font-weight:600">${item.name}</td>
+                    <td>${(item.metadata.size / 1024).toFixed(2)} KB</td>
+                    <td>${new Date(item.created_at).toLocaleDateString()}</td>
+                    <td><button class="btn btn-teacher" style="padding:6px 12px; font-size:12px; width:auto;" onclick="downloadFile('${item.name}')">Download</button></td>
+                </tr>
             `;
-            tbody.appendChild(tr);
         });
     }
 
@@ -228,6 +301,7 @@
         window.open(data.publicUrl, '_blank');
     }
 
+    // --- AUTH ---
     async function signUp() {
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
@@ -256,6 +330,7 @@
         const meta = user.user_metadata;
         document.getElementById('display-name').innerText = meta.display_name || "Faculty Member";
         document.getElementById('display-id').innerText = "ID: " + (meta.employee_id || "N/A");
+        fetchResources(); // Load data on login
     }
 
     async function signOut() { await _supabase.auth.signOut(); location.reload(); }
