@@ -24,11 +24,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; height: 100vh; overflow: hidden; }
 
-        /* --- AUTH INTERFACE --- */
+        /* --- AUTH --- */
         .auth-wrapper { display: flex; min-height: 100vh; width: 100%; background: #fff; }
         .auth-side-brand {
-            flex: 1.2;
-            background: linear-gradient(135deg, #1e293b 0%, #2563eb 100%);
+            flex: 1.2; background: linear-gradient(135deg, #1e293b 0%, #2563eb 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             color: white; padding: 60px; position: relative;
         }
@@ -39,7 +38,6 @@
         .brand-content { position: relative; z-index: 2; text-align: center; max-width: 450px; }
         .brand-logo { font-size: 3rem; margin-bottom: 20px; }
         .brand-content h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
-        .brand-content p { font-size: 1.1rem; color: #bfdbfe; font-weight: 300; }
 
         .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background: var(--white); }
         .auth-card { width: 100%; max-width: 400px; animation: slideUp 0.5s ease-out; }
@@ -47,31 +45,33 @@
 
         .input-group { margin-bottom: 20px; position: relative; }
         .input-group i { position: absolute; left: 14px; top: 16px; color: var(--text-muted); }
-        input { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; }
+        input { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; transition: 0.2s; }
+        input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
 
         .btn { 
             width: 100%; padding: 14px; border-radius: var(--radius); border: none; font-weight: 600; 
             cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
 
         .hidden { display: none !important; }
 
-        /* --- PORTAL LAYOUT --- */
+        /* --- PORTAL --- */
         .portal-layout { display: flex; min-height: 100vh; background: var(--bg-body); }
         .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 24px; position: fixed; height: 100vh; display: flex; flex-direction: column; }
         .main-content { flex: 1; margin-left: 280px; padding: 40px; height: 100vh; overflow-y: auto; }
         
-        .profile-header { background: rgba(255,255,255,0.05); padding: 20px; border-radius: var(--radius); margin-bottom: 30px; }
-        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; }
-        .nav-link.active { background: #334155; color: white; }
+        .profile-header { background: rgba(255,255,255,0.05); padding: 20px; border-radius: var(--radius); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background: #334155; color: white; }
 
-        .card { background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; }
-        .list-item { padding: 20px; border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .card { background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .list-item { padding: 20px; border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; transition: 0.2s; }
+        .list-item:hover { border-color: var(--primary); background: #f8fafc; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-card { background: white; width: 90%; max-width: 500px; padding: 32px; border-radius: var(--radius); position: relative; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-card { background: white; width: 90%; max-width: 500px; padding: 32px; border-radius: var(--radius); position: relative; animation: slideUp 0.3s ease-out; }
         .dropzone { background: #f8fafc; border: 2px dashed var(--border); padding: 30px; text-align: center; border-radius: var(--radius); margin-top: 20px; }
     </style>
 </head>
@@ -82,7 +82,7 @@
         <div class="brand-content">
             <div class="brand-logo"><i class="fas fa-graduation-cap"></i></div>
             <h1>Mathematics Class Portal</h1>
-            <p>Access your modules, track your assignments, and stay connected.</p>
+            <p>Access your modules, track your assignments, and stay connected with Teacher Darwin.</p>
         </div>
     </div>
     <div class="auth-side-form">
@@ -92,7 +92,7 @@
                 <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="Email"></div>
                 <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Password"></div>
                 <button class="btn btn-primary" onclick="signIn()">Sign In <i class="fas fa-arrow-right"></i></button>
-                <p style="text-align:center; margin-top:24px; font-size:14px;">Don't have an account? <button style="color:var(--primary); background:none; border:none; cursor:pointer;" onclick="toggleAuth('register')">Create one</button></p>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Don't have an account? <button style="color:var(--primary); background:none; border:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('register')">Create one</button></p>
             </div>
             <div id="register-form" class="hidden">
                 <h2>Join the Portal</h2>
@@ -101,7 +101,7 @@
                 <div class="input-group"><i class="fas fa-at"></i><input type="email" id="reg-email" placeholder="Email"></div>
                 <div class="input-group"><i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="Password"></div>
                 <button class="btn btn-primary" onclick="signUp()">Create Account</button>
-                <p style="text-align:center; margin-top:24px; font-size:14px;">Already have an account? <button style="color:var(--primary); background:none; border:none; cursor:pointer;" onclick="toggleAuth('login')">Sign In</button></p>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Already have an account? <button style="color:var(--primary); background:none; border:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('login')">Sign In</button></p>
             </div>
         </div>
     </div>
@@ -111,9 +111,9 @@
     <aside class="sidebar">
         <div class="profile-header">
             <h3 id="display-name">Loading...</h3>
-            <div style="font-size: 0.8rem; color: #94a3b8;">
-                <span>ID: <strong id="display-id">---</strong></span><br>
-                <span>Role: <strong id="display-level">---</strong></span>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px;">
+                <span><i class="fas fa-id-badge"></i> ID: <strong id="display-id">---</strong></span><br>
+                <span><i class="fas fa-user-tag"></i> Role: <strong id="display-level">---</strong></span>
             </div>
         </div>
         <nav style="flex:1">
@@ -129,24 +129,22 @@
         
         <div id="tab-dashboard" class="tab-content">
             <div class="card" style="border-top: 4px solid var(--primary);">
-                <h3><i class="fas fa-sparkles" style="color:#eab308"></i> Announcements</h3>
-                <p id="welcome-msg" style="margin-top:15px; color:var(--text-muted);">Check the tabs for new content.</p>
+                <h3><i class="fas fa-sparkles" style="color:#eab308"></i> Welcome Back</h3>
+                <p id="welcome-msg" style="margin-top:15px; color:var(--text-muted);">Check your modules and active tasks below.</p>
             </div>
         </div>
 
         <div id="tab-modules" class="tab-content hidden">
             <div class="card">
                 <h3>Curriculum Modules</h3>
-                <div id="modules-container" style="margin-top: 20px;">
-                    </div>
+                <div id="modules-container" style="margin-top: 20px;"></div>
             </div>
         </div>
 
         <div id="tab-assignments" class="tab-content hidden">
             <div class="card">
                 <h3>Active Assignments</h3>
-                <div id="assignments-container" style="margin-top: 20px;">
-                    </div>
+                <div id="assignments-container" style="margin-top: 20px;"></div>
             </div>
         </div>
     </main>
@@ -154,9 +152,11 @@
 
 <div id="submit-modal" class="modal-overlay hidden">
     <div class="modal-card">
-        <button onclick="closeSubmitModal()" style="position:absolute; top:20px; right:20px; border:none; background:none; cursor:pointer;"><i class="fas fa-times"></i></button>
+        <button onclick="closeSubmitModal()" style="position:absolute; top:20px; right:20px; border:none; background:none; cursor:pointer; font-size:1.2rem; color:var(--text-muted)"><i class="fas fa-times"></i></button>
         <h3 id="modal-task-name">Submit Assignment</h3>
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom: 10px;">Please ensure your file is named correctly.</p>
         <div class="dropzone">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 15px;"></i>
             <input type="file" id="file-upload" style="margin-bottom: 15px; width: 100%;">
             <button id="upload-btn" class="btn btn-primary" onclick="handleUpload()">Confirm Submission</button>
         </div>
@@ -164,6 +164,7 @@
 </div>
 
 <script>
+    // Initialize Supabase
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
 
@@ -183,61 +184,69 @@
 
     // --- FETCH DATA FROM SUPABASE ---
     async function fetchResources() {
-        const modulesContainer = document.getElementById('modules-container');
-        const assignmentsContainer = document.getElementById('assignments-container');
+        const mContainer = document.getElementById('modules-container');
+        const aContainer = document.getElementById('assignments-container');
         
-        // Initial loading state
-        modulesContainer.innerHTML = "Loading modules...";
-        assignmentsContainer.innerHTML = "Loading assignments...";
+        mContainer.innerHTML = "<p>Loading modules...</p>";
+        aContainer.innerHTML = "<p>Loading assignments...</p>";
 
-        const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
+        const { data, error } = await _supabase
+            .from('resources')
+            .select('*')
+            .order('created_at', { ascending: false });
 
         if (error) {
-            console.error(error);
+            console.error("Fetch Error:", error.message);
+            mContainer.innerHTML = "Error loading content.";
             return;
         }
 
-        modulesContainer.innerHTML = "";
-        assignmentsContainer.innerHTML = "";
+        mContainer.innerHTML = "";
+        aContainer.innerHTML = "";
 
-        if (data.length === 0) {
-            modulesContainer.innerHTML = "<p style='color:var(--text-muted)'>No modules available yet.</p>";
-            assignmentsContainer.innerHTML = "<p style='color:var(--text-muted)'>No assignments posted yet.</p>";
+        if (!data || data.length === 0) {
+            const emptyMsg = "<p style='color:var(--text-muted)'>No content posted yet.</p>";
+            mContainer.innerHTML = emptyMsg;
+            aContainer.innerHTML = emptyMsg;
             return;
         }
 
         data.forEach(item => {
-            const html = `
+            // Fix case-sensitivity: convert to lowercase for the check
+            const typeLower = item.type.toLowerCase();
+            
+            const itemHTML = `
                 <div class="list-item">
                     <div>
                         <h4 style="margin:0">${item.title}</h4>
-                        <span style="font-size:12px; color:var(--text-muted)">Uploaded: ${new Date(item.created_at).toLocaleDateString()}</span>
+                        <span style="font-size:12px; color:var(--text-muted)">Posted: ${new Date(item.created_at).toLocaleDateString()}</span>
                     </div>
-                    ${item.type === 'Assignment' ? 
+                    ${typeLower === 'assignment' ? 
                         `<button class="btn btn-primary" style="width:auto; padding:8px 16px;" onclick="openSubmitModal('${item.title}')"><i class="fas fa-upload"></i> Submit</button>` : 
-                        `<a href="${item.url}" target="_blank" class="btn btn-primary" style="width:auto; padding:8px 16px; text-decoration:none;">View / Download</a>`
+                        `<a href="${item.url}" target="_blank" class="btn btn-primary" style="width:auto; padding:8px 16px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> View</a>`
                     }
                 </div>
             `;
 
-            if (item.type === 'Assignment') {
-                assignmentsContainer.innerHTML += html;
+            if (typeLower === 'assignment') {
+                aContainer.innerHTML += itemHTML;
             } else {
-                modulesContainer.innerHTML += html;
+                mContainer.innerHTML += itemHTML;
             }
         });
     }
 
-    // --- SUBMISSION LOGIC ---
+    // --- MODAL LOGIC ---
     function openSubmitModal(taskName) {
         document.getElementById('modal-task-name').innerText = taskName;
         document.getElementById('submit-modal').classList.remove('hidden');
     }
-
     function closeSubmitModal() {
         document.getElementById('submit-modal').classList.add('hidden');
+        document.getElementById('file-upload').value = "";
     }
 
+    // --- ACTION LOGIC ---
     async function handleUpload() {
         const fileInput = document.getElementById('file-upload');
         const file = fileInput.files[0];
@@ -255,16 +264,16 @@
         const { error } = await _supabase.storage.from('assignments').upload(fileName, file);
 
         if (error) {
-            alert("Error: " + error.message);
+            alert("Upload Error: " + error.message);
         } else {
-            alert("Assignment submitted successfully!");
+            alert("Successfully submitted!");
             closeSubmitModal();
         }
         btn.innerText = "Confirm Submission";
         btn.disabled = false;
     }
 
-    // --- AUTH ---
+    // --- AUTH LOGIC ---
     async function signUp() {
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
@@ -276,7 +285,7 @@
                 level_info: "Student"
             }}
         });
-        if (error) alert(error.message); else alert("Account created! Check your email.");
+        if (error) alert(error.message); else alert("Registration successful! Please check your email for confirmation.");
     }
 
     async function signIn() {
@@ -290,16 +299,19 @@
         currentUser = user;
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
+        
         const meta = user.user_metadata;
         document.getElementById('display-name').innerText = meta.display_name || "New Student";
         document.getElementById('display-id').innerText = meta.student_id || "N/A";
         document.getElementById('display-level').innerText = meta.level_info || "N/A";
-        document.getElementById('welcome-msg').innerText = `Welcome back, ${meta.display_name}! Ready for some Math?`;
-        fetchResources(); // Run data fetch
+        document.getElementById('welcome-msg').innerText = `Welcome, ${meta.display_name}! Ready to master Mathematics today?`;
+        
+        fetchResources(); // The critical trigger to load data
     }
 
     async function signOut() { await _supabase.auth.signOut(); location.reload(); }
 
+    // Session Check
     _supabase.auth.getSession().then(({ data }) => { if (data.session) showPortal(data.session.user); });
 </script>
 
