@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mathematics Class Portal | Management System</title>
+    <title>Mathematics Class Portal | Student View</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -31,10 +31,6 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             color: white; padding: 60px; position: relative;
         }
-        .auth-side-brand::before {
-            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: url('https://www.transparenttextures.com/patterns/cubes.png'); opacity: 0.1;
-        }
         .brand-content { position: relative; z-index: 2; text-align: center; max-width: 450px; }
         .brand-logo { font-size: 3rem; margin-bottom: 20px; }
         .brand-content h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
@@ -48,11 +44,8 @@
         input { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; transition: 0.2s; }
         input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
 
-        .btn { 
-            width: 100%; padding: 14px; border-radius: var(--radius); border: none; font-weight: 600; 
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn { width: 100%; padding: 14px; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
 
         .hidden { display: none !important; }
@@ -63,16 +56,15 @@
         .main-content { flex: 1; margin-left: 280px; padding: 40px; height: 100vh; overflow-y: auto; }
         
         .profile-header { background: rgba(255,255,255,0.05); padding: 20px; border-radius: var(--radius); margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
-        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; transition: 0.2s; }
+        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; }
         .nav-link:hover, .nav-link.active { background: #334155; color: white; }
 
-        .card { background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card { background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; }
         .list-item { padding: 20px; border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; transition: 0.2s; }
         .list-item:hover { border-color: var(--primary); background: #f8fafc; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-card { background: white; width: 90%; max-width: 500px; padding: 32px; border-radius: var(--radius); position: relative; animation: slideUp 0.3s ease-out; }
-        .dropzone { background: #f8fafc; border: 2px dashed var(--border); padding: 30px; text-align: center; border-radius: var(--radius); margin-top: 20px; }
+        .modal-card { background: white; width: 90%; max-width: 500px; padding: 32px; border-radius: var(--radius); animation: slideUp 0.3s ease-out; }
     </style>
 </head>
 <body>
@@ -81,8 +73,8 @@
     <div class="auth-side-brand">
         <div class="brand-content">
             <div class="brand-logo"><i class="fas fa-graduation-cap"></i></div>
-            <h1>Mathematics Class Portal</h1>
-            <p>Access your modules, track your assignments, and stay connected with Teacher Darwin.</p>
+            <h1>Mathematics Portal</h1>
+            <p>Access modules, track assignments, and grow your skills.</p>
         </div>
     </div>
     <div class="auth-side-form">
@@ -92,16 +84,16 @@
                 <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="Email"></div>
                 <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Password"></div>
                 <button class="btn btn-primary" onclick="signIn()">Sign In <i class="fas fa-arrow-right"></i></button>
-                <p style="text-align:center; margin-top:24px; font-size:14px;">Don't have an account? <button style="color:var(--primary); background:none; border:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('register')">Create one</button></p>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">No account? <button style="color:var(--primary); background:none; border:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('register')">Create one</button></p>
             </div>
             <div id="register-form" class="hidden">
-                <h2>Join the Portal</h2>
+                <h2>Student Registration</h2>
                 <div class="input-group"><i class="fas fa-user"></i><input type="text" id="reg-username" placeholder="Full Name"></div>
                 <div class="input-group"><i class="fas fa-id-card"></i><input type="text" id="reg-id" placeholder="Student ID"></div>
                 <div class="input-group"><i class="fas fa-at"></i><input type="email" id="reg-email" placeholder="Email"></div>
                 <div class="input-group"><i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="Password"></div>
                 <button class="btn btn-primary" onclick="signUp()">Create Account</button>
-                <p style="text-align:center; margin-top:24px; font-size:14px;">Already have an account? <button style="color:var(--primary); background:none; border:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('login')">Sign In</button></p>
+                <p style="text-align:center; margin-top:24px; font-size:14px;">Have an account? <button style="color:var(--primary); background:none; border:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('login')">Sign In</button></p>
             </div>
         </div>
     </div>
@@ -113,7 +105,7 @@
             <h3 id="display-name">Loading...</h3>
             <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 10px;">
                 <span><i class="fas fa-id-badge"></i> ID: <strong id="display-id">---</strong></span><br>
-                <span><i class="fas fa-user-tag"></i> Role: <strong id="display-level">---</strong></span>
+                <span><i class="fas fa-user-tag"></i> Role: <strong id="display-level">Student</strong></span>
             </div>
         </div>
         <nav style="flex:1">
@@ -129,21 +121,21 @@
         
         <div id="tab-dashboard" class="tab-content">
             <div class="card" style="border-top: 4px solid var(--primary);">
-                <h3><i class="fas fa-sparkles" style="color:#eab308"></i> Welcome Back</h3>
-                <p id="welcome-msg" style="margin-top:15px; color:var(--text-muted);">Check your modules and active tasks below.</p>
+                <h3><i class="fas fa-star" style="color:#eab308"></i> Hello!</h3>
+                <p id="welcome-msg" style="margin-top:15px; color:var(--text-muted);">Ready to learn some math today?</p>
             </div>
         </div>
 
         <div id="tab-modules" class="tab-content hidden">
             <div class="card">
-                <h3>Curriculum Modules</h3>
+                <h3>Available Modules</h3>
                 <div id="modules-container" style="margin-top: 20px;"></div>
             </div>
         </div>
 
         <div id="tab-assignments" class="tab-content hidden">
             <div class="card">
-                <h3>Active Assignments</h3>
+                <h3>Active Tasks</h3>
                 <div id="assignments-container" style="margin-top: 20px;"></div>
             </div>
         </div>
@@ -152,19 +144,17 @@
 
 <div id="submit-modal" class="modal-overlay hidden">
     <div class="modal-card">
-        <button onclick="closeSubmitModal()" style="position:absolute; top:20px; right:20px; border:none; background:none; cursor:pointer; font-size:1.2rem; color:var(--text-muted)"><i class="fas fa-times"></i></button>
         <h3 id="modal-task-name">Submit Assignment</h3>
-        <p style="font-size:14px; color:var(--text-muted); margin-bottom: 10px;">Please ensure your file is named correctly.</p>
-        <div class="dropzone">
-            <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 15px;"></i>
-            <input type="file" id="file-upload" style="margin-bottom: 15px; width: 100%;">
+        <p style="font-size:14px; color:var(--text-muted); margin-bottom: 20px;">Select your file and click confirm.</p>
+        <input type="file" id="file-upload" style="margin-bottom: 20px; width: 100%;">
+        <div style="display:flex; gap:10px;">
             <button id="upload-btn" class="btn btn-primary" onclick="handleUpload()">Confirm Submission</button>
+            <button class="btn" style="background:#e2e8f0; width:auto;" onclick="closeSubmitModal()">Cancel</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Initialize Supabase
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
 
@@ -180,41 +170,27 @@
         document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.remove('hidden');
         document.getElementById('nav-' + tabName).classList.add('active');
+        if(tabName !== 'dashboard') fetchResources();
     }
 
-    // --- FETCH DATA FROM SUPABASE ---
     async function fetchResources() {
         const mContainer = document.getElementById('modules-container');
         const aContainer = document.getElementById('assignments-container');
         
-        mContainer.innerHTML = "<p>Loading modules...</p>";
-        aContainer.innerHTML = "<p>Loading assignments...</p>";
+        const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
 
-        const { data, error } = await _supabase
-            .from('resources')
-            .select('*')
-            .order('created_at', { ascending: false });
+        if (error) { mContainer.innerHTML = "Error loading content."; return; }
 
-        if (error) {
-            console.error("Fetch Error:", error.message);
-            mContainer.innerHTML = "Error loading content.";
-            return;
-        }
-
-        mContainer.innerHTML = "";
-        aContainer.innerHTML = "";
-
+        mContainer.innerHTML = ""; aContainer.innerHTML = "";
+        
         if (!data || data.length === 0) {
-            const emptyMsg = "<p style='color:var(--text-muted)'>No content posted yet.</p>";
-            mContainer.innerHTML = emptyMsg;
-            aContainer.innerHTML = emptyMsg;
+            const msg = "<p style='color:var(--text-muted)'>No content available yet.</p>";
+            mContainer.innerHTML = msg; aContainer.innerHTML = msg;
             return;
         }
 
         data.forEach(item => {
-            // Fix case-sensitivity: convert to lowercase for the check
             const typeLower = item.type.toLowerCase();
-            
             const itemHTML = `
                 <div class="list-item">
                     <div>
@@ -225,67 +201,48 @@
                         `<button class="btn btn-primary" style="width:auto; padding:8px 16px;" onclick="openSubmitModal('${item.title}')"><i class="fas fa-upload"></i> Submit</button>` : 
                         `<a href="${item.url}" target="_blank" class="btn btn-primary" style="width:auto; padding:8px 16px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> View</a>`
                     }
-                </div>
-            `;
-
-            if (typeLower === 'assignment') {
-                aContainer.innerHTML += itemHTML;
-            } else {
-                mContainer.innerHTML += itemHTML;
-            }
+                </div>`;
+            if (typeLower === 'assignment') aContainer.innerHTML += itemHTML;
+            else mContainer.innerHTML += itemHTML;
         });
     }
 
-    // --- MODAL LOGIC ---
     function openSubmitModal(taskName) {
         document.getElementById('modal-task-name').innerText = taskName;
         document.getElementById('submit-modal').classList.remove('hidden');
     }
-    function closeSubmitModal() {
-        document.getElementById('submit-modal').classList.add('hidden');
-        document.getElementById('file-upload').value = "";
-    }
+    function closeSubmitModal() { document.getElementById('submit-modal').classList.add('hidden'); }
 
-    // --- ACTION LOGIC ---
     async function handleUpload() {
         const fileInput = document.getElementById('file-upload');
         const file = fileInput.files[0];
         const taskName = document.getElementById('modal-task-name').innerText;
         const btn = document.getElementById('upload-btn');
 
-        if(!file) return alert("Please select a file.");
+        if(!file) return alert("Select a file first.");
 
-        btn.innerText = "Uploading...";
-        btn.disabled = true;
-
-        const studentId = currentUser.user_metadata.student_id || 'unknown';
+        btn.innerText = "Submitting..."; btn.disabled = true;
+        const studentId = currentUser.user_metadata.student_id || 'Student';
         const fileName = `${studentId}_${taskName.replace(/\s+/g, '_')}_${file.name}`;
 
         const { error } = await _supabase.storage.from('assignments').upload(fileName, file);
 
-        if (error) {
-            alert("Upload Error: " + error.message);
-        } else {
-            alert("Successfully submitted!");
-            closeSubmitModal();
-        }
-        btn.innerText = "Confirm Submission";
-        btn.disabled = false;
+        if (error) alert("Upload Error: " + error.message);
+        else { alert("Assignment Submitted!"); closeSubmitModal(); }
+        btn.innerText = "Confirm Submission"; btn.disabled = false;
     }
 
-    // --- AUTH LOGIC ---
     async function signUp() {
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
-        const { data, error } = await _supabase.auth.signUp({
+        const { error } = await _supabase.auth.signUp({
             email, password,
             options: { data: { 
                 display_name: document.getElementById('reg-username').value,
-                student_id: document.getElementById('reg-id').value,
-                level_info: "Student"
+                student_id: document.getElementById('reg-id').value
             }}
         });
-        if (error) alert(error.message); else alert("Registration successful! Please check your email for confirmation.");
+        if (error) alert(error.message); else alert("Check your email to confirm registration!");
     }
 
     async function signIn() {
@@ -299,21 +256,15 @@
         currentUser = user;
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
-        
         const meta = user.user_metadata;
-        document.getElementById('display-name').innerText = meta.display_name || "New Student";
+        document.getElementById('display-name').innerText = meta.display_name || "Student";
         document.getElementById('display-id').innerText = meta.student_id || "N/A";
-        document.getElementById('display-level').innerText = meta.level_info || "N/A";
-        document.getElementById('welcome-msg').innerText = `Welcome, ${meta.display_name}! Ready to master Mathematics today?`;
-        
-        fetchResources(); // The critical trigger to load data
+        document.getElementById('welcome-msg').innerText = `Welcome, ${meta.display_name}! Ready to master Math today?`;
+        fetchResources();
     }
 
     async function signOut() { await _supabase.auth.signOut(); location.reload(); }
-
-    // Session Check
     _supabase.auth.getSession().then(({ data }) => { if (data.session) showPortal(data.session.user); });
 </script>
-
 </body>
 </html>
