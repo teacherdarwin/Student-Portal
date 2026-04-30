@@ -3,160 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Console | Mathematics Class Portal</title>
+    <title>SigmaMath | Faculty Console</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
         :root {
-            --primary: #2563eb;
-            --teacher-accent: #8b5cf6;
+            --accent: #8b5cf6;
+            --accent-dark: #7c3aed;
             --sidebar-bg: #0f172a;
-            --bg-body: #f1f5f9;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --white: #ffffff;
-            --border: #e2e8f0;
-            --radius: 12px;
+            --canvas: #f8fafc;
+            --card-border: rgba(226, 232, 240, 0.8);
+            --text-h: #0f172a;
+            --text-p: #475569;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; height: 100vh; overflow: hidden; }
-
-        /* --- AUTH --- */
-        .auth-wrapper { display: flex; min-height: 100vh; width: 100%; background: #fff; }
-        .auth-side-brand {
-            flex: 1.2; background: linear-gradient(135deg, #1e293b 0%, #8b5cf6 100%);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: white; padding: 60px; position: relative;
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--canvas); 
+            color: var(--text-h);
+            height: 100vh;
+            overflow: hidden;
         }
-        .brand-content { position: relative; z-index: 2; text-align: center; max-width: 450px; }
-        .brand-logo { font-size: 3rem; margin-bottom: 20px; }
-        .brand-content h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px; }
 
-        .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background: var(--white); }
-        .auth-card { width: 100%; max-width: 400px; animation: slideUp 0.5s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- AUTHENTICATION --- */
+        .auth-wrapper { display: flex; min-height: 100vh; background: #fff; }
+        .auth-side-brand {
+            flex: 1.2;
+            background: radial-gradient(circle at top left, #2e1065, #0f172a);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; padding: 60px; position: relative; overflow: hidden;
+        }
+        .brand-logo-hex {
+            width: 80px; height: 80px; background: var(--accent);
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; margin-bottom: 24px;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+        }
 
-        .input-group { margin-bottom: 20px; position: relative; }
-        .input-group i { position: absolute; left: 14px; top: 16px; color: var(--text-muted); }
-        input, select { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 15px; background: #f8fafc; outline: none; }
-        input:focus { border-color: var(--teacher-accent); }
+        .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
+        .auth-card { width: 100%; max-width: 420px; }
 
-        .btn { width: 100%; padding: 14px; border-radius: var(--radius); border: none; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-teacher { background: var(--teacher-accent); color: white; }
-        .btn-teacher:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        /* --- UI COMPONENTS --- */
+        .input-field { margin-bottom: 18px; }
+        .input-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        
+        input, select {
+            width: 100%; padding: 14px 16px 14px 48px; border: 1.5px solid var(--card-border);
+            border-radius: var(--radius-md); font-size: 15px; transition: 0.3s; background: #fff;
+        }
+        input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1); }
 
+        .btn {
+            width: 100%; padding: 14px; border-radius: var(--radius-md); border: none;
+            font-weight: 700; cursor: pointer; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        /* --- PORTAL LAYOUT --- */
+        .portal-layout { display: flex; height: 100vh; }
+        .sidebar {
+            width: 280px; background: var(--sidebar-bg); padding: 32px 20px;
+            display: flex; flex-direction: column; z-index: 10;
+        }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; width: 100%;
+            padding: 14px 16px; border: none; background: transparent;
+            color: #94a3b8; font-weight: 500; cursor: pointer; border-radius: var(--radius-md); transition: 0.2s;
+            margin-bottom: 4px;
+        }
+        .nav-link.active { background: var(--accent); color: #fff; }
+
+        .main-content { flex: 1; padding: 48px; overflow-y: auto; background: #f8fafc; }
+
+        /* --- TABLES & CARDS --- */
+        .card { background: #fff; border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow); margin-bottom: 24px; }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        th { text-align: left; padding: 12px 16px; color: var(--text-p); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 16px; background: #fff; border-top: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); }
+        td:first-child { border-left: 1px solid var(--card-border); border-radius: var(--radius-md) 0 0 var(--radius-md); }
+        td:last-child { border-right: 1px solid var(--card-border); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge-module { background: #e0e7ff; color: #4338ca; }
+        .badge-assign { background: #fef3c7; color: #92400e; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; }
         .hidden { display: none !important; }
 
-        /* --- LAYOUT --- */
-        .portal-layout { display: flex; min-height: 100vh; background: var(--bg-body); }
-        .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 24px; position: fixed; height: 100vh; display: flex; flex-direction: column; }
-        .main-content { flex: 1; margin-left: 280px; padding: 40px; height: 100vh; overflow-y: auto; }
-        
-        .role-badge { background: var(--teacher-accent); color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; display: inline-block; }
-        .nav-link { color: #94a3b8; text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 6px; display: block; border: none; background: none; width: 100%; text-align: left; cursor: pointer; transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { background: #334155; color: white; }
-
-        .card { background: var(--white); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding: 12px; color: var(--text-muted); font-size: 13px; border-bottom: 1px solid var(--border); }
-        td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #e0e7ff; color: #4338ca; }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 32px; border-radius: var(--radius); width: 100%; max-width: 500px; position: relative; }
+        .stat-card { background: #fff; padding: 24px; border-radius: var(--radius-md); border-left: 4px solid var(--accent); box-shadow: var(--shadow); }
     </style>
 </head>
 <body>
 
+<!-- ADD RESOURCE MODAL -->
 <div id="resource-modal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <h3 style="margin-bottom: 20px;">Add New Resource</h3>
-        <div class="input-group"><i class="fas fa-tag"></i><input type="text" id="res-title" placeholder="Title (e.g. Algebra Quiz)"></div>
-        <div class="input-group">
-            <i class="fas fa-list"></i>
-            <select id="res-type" style="padding-left: 42px;">
-                <option value="Module">Learning Module</option>
-                <option value="Assignment">Assignment</option>
-            </select>
+    <div class="card animate__animated animate__zoomIn" style="width: 100%; max-width: 480px;">
+        <h3 style="margin-bottom: 24px;">Publish New Content</h3>
+        <div class="input-field">
+            <label>Title</label>
+            <div class="input-wrapper"><i class="fas fa-heading"></i><input type="text" id="res-title" placeholder="e.g. Calculus II - Derivatives"></div>
         </div>
-        <div class="input-group"><i class="fas fa-link"></i><input type="text" id="res-url" placeholder="Resource Link (Drive, PDF, etc.)"></div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn btn-teacher" onclick="saveResource()">Publish</button>
-            <button class="btn" style="background:#e2e8f0; width:auto;" onclick="toggleModal(false)">Cancel</button>
+        <div class="input-field">
+            <label>Category</label>
+            <div class="input-wrapper">
+                <i class="fas fa-layer-group"></i>
+                <select id="res-type" style="padding-left: 48px;">
+                    <option value="Module">Learning Module</option>
+                    <option value="Assignment">Assignment</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-field">
+            <label>Resource URL</label>
+            <div class="input-wrapper"><i class="fas fa-link"></i><input type="text" id="res-url" placeholder="https://drive.google.com/..."></div>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:24px;">
+            <button class="btn btn-primary" onclick="saveResource()">Publish Now</button>
+            <button class="btn" style="background:#f1f5f9;" onclick="toggleModal(false)">Cancel</button>
         </div>
     </div>
 </div>
 
+<!-- LOGIN SECTION -->
 <div id="login-section" class="auth-wrapper">
     <div class="auth-side-brand">
-        <div class="brand-content">
-            <div class="brand-logo"><i class="fas fa-chalkboard-teacher"></i></div>
-            <h1>Teacher Console</h1>
-            <p>Manage curriculum and review student work in real-time.</p>
+        <div class="brand-content animate__animated animate__fadeIn">
+            <div class="brand-logo-hex"><i class="fas fa-chalkboard-user"></i></div>
+            <h1>Faculty Console</h1>
+            <p>SigmaMath Classroom Management</p>
         </div>
     </div>
     <div class="auth-side-form">
-        <div class="auth-card">
-            <div id="login-form">
-                <h2>Faculty Login</h2>
-                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="Email"></div>
-                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Password"></div>
-                <button class="btn btn-teacher" onclick="signIn()">Enter Console</button>
-                <p style="text-align:center; margin-top:24px; font-size:14px;">Need access? <button style="color:var(--teacher-accent); border:none; background:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('register')">Register Faculty</button></p>
+        <div id="login-form" class="auth-card animate__animated animate__fadeInRight">
+            <h2>Teacher Login</h2>
+            <p style="color:var(--text-p); margin-bottom:32px;">Access your curriculum controls.</p>
+            <div class="input-field">
+                <label>Institutional Email</label>
+                <div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="faculty@school.edu"></div>
             </div>
-            <div id="register-form" class="hidden">
-                <h2>Faculty Registration</h2>
-                <div class="input-group"><i class="fas fa-user-tie"></i><input type="text" id="reg-username" placeholder="Full Name"></div>
-                <div class="input-group"><i class="fas fa-id-card"></i><input type="text" id="reg-id" placeholder="Employee ID"></div>
-                <div class="input-group"><i class="fas fa-at"></i><input type="email" id="reg-email" placeholder="Email"></div>
-                <div class="input-group"><i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="Password"></div>
-                <button class="btn btn-teacher" onclick="signUp()">Create Account</button>
-                <p style="text-align:center; margin-top:24px; font-size:14px;">Already registered? <button style="color:var(--teacher-accent); border:none; background:none; cursor:pointer; font-weight:600;" onclick="toggleAuth('login')">Sign In</button></p>
+            <div class="input-field">
+                <label>Security Key</label>
+                <div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="••••••••"></div>
             </div>
+            <button class="btn btn-primary" onclick="signIn()">Enter Console</button>
+            <p style="text-align:center; margin-top:24px; font-size:14px; color: var(--text-p);">
+                Need faculty access? <a href="#" onclick="toggleAuth('register')" style="color:var(--accent); font-weight:700; text-decoration:none;">Register Hub</a>
+            </p>
+        </div>
+
+        <div id="register-form" class="auth-card hidden animate__animated animate__fadeInRight">
+            <h2>Faculty Registration</h2>
+            <div class="input-field"><label>Full Name</label><div class="input-wrapper"><i class="fas fa-user"></i><input type="text" id="reg-username" placeholder="Dr. Smith"></div></div>
+            <div class="input-field"><label>Employee ID</label><div class="input-wrapper"><i class="fas fa-id-badge"></i><input type="text" id="reg-id" placeholder="EMP-2026"></div></div>
+            <div class="input-field"><label>Email</label><div class="input-wrapper"><i class="fas fa-at"></i><input type="email" id="reg-email"></div></div>
+            <div class="input-field"><label>Password</label><div class="input-wrapper"><i class="fas fa-key"></i><input type="password" id="reg-password"></div></div>
+            <button class="btn btn-primary" onclick="signUp()">Create Faculty Account</button>
+            <p style="text-align:center; margin-top:24px; font-size:14px;"><a href="#" onclick="toggleAuth('login')" style="color:var(--accent); font-weight:700; text-decoration:none;">Return to Login</a></p>
         </div>
     </div>
 </div>
 
+<!-- PORTAL SECTION -->
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
-        <div style="padding: 20px; background: rgba(255,255,255,0.05); border-radius: var(--radius); margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1);">
-            <span class="role-badge">Faculty</span>
-            <h3 id="display-name" style="font-size: 1rem;">Teacher</h3>
-            <p id="display-id" style="font-size: 0.8rem; color: #94a3b8;">ID: ---</p>
+        <div style="margin-bottom: 40px; padding: 0 12px;">
+            <div style="color:var(--accent); font-weight:800; font-size:1.2rem; margin-bottom:20px;"><i class="fas fa-square-root-variable"></i> SigmaMath</div>
+            <div style="background: rgba(255,255,255,0.05); padding:16px; border-radius: var(--radius-md);">
+                <p id="display-name" style="color:white; font-weight:700; font-size:0.9rem;"></p>
+                <p id="display-id" style="color:#64748b; font-size:0.75rem;"></p>
+            </div>
         </div>
         <nav style="flex:1">
-            <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-chart-line"></i> Overview</button>
-            <button class="nav-link" id="nav-manage-modules" onclick="showTab('manage-modules')"><i class="fas fa-book"></i> Resources</button>
-            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-inbox"></i> Submissions</button>
+            <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-grid-2"></i> Overview</button>
+            <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-folder-open"></i> Manage Content</button>
+            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-upload"></i> Student Work</button>
         </nav>
-        <button class="btn" style="background:#334155; color:#fca5a5;" onclick="signOut()"><i class="fas fa-power-off"></i> Logout</button>
+        <button class="nav-link" style="color:#f87171" onclick="signOut()"><i class="fas fa-power-off"></i> Sign Out</button>
     </aside>
 
     <main class="main-content">
-        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px;">
-            <h2 id="tab-title" style="font-size:2rem; font-weight:800;">Overview</h2>
-            <button class="btn btn-teacher" style="width:auto; padding: 10px 20px;" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Add New</button>
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;" class="animate__animated animate__fadeInDown">
+            <div>
+                <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase;">Admin Control</span>
+                <h2 id="tab-title" style="font-size:2.2rem; font-weight:800; letter-spacing:-1px;">Overview</h2>
+            </div>
+            <button class="btn btn-primary" style="width:auto; padding:12px 24px;" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Create Content</button>
         </header>
-        
+
         <div id="tab-overview" class="tab-content">
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                <div class="card">
-                    <span style="color:var(--text-muted); font-size:12px;">Total Resources</span>
-                    <h2 id="total-res-count" style="font-size:2.5rem; color:var(--teacher-accent);">0</h2>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:24px; margin-bottom:40px;">
+                <div class="stat-card">
+                    <span style="color:var(--text-p); font-size:0.8rem; font-weight:700;">TOTAL MODULES</span>
+                    <h2 id="stat-m-count" style="font-size:2rem; margin-top:8px;">0</h2>
+                </div>
+                <div class="stat-card" style="border-color: #f59e0b;">
+                    <span style="color:var(--text-p); font-size:0.8rem; font-weight:700;">ASSIGNMENTS</span>
+                    <h2 id="stat-a-count" style="font-size:2rem; margin-top:8px;">0</h2>
+                </div>
+                <div class="stat-card" style="border-color: #10b981;">
+                    <span style="color:var(--text-p); font-size:0.8rem; font-weight:700;">STUDENT UPLOADS</span>
+                    <h2 id="stat-s-count" style="font-size:2rem; margin-top:8px;">0</h2>
                 </div>
             </div>
         </div>
 
-        <div id="tab-manage-modules" class="tab-content hidden">
+        <div id="tab-resources" class="tab-content hidden">
             <div class="card">
                 <table>
-                    <thead>
-                        <tr><th>Title</th><th>Type</th><th>Link</th><th>Action</th></tr>
-                    </thead>
+                    <thead><tr><th>Content Title</th><th>Type</th><th>Source</th><th>Actions</th></tr></thead>
                     <tbody id="resource-list"></tbody>
                 </table>
             </div>
@@ -164,14 +231,8 @@
 
         <div id="tab-submissions" class="tab-content hidden">
             <div class="card">
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <h3>Student Uploads</h3>
-                    <button class="btn" style="width:auto; padding:5px 15px; background:#f1f5f9; font-size:12px;" onclick="fetchSubmissions()"><i class="fas fa-sync"></i> Refresh</button>
-                </div>
                 <table>
-                    <thead>
-                        <tr><th>File Name</th><th>Size</th><th>Date</th><th>Action</th></tr>
-                    </thead>
+                    <thead><tr><th>Student File</th><th>Size</th><th>Timestamp</th><th>Action</th></tr></thead>
                     <tbody id="submission-list"></tbody>
                 </table>
             </div>
@@ -190,25 +251,28 @@
     }
 
     function showTab(tabName) {
-        document.getElementById('tab-title').innerText = tabName.charAt(0).toUpperCase() + tabName.slice(1).replace('-', ' ');
+        const titles = { overview: 'Overview', resources: 'Manage Content', submissions: 'Student Work' };
+        document.getElementById('tab-title').innerText = titles[tabName];
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
         document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        
         document.getElementById('tab-' + tabName).classList.remove('hidden');
-        document.getElementById('nav-' + tabName).classList.add('active');
-        if(tabName === 'manage-modules') fetchResources();
-        if(tabName === 'submissions') fetchSubmissions();
+        document.getElementById('nav-' + (tabName === 'overview' ? 'overview' : tabName)).classList.add('active');
+        
+        if(tabName === 'resources' || tabName === 'overview') fetchResources();
+        if(tabName === 'submissions' || tabName === 'overview') fetchSubmissions();
     }
 
     async function saveResource() {
         const title = document.getElementById('res-title').value;
         const type = document.getElementById('res-type').value;
         const url = document.getElementById('res-url').value;
-        if (!title || !url) return alert("Fill all fields.");
+        if (!title || !url) return alert("Required fields missing.");
 
         const { error } = await _supabase.from('resources').insert([{ title, type, url, created_by: currentUser.id }]);
         if (error) alert(error.message);
         else {
-            alert("Published!"); toggleModal(false); fetchResources();
+            toggleModal(false); fetchResources();
             document.getElementById('res-title').value = ""; document.getElementById('res-url').value = "";
         }
     }
@@ -217,20 +281,26 @@
         const tbody = document.getElementById('resource-list');
         const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
         if (error) return;
-        document.getElementById('total-res-count').innerText = data.length;
-        tbody.innerHTML = data.length ? "" : "<tr><td colspan='4'>No data.</td></tr>";
+
+        const modules = data.filter(r => r.type === 'Module').length;
+        const assigns = data.filter(r => r.type === 'Assignment').length;
+        document.getElementById('stat-m-count').innerText = modules;
+        document.getElementById('stat-a-count').innerText = assigns;
+
+        tbody.innerHTML = "";
         data.forEach(res => {
+            const badgeClass = res.type === 'Assignment' ? 'badge-assign' : 'badge-module';
             tbody.innerHTML += `<tr>
-                <td><strong>${res.title}</strong></td>
-                <td><span class="status-pill">${res.type}</span></td>
-                <td><a href="${res.url}" target="_blank">View <i class="fas fa-external-link-alt"></i></a></td>
-                <td><button onclick="deleteResource(${res.id})" style="color:#ef4444; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+                <td style="font-weight:700;">${res.title}</td>
+                <td><span class="badge ${badgeClass}">${res.type}</span></td>
+                <td><a href="${res.url}" target="_blank" style="color:var(--accent); text-decoration:none;"><i class="fas fa-link"></i> View</a></td>
+                <td><button onclick="deleteResource(${res.id})" style="color:#ef4444; background:none; border:none; cursor:pointer;"><i class="fas fa-trash-can"></i></button></td>
             </tr>`;
         });
     }
 
     async function deleteResource(id) {
-        if(confirm("Delete this?")) {
+        if(confirm("Confirm deletion of this resource?")) {
             await _supabase.from('resources').delete().eq('id', id);
             fetchResources();
         }
@@ -238,17 +308,19 @@
 
     async function fetchSubmissions() {
         const tbody = document.getElementById('submission-list');
-        tbody.innerHTML = "<tr><td colspan='4'>Scanning...</td></tr>";
         const { data, error } = await _supabase.storage.from('assignments').list('', { sortBy: { column: 'created_at', order: 'desc' }});
-        if (error) { tbody.innerHTML = "<tr><td colspan='4'>Storage error.</td></tr>"; return; }
+        if (error) return;
+
+        const files = data.filter(f => f.name !== '.emptyFolderPlaceholder');
+        document.getElementById('stat-s-count').innerText = files.length;
+        
         tbody.innerHTML = "";
-        data.forEach(item => {
-            if(item.name === '.emptyFolderPlaceholder') return;
+        files.forEach(item => {
             tbody.innerHTML += `<tr>
-                <td>${item.name}</td>
-                <td>${(item.metadata.size / 1024).toFixed(1)} KB</td>
-                <td>${new Date(item.created_at).toLocaleDateString()}</td>
-                <td><button class="btn btn-teacher" style="padding:5px 10px; width:auto;" onclick="downloadFile('${item.name}')">Download</button></td>
+                <td><i class="far fa-file-pdf" style="margin-right:8px; color:#ef4444;"></i> ${item.name}</td>
+                <td style="color:var(--text-p); font-size:0.8rem;">${(item.metadata.size / 1024).toFixed(1)} KB</td>
+                <td style="color:var(--text-p); font-size:0.8rem;">${new Date(item.created_at).toLocaleDateString()}</td>
+                <td><button class="btn btn-primary" style="padding:6px 12px; width:auto; font-size:0.75rem;" onclick="downloadFile('${item.name}')">Review</button></td>
             </tr>`;
         });
     }
@@ -258,30 +330,29 @@
         window.open(data.publicUrl, '_blank');
     }
 
+    async function signIn() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) alert(error.message); else showPortal(data.user);
+    }
+
     async function signUp() {
-        const { data, error } = await _supabase.auth.signUp({
+        const { error } = await _supabase.auth.signUp({
             email: document.getElementById('reg-email').value,
             password: document.getElementById('reg-password').value,
             options: { data: { display_name: document.getElementById('reg-username').value, employee_id: document.getElementById('reg-id').value }}
         });
-        if (error) alert(error.message); else alert("Check your email!");
-    }
-
-    async function signIn() {
-        const { data, error } = await _supabase.auth.signInWithPassword({
-            email: document.getElementById('login-email').value,
-            password: document.getElementById('login-password').value
-        });
-        if (error) alert(error.message); else showPortal(data.user);
+        if (error) alert(error.message); else alert("Registration pending. Check email.");
     }
 
     function showPortal(user) {
         currentUser = user;
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
-        document.getElementById('display-name').innerText = user.user_metadata.display_name || "Faculty";
+        document.getElementById('display-name').innerText = user.user_metadata.display_name || "Faculty Member";
         document.getElementById('display-id').innerText = "ID: " + (user.user_metadata.employee_id || "N/A");
-        fetchResources();
+        showTab('overview');
     }
 
     async function signOut() { await _supabase.auth.signOut(); location.reload(); }
