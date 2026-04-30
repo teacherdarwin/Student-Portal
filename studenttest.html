@@ -52,7 +52,7 @@
 
         .brand-content { position: relative; z-index: 2; text-align: center; }
         
-        /* Updated Aesthetic Glass Logo Container */
+        /* Glass-Refined Logo Container */
         .brand-logo-container {
             width: 150px; 
             height: 150px; 
@@ -65,15 +65,17 @@
             border: 0.5px solid var(--glass-border);
             border-radius: 50%;
             padding: 24px;
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.05);
-            transition: all 0.4s ease;
+            box-shadow: 
+                0 10px 40px -10px rgba(0, 0, 0, 0.5), 
+                inset 0 0 15px rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .brand-logo-container img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            /* Thinner, sharper sub-pixel outline */
+            /* Thinner, sharper sub-pixel outline for professional finish */
             filter: 
                 drop-shadow(0.5px 0.5px 0px rgba(255, 255, 255, 0.4)) 
                 drop-shadow(-0.5px -0.5px 0px rgba(255, 255, 255, 0.4))
@@ -88,7 +90,7 @@
         }
 
         .brand-logo-container:hover img {
-            transform: scale(1.05);
+            transform: scale(1.08);
         }
 
         .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
@@ -129,7 +131,6 @@
         }
         .sidebar-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 12px; }
         
-        /* Updated Sidebar Logo (Thinner Outline) */
         .sidebar-brand img { 
             height: 38px; 
             width: auto; 
