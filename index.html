@@ -177,31 +177,42 @@
         const mContainer = document.getElementById('modules-container');
         const aContainer = document.getElementById('assignments-container');
         
+        // Show loading state
+        mContainer.innerHTML = "Loading..."; aContainer.innerHTML = "Loading...";
+
         const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
 
-        if (error) { mContainer.innerHTML = "Error loading content."; return; }
+        if (error) { 
+            console.error("Fetch Error:", error);
+            mContainer.innerHTML = "Error loading content: " + error.message; 
+            return; 
+        }
+
+        console.log("Resources loaded:", data); // Check your F12 console for this log!
 
         mContainer.innerHTML = ""; aContainer.innerHTML = "";
         
         if (!data || data.length === 0) {
-            const msg = "<p style='color:var(--text-muted)'>No content available yet.</p>";
+            const msg = "<p style='color:var(--text-muted)'>No content available yet. If you have data in Supabase, check your RLS policies.</p>";
             mContainer.innerHTML = msg; aContainer.innerHTML = msg;
             return;
         }
 
         data.forEach(item => {
-            const typeLower = item.type.toLowerCase();
+            // Added null check for type
+            const typeLower = (item.type || "module").toLowerCase();
             const itemHTML = `
                 <div class="list-item">
                     <div>
-                        <h4 style="margin:0">${item.title}</h4>
+                        <h4 style="margin:0">${item.title || 'Untitled'}</h4>
                         <span style="font-size:12px; color:var(--text-muted)">Posted: ${new Date(item.created_at).toLocaleDateString()}</span>
                     </div>
                     ${typeLower === 'assignment' ? 
                         `<button class="btn btn-primary" style="width:auto; padding:8px 16px;" onclick="openSubmitModal('${item.title}')"><i class="fas fa-upload"></i> Submit</button>` : 
-                        `<a href="${item.url}" target="_blank" class="btn btn-primary" style="width:auto; padding:8px 16px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> View</a>`
+                        `<a href="${item.url || '#'}" target="_blank" class="btn btn-primary" style="width:auto; padding:8px 16px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> View</a>`
                     }
                 </div>`;
+            
             if (typeLower === 'assignment') aContainer.innerHTML += itemHTML;
             else mContainer.innerHTML += itemHTML;
         });
@@ -223,7 +234,7 @@
 
         btn.innerText = "Submitting..."; btn.disabled = true;
         const studentId = currentUser.user_metadata.student_id || 'Student';
-        const fileName = `${studentId}_${taskName.replace(/\s+/g, '_')}_${file.name}`;
+        const fileName = `${studentId}_${taskName.replace(/\s+/g, '_')}_${Date.now()}_${file.name}`;
 
         const { error } = await _supabase.storage.from('assignments').upload(fileName, file);
 
