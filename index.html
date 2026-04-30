@@ -45,21 +45,28 @@
         }
 
         /* Animated & Blurred Background Layer */
-        .brand-bg-overlay {
+       .brand-bg-overlay {
             position: absolute;
             top: -10%; left: -10%;
             width: 120%; height: 120%;
             background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("WCGNHS.jpg");
             background-size: cover;
             background-position: center;
-            filter: blur(8px); /* Blur effect */
-            animation: panBackground 10s infinite alternate ease-in-out;
+            filter: blur(8px);
+            /* Set speed here (8s) */
+            animation: panBackground 8s infinite alternate ease-in-out;
             z-index: 1;
         }
 
         @keyframes panBackground {
-            0% { transform: scale(1) translate(0, 0); }
-            100% { transform: scale(1.1) translate(-2%, -2%); }
+            0% { 
+                /* Start shifted left */
+                transform: scale(1.1) translateX(-5%); 
+            }
+            100% { 
+                /* Move to the right */
+                transform: scale(1.1) translateX(0%); 
+            }
         }
 
         .brand-content { 
