@@ -16,14 +16,14 @@
             --accent-glow: rgba(124, 77, 255, 0.3);
             --sidebar-bg: #0b0f1a;
             --canvas: #f0f2f5;
-            --glass: rgba(255, 255, 255, 0.8);
+            --glass: rgba(255, 255, 255, 0.9);
             --card-border: rgba(255, 255, 255, 0.3);
             --text-h: #1a1f36;
             --text-p: #4f566b;
             --radius-lg: 20px;
             --radius-md: 12px;
             --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05);
-            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,243 +34,188 @@
             color: var(--text-h);
             height: 100vh;
             overflow: hidden;
-            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                              radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                              radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-            background-attachment: fixed;
+            /* Dynamic animated background */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
         }
 
-        /* --- AUTH ANIMATIONS --- */
-        .auth-wrapper { display: flex; min-height: 100vh; background: transparent; backdrop-filter: blur(20px); }
-        
-        .auth-side-brand {
-            flex: 1.2;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: white; padding: 60px; position: relative; overflow: hidden;
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        .brand-bg-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.8)), url("WCGNHS.jpg");
-            background-size: cover;
-            background-position: center;
-            filter: saturate(1.2);
-            animation: kenBurns 20s infinite alternate ease-in-out;
-            z-index: 1;
-        }
-
-        @keyframes kenBurns {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.15); }
-        }
-
+        /* --- AUTHENTICATION --- */
+        .auth-wrapper { display: flex; min-height: 100vh; backdrop-filter: blur(20px); }
+        .auth-side-brand { flex: 1.2; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; position: relative; overflow: hidden; }
+        .brand-bg-overlay { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url("WCGNHS.jpg") center/cover; animation: kenBurns 20s infinite alternate; z-index: 1; }
+        @keyframes kenBurns { from { transform: scale(1); } to { transform: scale(1.2); } }
         .brand-content { position: relative; z-index: 2; text-align: center; }
-        .brand-logo-container img { width: 140px; filter: drop-shadow(0 0 20px var(--accent)); margin-bottom: 20px; }
 
-        .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background: rgba(255,255,255,0.02); }
         .auth-card { 
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            padding: 40px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--card-border);
-            box-shadow: var(--shadow-xl);
-            width: 100%;
-            max-width: 400px;
+            background: var(--glass); padding: 40px; border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow-xl); width: 100%; max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.5);
         }
 
-        /* --- UI ELEMENTS --- */
-        .input-wrapper { position: relative; transition: transform 0.2s ease; }
-        .input-wrapper:focus-within { transform: translateY(-2px); }
-        
-        input, select {
-            width: 100%; padding: 14px 16px 14px 48px; border: 1px solid #e2e8f0;
-            border-radius: var(--radius-md); font-size: 15px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(255,255,255,0.9);
-        }
-        input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+        /* --- DASHBOARD LAYOUT --- */
+        .portal-layout { display: flex; height: 100vh; background: #f8fafc; }
+        .sidebar { width: 280px; background: var(--sidebar-bg); padding: 32px 20px; display: flex; flex-direction: column; z-index: 10; }
+        .main-content { flex: 1; padding: 40px 60px; overflow-y: auto; border-top-left-radius: 40px; background: #f8fafc; margin-top: 10px; box-shadow: -10px 0 30px rgba(0,0,0,0.05); }
 
-        .btn {
-            border-radius: var(--radius-md); font-weight: 700; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; border: none;
-        }
-        .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 12px var(--accent-glow); }
-        .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 20px var(--accent-glow); }
-
-        /* --- SIDEBAR --- */
-        .sidebar { 
-            width: 280px; background: var(--sidebar-bg); padding: 32px 20px; 
-            display: flex; flex-direction: column; position: relative;
-            box-shadow: 10px 0 30px rgba(0,0,0,0.2);
-        }
         .nav-link { 
-            margin-bottom: 8px; color: #64748b; padding: 14px 16px; border-radius: var(--radius-md);
-            text-decoration: none; display: flex; align-items: center; gap: 12px; font-weight: 600;
-            transition: all 0.3s; border: none; background: transparent; cursor: pointer;
+            padding: 14px 16px; border-radius: var(--radius-md); color: #94a3b8; font-weight: 600; 
+            transition: all 0.3s; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 8px;
         }
         .nav-link:hover { background: rgba(255,255,255,0.05); color: white; padding-left: 22px; }
         .nav-link.active { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
 
-        /* --- MAIN CONTENT --- */
-        .main-content { flex: 1; padding: 40px 60px; overflow-y: auto; background: var(--canvas); border-top-left-radius: 40px; }
-        
-        .stat-card {
-            background: #fff; padding: 30px; border-radius: var(--radius-lg); 
-            box-shadow: var(--shadow-sm); transition: all 0.4s; position: relative; overflow: hidden;
-        }
+        /* --- TABLES & CARDS --- */
+        .card { background: white; border-radius: var(--radius-lg); padding: 30px; border: 1px solid #edf2f7; box-shadow: var(--shadow-sm); }
+        .stat-card { background: white; padding: 25px; border-radius: var(--radius-lg); border-left: 5px solid var(--accent); box-shadow: var(--shadow-sm); transition: 0.3s; }
         .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-xl); }
-        .stat-card h2 { font-size: 2.5rem; margin-top: 10px; font-weight: 800; }
-        .stat-card span { font-size: 0.75rem; color: var(--text-p); font-weight: 700; letter-spacing: 1px; }
 
-        /* --- TABLES --- */
-        .card { 
-            background: #fff; border-radius: var(--radius-lg); padding: 30px; 
-            box-shadow: var(--shadow-sm); border: 1px solid #edf2f7; 
-        }
-        table tr { transition: transform 0.2s ease; }
-        table tr:hover td { background: #fcfaff; transform: scale(1.002); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: #64748b; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+        tr.row-entry { animation: slideInUp 0.5s ease forwards; opacity: 0; }
+        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* --- MODAL --- */
-        .modal-overlay { backdrop-filter: blur(12px) saturate(180%); background: rgba(0,0,0,0.4); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .hidden { display: none !important; }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 10px; }
+        .btn { padding: 12px 24px; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; transition: 0.3s; border: none; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #6236ff; transform: translateY(-2px); }
+
+        .toggle-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .toggle-btn.active { background: white; color: var(--accent); box-shadow: var(--shadow-sm); }
+
+        input, select { width: 100%; padding: 12px 15px 12px 40px; border: 1.5px solid #e2e8f0; border-radius: 10px; outline: none; }
+        input:focus { border-color: var(--accent); }
     </style>
 </head>
 <body>
 
-<!-- MODAL (ENHANCED) -->
+<!-- ADD MODAL -->
 <div id="resource-modal" class="modal-overlay hidden">
-    <div class="card animate__animated animate__backInDown" style="width: 100%; max-width: 500px; border:none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-            <h2 style="font-weight:800; letter-spacing:-0.5px;">New Publication</h2>
-            <i class="fas fa-times" onclick="toggleModal(false)" style="cursor:pointer; color:#94a3b8;"></i>
-        </div>
+    <div class="card animate__animated animate__zoomIn" style="width: 100%; max-width: 450px;">
+        <h2 style="margin-bottom: 20px;">Publish Content</h2>
         
-        <div class="input-field">
-            <label>Title</label>
-            <div class="input-wrapper"><i class="fas fa-heading"></i><input type="text" id="res-title" placeholder="Descriptive Title"></div>
+        <div style="position:relative; margin-bottom:15px;">
+            <i class="fas fa-heading" style="position:absolute; left:15px; top:15px; color:#94a3b8;"></i>
+            <input type="text" id="res-title" placeholder="Title of the resource">
         </div>
 
-        <div class="input-field">
-            <label>Category</label>
-            <div class="input-wrapper">
-                <i class="fas fa-tags"></i>
-                <select id="res-type">
-                    <option value="Module">Learning Module</option>
-                    <option value="Assignment">Assignment</option>
-                </select>
-            </div>
+        <div style="position:relative; margin-bottom:15px;">
+            <i class="fas fa-layer-group" style="position:absolute; left:15px; top:15px; color:#94a3b8;"></i>
+            <select id="res-type" style="padding-left: 40px;">
+                <option value="Module">Learning Module</option>
+                <option value="Assignment">Assignment</option>
+            </select>
         </div>
 
-        <div class="toggle-container" style="background:#f1f5f9; padding:6px; border-radius:12px; margin: 20px 0;">
-            <button class="toggle-btn active" id="mode-link-btn" onclick="toggleResourceMode('link')">External Link</button>
-            <button class="toggle-btn" id="mode-file-btn" onclick="toggleResourceMode('file')">Local Upload</button>
+        <div style="display:flex; background:#f1f5f9; padding:5px; border-radius:12px; margin-bottom:15px;">
+            <button class="toggle-btn active" id="mode-link-btn" onclick="toggleResourceMode('link')">Link</button>
+            <button class="toggle-btn" id="mode-file-btn" onclick="toggleResourceMode('file')">Upload</button>
         </div>
 
-        <div id="mode-link" class="input-field"><div class="input-wrapper"><i class="fas fa-link"></i><input type="text" id="res-url" placeholder="https://..."></div></div>
-        <div id="mode-file" class="input-field hidden"><div class="input-wrapper"><i class="fas fa-cloud-arrow-up"></i><input type="file" id="res-file"></div></div>
+        <div id="mode-link" style="position:relative;">
+            <i class="fas fa-link" style="position:absolute; left:15px; top:15px; color:#94a3b8;"></i>
+            <input type="text" id="res-url" placeholder="https://drive.google.com/...">
+        </div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:30px;">
-            <button class="btn btn-primary" id="publish-btn" onclick="saveResource()">Publish</button>
-            <button class="btn" style="background:#f1f5f9;" onclick="toggleModal(false)">Dismiss</button>
+        <div id="mode-file" class="hidden" style="position:relative;">
+            <i class="fas fa-file-upload" style="position:absolute; left:15px; top:15px; color:#94a3b8;"></i>
+            <input type="file" id="res-file" style="padding-left:45px; padding-top:10px;">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:25px;">
+            <button class="btn btn-primary" id="publish-btn" onclick="saveResource()" style="flex:2;">Publish Now</button>
+            <button class="btn" style="background:#f1f5f9; flex:1;" onclick="toggleModal(false)">Cancel</button>
         </div>
     </div>
 </div>
 
-<!-- AUTH -->
+<!-- AUTH SECTION -->
 <div id="login-section" class="auth-wrapper">
     <div class="auth-side-brand">
         <div class="brand-bg-overlay"></div>
         <div class="brand-content animate__animated animate__fadeInUp">
-            <div class="brand-logo-container"><img src="WCGNHS.png" alt="Logo"></div>
-            <h1 style="font-size:3rem; font-weight:800; letter-spacing:-2px; margin-bottom:10px;">FACULTY HUB</h1>
-            <p style="opacity:0.9; font-weight:500; font-size:1.1rem;">Empowering Math Educators</p>
+            <img src="WCGNHS.png" alt="Logo" width="120" style="filter: drop-shadow(0 0 15px var(--accent));">
+            <h1 style="font-size: 3rem; font-weight: 800;">Faculty Console</h1>
+            <p style="font-size: 1.2rem; opacity: 0.8;">Mathematics Department</p>
         </div>
     </div>
-    <div class="auth-side-form">
+    <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:40px;">
         <div id="login-form" class="auth-card animate__animated animate__fadeInRight">
-            <h2 style="margin-bottom:30px; font-weight:800; font-size:1.8rem;">Welcome Back</h2>
-            <div class="input-field"><label>Email</label><div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="login-email"></div></div>
-            <div class="input-field"><label>Passcode</label><div class="input-wrapper"><i class="fas fa-shield-halved"></i><input type="password" id="login-password"></div></div>
-            <button class="btn btn-primary" style="width:100%; margin-top:10px; padding:16px;" onclick="signIn()">Sign In</button>
-            <p style="text-align:center; margin-top:30px; font-size:0.9rem; color:var(--text-p);">No account? <a href="#" onclick="toggleAuth('register')" style="color:var(--accent); font-weight:700; text-decoration:none;">Request Access</a></p>
+            <h2 style="margin-bottom:25px;">Teacher Login</h2>
+            <input type="email" id="login-email" placeholder="Email" style="margin-bottom:15px; padding-left:15px;">
+            <input type="password" id="login-password" placeholder="Passcode" style="margin-bottom:20px; padding-left:15px;">
+            <button class="btn btn-primary" id="login-btn" onclick="signIn()" style="width:100%;">Sign In</button>
+            <p style="text-align:center; margin-top:20px; font-size:0.9rem;">New here? <a href="#" onclick="toggleAuth('register')" style="color:var(--accent); font-weight:700;">Register</a></p>
         </div>
 
         <div id="register-form" class="auth-card hidden animate__animated animate__fadeInRight">
-            <h2 style="margin-bottom:30px; font-weight:800;">Register Faculty</h2>
-            <div class="input-field"><label>Full Name</label><div class="input-wrapper"><i class="fas fa-user"></i><input type="text" id="reg-username"></div></div>
-            <div class="input-field"><label>Employee ID</label><div class="input-wrapper"><i class="fas fa-id-card"></i><input type="text" id="reg-id"></div></div>
-            <div class="input-field"><label>Email</label><div class="input-wrapper"><i class="fas fa-at"></i><input type="email" id="reg-email"></div></div>
-            <div class="input-field"><label>Password</label><div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="reg-password"></div></div>
-            <button class="btn btn-primary" style="width:100%;" onclick="signUp()">Register</button>
-            <p style="text-align:center; margin-top:20px;"><a href="#" onclick="toggleAuth('login')" style="color:var(--accent); text-decoration:none;">Back to Login</a></p>
+            <h2 style="margin-bottom:25px;">Register Account</h2>
+            <input type="text" id="reg-username" placeholder="Full Name" style="margin-bottom:10px; padding-left:15px;">
+            <input type="text" id="reg-id" placeholder="Employee ID" style="margin-bottom:10px; padding-left:15px;">
+            <input type="email" id="reg-email" placeholder="Email" style="margin-bottom:10px; padding-left:15px;">
+            <input type="password" id="reg-password" placeholder="Password" style="margin-bottom:20px; padding-left:15px;">
+            <button class="btn btn-primary" onclick="signUp()" style="width:100%;">Create Account</button>
+            <p style="text-align:center; margin-top:20px;"><a href="#" onclick="toggleAuth('login')" style="color:var(--accent);">Back to Login</a></p>
         </div>
     </div>
 </div>
 
-<!-- DASHBOARD -->
+<!-- DASHBOARD SECTION -->
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
-        <div style="margin-bottom: 50px;">
-            <div class="sidebar-brand" style="margin-bottom:30px;">
-                <img src="WCGNHS.png" alt="Logo" style="height:40px;">
-                <span style="color:white; font-weight:900; font-size:1.4rem;">Σ Math</span>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); padding:20px; border-radius:16px;">
-                <p id="display-name" style="color:white; font-weight:700;"></p>
-                <p id="display-id" style="color:#64748b; font-size:0.7rem; margin-top:4px; text-transform:uppercase;"></p>
-            </div>
+        <div style="margin-bottom: 40px; text-align: center;">
+            <img src="WCGNHS.png" alt="Logo" width="50" style="margin-bottom:10px;">
+            <h3 style="color:white; letter-spacing:1px;">SIGMA MATH</h3>
         </div>
         <nav style="flex:1">
-            <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-chart-pie"></i> Dashboard</button>
-            <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-book-open"></i> Curriculum</button>
-            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-inbox"></i> Submissions</button>
+            <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-home"></i> Overview</button>
+            <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-file-alt"></i> Resources</button>
+            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-user-graduate"></i> Submissions</button>
         </nav>
-        <button class="nav-link" style="color:#ff4d4d; border: 1px solid rgba(255,77,77,0.2);" onclick="signOut()"><i class="fas fa-power-off"></i> Logout</button>
+        <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px;">
+            <p id="display-name" style="color:white; font-weight:700; font-size:0.9rem;"></p>
+            <p id="display-id" style="color:#64748b; font-size:0.7rem;"></p>
+        </div>
+        <button class="nav-link" style="color:#f87171" onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </aside>
 
-    <main class="main-content animate__animated animate__fadeIn">
-        <header style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:50px;">
-            <div>
-                <h2 id="tab-title" style="font-size:2.8rem; font-weight:900; letter-spacing:-1.5px; color:#1a1f36;">Dashboard</h2>
-                <p id="current-date" style="color:var(--text-p); font-weight:500;"></p>
-            </div>
-            <button class="btn btn-primary" style="padding:16px 32px; border-radius:14px;" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Create Content</button>
-        </header>
+    <main class="main-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+            <h1 id="tab-title" style="font-size:2.5rem; font-weight:800;">Overview</h1>
+            <button class="btn btn-primary" onclick="toggleModal(true)"><i class="fas fa-plus"></i> New Resource</button>
+        </div>
 
         <div id="tab-overview" class="tab-content">
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:30px; margin-bottom:40px;">
-                <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-                    <span>MODULES</span><h2 id="stat-m-count">0</h2>
-                    <div style="position:absolute; right:-20px; bottom:-20px; font-size:100px; opacity:0.03;"><i class="fas fa-book"></i></div>
-                </div>
-                <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s; border-left-color: #f59e0b;">
-                    <span>ASSIGNMENTS</span><h2 id="stat-a-count">0</h2>
-                    <div style="position:absolute; right:-20px; bottom:-20px; font-size:100px; opacity:0.03;"><i class="fas fa-pencil"></i></div>
-                </div>
-                <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s; border-left-color: #10b981;">
-                    <span>SUBMISSIONS</span><h2 id="stat-s-count">0</h2>
-                    <div style="position:absolute; right:-20px; bottom:-20px; font-size:100px; opacity:0.03;"><i class="fas fa-upload"></i></div>
-                </div>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;">
+                <div class="stat-card"><span>TOTAL MODULES</span><h2 id="stat-m-count">0</h2></div>
+                <div class="stat-card" style="border-color:#f59e0b"><span>ASSIGNMENTS</span><h2 id="stat-a-count">0</h2></div>
+                <div class="stat-card" style="border-color:#10b981"><span>SUBMISSIONS</span><h2 id="stat-s-count">0</h2></div>
             </div>
         </div>
 
-        <div id="tab-resources" class="tab-content hidden animate__animated animate__fadeIn">
+        <div id="tab-resources" class="tab-content hidden">
             <div class="card">
                 <table>
-                    <thead style="border-bottom: 2px solid #f1f5f9;"><tr><th style="padding-bottom:20px;">Resource Name</th><th>Category</th><th>Access</th><th>Manage</th></tr></thead>
+                    <thead><tr><th>Title</th><th>Type</th><th>Link</th><th>Action</th></tr></thead>
                     <tbody id="resource-list"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="tab-submissions" class="tab-content hidden animate__animated animate__fadeIn">
+        <div id="tab-submissions" class="tab-content hidden">
             <div class="card">
                 <table>
-                    <thead><tr><th>File Name</th><th>Size</th><th>Date</th><th>Preview</th></tr></thead>
+                    <thead><tr><th>File Name</th><th>Size</th><th>Date</th><th>Action</th></tr></thead>
                     <tbody id="submission-list"></tbody>
                 </table>
             </div>
@@ -283,82 +228,74 @@
     let currentUser = null;
     let resourceMode = 'link';
 
-    document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-    function toggleModal(show) { 
-        document.getElementById('resource-modal').classList.toggle('hidden', !show); 
-    }
-
+    function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
+    
     function toggleResourceMode(mode) {
         resourceMode = mode;
         document.getElementById('mode-link').classList.toggle('hidden', mode !== 'link');
         document.getElementById('mode-file').classList.toggle('hidden', mode !== 'file');
-        document.getElementById('mode-link-btn').classList.toggle('active', mode === 'link');
-        document.getElementById('mode-file-btn').classList.toggle('active', mode === 'file');
+        document.getElementById('mode-link-btn').classList.add(mode === 'link' ? 'active' : 'inactive');
+        document.getElementById('mode-link-btn').classList.remove(mode === 'link' ? 'inactive' : 'active');
+        document.getElementById('mode-file-btn').classList.add(mode === 'file' ? 'active' : 'inactive');
+        document.getElementById('mode-file-btn').classList.remove(mode === 'file' ? 'inactive' : 'active');
     }
 
     async function saveResource() {
         const title = document.getElementById('res-title').value;
         const type = document.getElementById('res-type').value;
-        const publishBtn = document.getElementById('publish-btn');
-        let finalUrl = "";
+        const btn = document.getElementById('publish-btn');
+        let url = "";
 
-        if (!title) return alert("Please enter a title.");
-        publishBtn.disabled = true;
-        publishBtn.innerText = "Publishing...";
+        if (!title) return alert("Title is required");
+        btn.disabled = true; btn.innerText = "Processing...";
 
         try {
             if (resourceMode === 'link') {
-                finalUrl = document.getElementById('res-url').value;
+                url = document.getElementById('res-url').value;
             } else {
                 const file = document.getElementById('res-file').files[0];
-                const fileName = `${Date.now()}-${file.name}`;
-                const { data, error: uploadError } = await _supabase.storage.from('resources').upload(`uploads/${fileName}`, file);
-                if (uploadError) throw uploadError;
-                const { data: urlData } = _supabase.storage.from('resources').getPublicUrl(`uploads/${fileName}`);
-                finalUrl = urlData.publicUrl;
+                if (!file) throw new Error("Please select a file");
+                const path = `uploads/${Date.now()}_${file.name}`;
+                const { data, error } = await _supabase.storage.from('resources').upload(path, file);
+                if (error) throw error;
+                url = _supabase.storage.from('resources').getPublicUrl(path).data.publicUrl;
             }
 
-            await _supabase.from('resources').insert([{ title, type, url: finalUrl, created_by: currentUser.id }]);
+            const { error } = await _supabase.from('resources').insert([{ title, type, url, created_by: currentUser.id }]);
+            if (error) throw error;
             toggleModal(false);
             fetchResources();
-        } catch (err) {
-            alert(err.message);
-        } finally {
-            publishBtn.disabled = false;
-            publishBtn.innerText = "Publish";
-        }
+        } catch (e) { alert(e.message); }
+        finally { btn.disabled = false; btn.innerText = "Publish Now"; }
     }
 
-    function showTab(tabName) {
-        document.getElementById('tab-title').innerText = tabName.charAt(0).toUpperCase() + tabName.slice(1);
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-        document.getElementById('tab-' + tabName).classList.remove('hidden');
-        document.getElementById('nav-' + tabName).classList.add('active');
-        if(tabName === 'resources' || tabName === 'overview') fetchResources();
-        if(tabName === 'submissions' || tabName === 'overview') fetchSubmissions();
+    function showTab(name) {
+        document.getElementById('tab-title').innerText = name.charAt(0).toUpperCase() + name.slice(1);
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(`tab-${name}`).classList.remove('hidden');
+        document.getElementById(`nav-${name}`).classList.add('active');
+        if (name !== 'overview') (name === 'resources' ? fetchResources() : fetchSubmissions());
+        else { fetchResources(); fetchSubmissions(); }
     }
 
     async function fetchResources() {
-        const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
-        if (error) return;
+        const { data } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
         document.getElementById('stat-m-count').innerText = data.filter(r => r.type === 'Module').length;
         document.getElementById('stat-a-count').innerText = data.filter(r => r.type === 'Assignment').length;
-        
-        const tbody = document.getElementById('resource-list');
-        tbody.innerHTML = data.map((res, i) => `
-            <tr style="animation: fadeInUp 0.4s ease forwards ${i * 0.05}s">
-                <td style="font-weight:700; color:#2d3748;">${res.title}</td>
-                <td><span class="badge ${res.type === 'Assignment' ? 'badge-assign' : 'badge-module'}" style="padding:6px 12px; background:#f1f5f9; border-radius:8px; font-size:10px;">${res.type}</span></td>
-                <td><a href="${res.url}" target="_blank" style="color:var(--accent);"><i class="fas fa-external-link-alt"></i></a></td>
-                <td><i class="fas fa-trash-alt" onclick="deleteResource(${res.id})" style="color:#ff4d4d; cursor:pointer;"></i></td>
+        const list = document.getElementById('resource-list');
+        list.innerHTML = data.map((r, i) => `
+            <tr class="row-entry" style="animation-delay: ${i*0.1}s">
+                <td style="font-weight:700;">${r.title}</td>
+                <td><span style="padding:4px 8px; background:#f1f5f9; border-radius:5px; font-size:0.7rem;">${r.type}</span></td>
+                <td><a href="${r.url}" target="_blank" style="color:var(--accent)"><i class="fas fa-external-link-alt"></i></a></td>
+                <td><i class="fas fa-trash" onclick="deleteRes(${r.id})" style="color:#f87171; cursor:pointer;"></i></td>
             </tr>
         `).join('');
     }
 
-    async function deleteResource(id) {
-        if(confirm("Permanently delete this resource?")) {
+    async function deleteRes(id) {
+        if (confirm("Delete this?")) {
             await _supabase.from('resources').delete().eq('id', id);
             fetchResources();
         }
@@ -366,21 +303,16 @@
 
     async function fetchSubmissions() {
         const { data } = await _supabase.storage.from('assignments').list();
-        const files = data.filter(f => f.name !== '.emptyFolderPlaceholder');
+        const files = data?.filter(f => f.name !== '.emptyFolderPlaceholder') || [];
         document.getElementById('stat-s-count').innerText = files.length;
-        document.getElementById('submission-list').innerHTML = files.map(item => `
-            <tr>
-                <td><i class="far fa-file-pdf"></i> ${item.name}</td>
-                <td>${(item.metadata.size / 1024).toFixed(0)} KB</td>
-                <td>${new Date(item.created_at).toLocaleDateString()}</td>
-                <td><button class="btn btn-primary" style="padding:6px 14px; font-size:0.7rem;" onclick="downloadFile('${item.name}')">View</button></td>
+        document.getElementById('submission-list').innerHTML = files.map((f, i) => `
+            <tr class="row-entry" style="animation-delay: ${i*0.1}s">
+                <td>${f.name}</td>
+                <td>${(f.metadata.size/1024).toFixed(1)} KB</td>
+                <td>${new Date(f.created_at).toLocaleDateString()}</td>
+                <td><button class="btn btn-primary" style="padding:5px 10px; font-size:0.7rem;" onclick="window.open('${_supabase.storage.from('assignments').getPublicUrl(f.name).data.publicUrl}')">View</button></td>
             </tr>
         `).join('');
-    }
-
-    function downloadFile(name) {
-        const { data } = _supabase.storage.from('assignments').getPublicUrl(name);
-        window.open(data.publicUrl, '_blank');
     }
 
     function toggleAuth(type) {
@@ -391,16 +323,23 @@
     async function signIn() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+        const btn = document.getElementById('login-btn');
+        btn.innerText = "Authenticating...";
         const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) alert(error.message); else showPortal(data.user);
+        if (error) { alert(error.message); btn.innerText = "Sign In"; }
+        else showPortal(data.user);
     }
 
     async function signUp() {
-        const { error } = await _supabase.auth.signUp({
-            email: document.getElementById('reg-email').value, password: document.getElementById('reg-password').value,
-            options: { data: { display_name: document.getElementById('reg-username').value, employee_id: document.getElementById('reg-id').value }}
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const { data, error } = await _supabase.auth.signUp({
+            email, password, options: { data: { 
+                display_name: document.getElementById('reg-username').value,
+                employee_id: document.getElementById('reg-id').value 
+            }}
         });
-        if (error) alert(error.message); else alert("Check email for verification!");
+        if (error) alert(error.message); else alert("Check your email!");
     }
 
     function showPortal(user) {
@@ -408,12 +347,12 @@
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
         document.getElementById('display-name').innerText = user.user_metadata.display_name;
-        document.getElementById('display-id').innerText = user.user_metadata.employee_id;
+        document.getElementById('display-id').innerText = "ID: " + user.user_metadata.employee_id;
         showTab('overview');
     }
 
-    async function signOut() { await _supabase.auth.signOut(); location.reload(); }
-    _supabase.auth.getSession().then(({ data }) => { if (data.session) showPortal(data.session.user); });
+    function signOut() { _supabase.auth.signOut().then(() => location.reload()); }
+    _supabase.auth.getSession().then(({data}) => { if(data.session) showPortal(data.session.user); });
 </script>
 </body>
 </html>
