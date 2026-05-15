@@ -31,25 +31,46 @@
             overflow: hidden;
         }
 
-        /* --- CENTERED AUTHENTICATION --- */
+        @keyframes backgroundPan {
+            0% { background-position: 0% 50%; transform: scale(1); }
+            50% { background-position: 100% 50%; transform: scale(1.1); }
+            100% { background-position: 0% 50%; transform: scale(1); }
+        }
+
         #login-section {
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
             width: 100%;
-            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), url("WCGNHS.jpg") center/cover;
-            padding: 20px;
+            overflow: hidden;
+            background: #0f172a;
+        }
+
+        .bg-panning-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url("WCGNHS.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            animation: backgroundPan 25s ease-in-out infinite;
         }
 
         .auth-card { 
+            position: relative;
+            z-index: 10;
             background: var(--glass);
             padding: 40px;
             border-radius: var(--radius-lg); 
             box-shadow: var(--shadow-xl);
             width: 100%;
             max-width: 420px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
@@ -57,8 +78,7 @@
         .auth-header img { width: 80px; margin-bottom: 15px; filter: drop-shadow(0 4px 10px var(--accent-glow)); }
         .auth-header h2 { font-weight: 800; color: #1e293b; font-size: 1.8rem; }
 
-        /* --- DASHBOARD LAYOUT --- */
-        .portal-layout { display: flex; height: 100vh; width: 100%; background: var(--canvas); }
+        .portal-layout { display: flex; height: 100vh; width: 100%; background: var(--canvas); position: relative; z-index: 20; }
         .sidebar { width: 280px; background: var(--sidebar-bg); padding: 32px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
         .main-content { flex-grow: 1; padding: 40px 60px; overflow-y: auto; background: var(--canvas); }
 
@@ -69,7 +89,6 @@
         .nav-link:hover { background: rgba(255,255,255,0.05); color: white; padding-left: 22px; }
         .nav-link.active { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
 
-        /* --- UI ELEMENTS --- */
         .card { background: white; border-radius: var(--radius-lg); padding: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .stat-card { background: white; padding: 25px; border-radius: var(--radius-lg); border-left: 5px solid var(--accent); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         
@@ -77,7 +96,7 @@
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: #6236ff; transform: translateY(-2px); }
 
-        input { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px; outline: none; margin-bottom: 15px; font-family: inherit; }
+        input, select { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px; outline: none; margin-bottom: 15px; font-family: inherit; }
         input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 
         .hidden { display: none !important; }
@@ -87,30 +106,40 @@
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .file-input-wrapper { border: 1.5px dashed #e2e8f0; padding: 15px; border-radius: 10px; text-align: center; background: #f8fafc; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<!-- MODAL -->
+<!-- MODAL WITH FILE SUPPORT -->
 <div id="resource-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width: 100%; max-width: 450px;">
         <h2 style="margin-bottom: 20px;">Publish Content</h2>
+        
         <input type="text" id="res-title" placeholder="Title">
-        <select id="res-type" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1.5px solid #e2e8f0;">
+        
+        <select id="res-type">
             <option value="Module">Learning Module</option>
             <option value="Assignment">Assignment</option>
         </select>
+        
+        <div id="file-upload-zone" class="file-input-wrapper">
+            <label style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 10px;">UPLOAD FILE (PDF, DOCX, IMG)</label>
+            <input type="file" id="res-file" style="border:none; margin:0; padding:0;">
+        </div>
+
+        <p style="text-align:center; font-size: 0.7rem; color: #94a3b8; margin-bottom: 10px;">— OR USE EXTERNAL LINK —</p>
         <input type="text" id="res-url" placeholder="Resource Link (URL)">
+
         <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="btn btn-primary" id="publish-btn" onclick="saveResource()" style="flex:2;">Publish</button>
+            <button class="btn btn-primary" id="publish-btn" onclick="handleResourceSubmission()" style="flex:2;">Publish</button>
             <button class="btn" style="background:#f1f5f9; flex:1;" onclick="toggleModal(false)">Cancel</button>
         </div>
     </div>
 </div>
 
-<!-- CENTERED AUTH SECTION -->
 <div id="login-section">
-    <!-- Login Form -->
+    <div class="bg-panning-container"></div>
     <div id="login-form" class="auth-card animate__animated animate__fadeIn">
         <div class="auth-header">
             <img src="WCGNHS.png" alt="Logo">
@@ -125,7 +154,6 @@
         </p>
     </div>
 
-    <!-- Register Form -->
     <div id="register-form" class="auth-card hidden animate__animated animate__fadeIn">
         <div class="auth-header">
             <img src="WCGNHS.png" alt="Logo">
@@ -143,7 +171,6 @@
     </div>
 </div>
 
-<!-- DASHBOARD SECTION -->
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
         <div style="margin-bottom: 40px; text-align: center;">
@@ -286,14 +313,70 @@
         }
     }
 
-    async function saveResource() {
+    // UPDATED FUNCTION: Handles both File Upload and URL entry
+    async function handleResourceSubmission() {
         const title = document.getElementById('res-title').value;
         const type = document.getElementById('res-type').value;
-        const url = document.getElementById('res-url').value;
-        if(!title || !url) return alert("Fill all fields");
-        await _supabase.from('resources').insert([{ title, type, url, created_by: currentUser.id }]);
-        toggleModal(false);
-        fetchData();
+        const urlInput = document.getElementById('res-url').value;
+        const fileInput = document.getElementById('res-file').files[0];
+        const btn = document.getElementById('publish-btn');
+
+        if (!title) return alert("Please enter a title");
+        if (!urlInput && !fileInput) return alert("Please provide a URL or upload a file");
+
+        btn.innerText = "Publishing...";
+        btn.disabled = true;
+
+        let finalUrl = urlInput;
+
+        try {
+            // 1. If file exists, upload to 'assignments' bucket
+            if (fileInput) {
+                const fileExt = fileInput.name.split('.').pop();
+                const fileName = `${Date.now()}_${title.replace(/\s+/g, '_')}.${fileExt}`;
+                
+                const { data: uploadData, error: uploadError } = await _supabase.storage
+                    .from('assignments')
+                    .upload(fileName, fileInput);
+
+                if (uploadError) throw uploadError;
+
+                // 2. Get Public URL
+                const { data: publicUrlData } = _supabase.storage
+                    .from('assignments')
+                    .getPublicUrl(fileName);
+                
+                finalUrl = publicUrlData.publicUrl;
+            }
+
+            // 3. Insert record into 'resources' table
+            const { error: dbError } = await _supabase
+                .from('resources')
+                .insert([{ 
+                    title, 
+                    type, 
+                    url: finalUrl, 
+                    created_by: currentUser.id 
+                }]);
+
+            if (dbError) throw dbError;
+
+            alert("Resource successfully published!");
+            toggleModal(false);
+            
+            // Cleanup
+            document.getElementById('res-title').value = '';
+            document.getElementById('res-url').value = '';
+            document.getElementById('res-file').value = '';
+            fetchData();
+
+        } catch (err) {
+            console.error(err);
+            alert("Error: " + err.message);
+        } finally {
+            btn.innerText = "Publish";
+            btn.disabled = false;
+        }
     }
 
     async function deleteRes(id) {
