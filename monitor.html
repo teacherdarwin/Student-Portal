@@ -40,10 +40,9 @@
             flex: 1.2;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             color: white; padding: 60px; position: relative; overflow: hidden;
-            background: #000; /* Fallback */
+            background: #000;
         }
 
-        /* Animated & Blurred Background Layer */
        .brand-bg-overlay {
             position: absolute;
             top: -10%; left: -10%;
@@ -52,53 +51,26 @@
             background-size: cover;
             background-position: center;
             filter: blur(8px);
-            /* Set speed here (8s) */
             animation: panBackground 8s infinite alternate ease-in-out;
             z-index: 1;
         }
 
         @keyframes panBackground {
-            0% { 
-                /* Start shifted left */
-                transform: scale(1.1) translateX(-5%); 
-            }
-            100% { 
-                /* Move to the right */
-                transform: scale(1.1) translateX(0%); 
-            }
+            0% { transform: scale(1.1) translateX(-5%); }
+            100% { transform: scale(1.1) translateX(0%); }
         }
 
-        .brand-content { 
-            position: relative; 
-            z-index: 2; 
-            text-align: center; 
-            text-shadow: 0 4px 15px rgba(0,0,0,0.5); 
-        }
+        .brand-content { position: relative; z-index: 2; text-align: center; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
 
-        /* --- LOGO ADJUSTMENTS --- */
         .brand-logo-container {
-            width: 160px; 
-            height: 160px; 
-            margin: 0 auto 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 160px; height: 160px; margin: 0 auto 24px;
+            display: flex; align-items: center; justify-content: center;
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .brand-logo-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            filter: 
-                drop-shadow(0.5px 0.5px 0px rgba(255, 255, 255, 0.4)) 
-                drop-shadow(-0.5px -0.5px 0px rgba(255, 255, 255, 0.4))
-                drop-shadow(0 0 12px rgba(139, 92, 246, 0.3));
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .brand-logo-container:hover img {
-            transform: scale(1.1) translateY(-5px);
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.3));
         }
 
         .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
@@ -124,35 +96,21 @@
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); }
 
+        .toggle-container { display: flex; background: #f1f5f9; padding: 4px; border-radius: var(--radius-md); margin-bottom: 18px; }
+        .toggle-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-p); transition: 0.2s; }
+        .toggle-btn.active { background: #fff; color: var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
         /* --- PORTAL LAYOUT --- */
         .portal-layout { display: flex; height: 100vh; }
-        .sidebar {
-            width: 280px; background: var(--sidebar-bg); padding: 32px 20px;
-            display: flex; flex-direction: column; z-index: 10;
-        }
-
+        .sidebar { width: 280px; background: var(--sidebar-bg); padding: 32px 20px; display: flex; flex-direction: column; z-index: 10; }
         .sidebar-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding: 0 12px; }
-        .sidebar-brand img { 
-            height: 32px; 
-            width: auto; 
-            object-fit: contain; 
-            filter: drop-shadow(0 0 2px rgba(139, 92, 246, 0.5));
-        }
+        .sidebar-brand img { height: 32px; width: auto; object-fit: contain; }
         .sidebar-brand span { color: white; font-weight: 800; font-size: 1.2rem; }
-
-        .nav-link {
-            display: flex; align-items: center; gap: 12px; width: 100%;
-            padding: 14px 16px; border: none; background: transparent;
-            color: #94a3b8; font-weight: 500; cursor: pointer; border-radius: var(--radius-md); transition: 0.2s;
-            margin-bottom: 4px;
-        }
+        .nav-link { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border: none; background: transparent; color: #94a3b8; font-weight: 500; cursor: pointer; border-radius: var(--radius-md); transition: 0.2s; margin-bottom: 4px; }
         .nav-link.active { background: var(--accent); color: #fff; }
-
         .main-content { flex: 1; padding: 48px; overflow-y: auto; background: #f8fafc; }
 
-        /* --- TABLES & CARDS --- */
         .card { background: #fff; border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow); margin-bottom: 24px; }
-        
         table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
         th { text-align: left; padding: 12px 16px; color: var(--text-p); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
         td { padding: 16px; background: #fff; border-top: 1px solid var(--card-border); border-bottom: 1px solid var(--card-border); }
@@ -162,10 +120,8 @@
         .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .badge-module { background: #e0e7ff; color: #4338ca; }
         .badge-assign { background: #fef3c7; color: #92400e; }
-
         .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; }
         .hidden { display: none !important; }
-
         .stat-card { background: #fff; padding: 24px; border-radius: var(--radius-md); border-left: 4px solid var(--accent); box-shadow: var(--shadow); }
     </style>
 </head>
@@ -175,10 +131,12 @@
 <div id="resource-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width: 100%; max-width: 480px;">
         <h3 style="margin-bottom: 24px;">Publish New Content</h3>
+        
         <div class="input-field">
             <label>Title</label>
             <div class="input-wrapper"><i class="fas fa-heading"></i><input type="text" id="res-title" placeholder="e.g. Calculus II - Derivatives"></div>
         </div>
+
         <div class="input-field">
             <label>Category</label>
             <div class="input-wrapper">
@@ -189,27 +147,36 @@
                 </select>
             </div>
         </div>
-        <div class="input-field">
-            <label>Resource URL</label>
+
+        <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px;">Content Source</label>
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="mode-link-btn" onclick="toggleResourceMode('link')">Link</button>
+            <button class="toggle-btn" id="mode-file-btn" onclick="toggleResourceMode('file')">Upload File</button>
+        </div>
+
+        <!-- Mode Link -->
+        <div id="mode-link" class="input-field">
             <div class="input-wrapper"><i class="fas fa-link"></i><input type="text" id="res-url" placeholder="https://drive.google.com/..."></div>
         </div>
+
+        <!-- Mode File -->
+        <div id="mode-file" class="input-field hidden">
+            <div class="input-wrapper"><i class="fas fa-file-arrow-up"></i><input type="file" id="res-file" style="padding-top: 10px;"></div>
+        </div>
+
         <div style="display:flex; gap:12px; margin-top:24px;">
-            <button class="btn btn-primary" onclick="saveResource()">Publish Now</button>
+            <button class="btn btn-primary" id="publish-btn" onclick="saveResource()">Publish Now</button>
             <button class="btn" style="background:#f1f5f9;" onclick="toggleModal(false)">Cancel</button>
         </div>
     </div>
 </div>
 
-<!-- LOGIN SECTION -->
+<!-- LOGIN SECTION (UNCHANGED) -->
 <div id="login-section" class="auth-wrapper">
     <div class="auth-side-brand">
-        <!-- New Background Layer -->
         <div class="brand-bg-overlay"></div>
-
         <div class="brand-content animate__animated animate__fadeIn">
-            <div class="brand-logo-container">
-                <img src="WCGNHS.png" alt="WCGNHS Logo">
-            </div>
+            <div class="brand-logo-container"><img src="WCGNHS.png" alt="WCGNHS Logo"></div>
             <h1>Faculty Console</h1>
             <p>Mathematics Classroom Management</p>
         </div>
@@ -217,7 +184,6 @@
     <div class="auth-side-form">
         <div id="login-form" class="auth-card animate__animated animate__fadeInRight">
             <h2>Teacher Login</h2>
-            <p style="color:var(--text-p); margin-bottom:32px;">Access your curriculum controls.</p>
             <div class="input-field">
                 <label>Institutional Email</label>
                 <div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="faculty@gmail.com"></div>
@@ -227,15 +193,14 @@
                 <div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="••••••••"></div>
             </div>
             <button class="btn btn-primary" onclick="signIn()">Enter Console</button>
-            <p style="text-align:center; margin-top:24px; font-size:14px; color: var(--text-p);">
+            <p style="text-align:center; margin-top:24px; font-size:14px;">
                 Need faculty access? <a href="#" onclick="toggleAuth('register')" style="color:var(--accent); font-weight:700; text-decoration:none;">Register Hub</a>
             </p>
         </div>
-
         <div id="register-form" class="auth-card hidden animate__animated animate__fadeInRight">
             <h2>Faculty Registration</h2>
-            <div class="input-field"><label>Full Name</label><div class="input-wrapper"><i class="fas fa-user"></i><input type="text" id="reg-username" placeholder="Mr. Juan Dela Cruz"></div></div>
-            <div class="input-field"><label>Employee ID</label><div class="input-wrapper"><i class="fas fa-id-badge"></i><input type="text" id="reg-id" placeholder="XXXXXX"></div></div>
+            <div class="input-field"><label>Full Name</label><div class="input-wrapper"><i class="fas fa-user"></i><input type="text" id="reg-username"></div></div>
+            <div class="input-field"><label>Employee ID</label><div class="input-wrapper"><i class="fas fa-id-badge"></i><input type="text" id="reg-id"></div></div>
             <div class="input-field"><label>Email</label><div class="input-wrapper"><i class="fas fa-at"></i><input type="email" id="reg-email"></div></div>
             <div class="input-field"><label>Password</label><div class="input-wrapper"><i class="fas fa-key"></i><input type="password" id="reg-password"></div></div>
             <button class="btn btn-primary" onclick="signUp()">Create Faculty Account</button>
@@ -266,7 +231,7 @@
     </aside>
 
     <main class="main-content">
-        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;" class="animate__animated animate__fadeInDown">
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
             <div>
                 <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase;">Admin Control</span>
                 <h2 id="tab-title" style="font-size:2.2rem; font-weight:800; letter-spacing:-1px;">Overview</h2>
@@ -276,18 +241,9 @@
 
         <div id="tab-overview" class="tab-content">
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:24px; margin-bottom:40px;">
-                <div class="stat-card">
-                    <span style="color:var(--text-p); font-size:0.8rem; font-weight:700;">TOTAL MODULES</span>
-                    <h2 id="stat-m-count" style="font-size:2rem; margin-top:8px;">0</h2>
-                </div>
-                <div class="stat-card" style="border-color: #f59e0b;">
-                    <span style="color:var(--text-p); font-size:0.8rem; font-weight:700;">ASSIGNMENTS</span>
-                    <h2 id="stat-a-count" style="font-size:2rem; margin-top:8px;">0</h2>
-                </div>
-                <div class="stat-card" style="border-color: #10b981;">
-                    <span style="color:var(--text-p); font-size:0.8rem; font-weight:700;">STUDENT UPLOADS</span>
-                    <h2 id="stat-s-count" style="font-size:2rem; margin-top:8px;">0</h2>
-                </div>
+                <div class="stat-card"><span>TOTAL MODULES</span><h2 id="stat-m-count">0</h2></div>
+                <div class="stat-card" style="border-color: #f59e0b;"><span>ASSIGNMENTS</span><h2 id="stat-a-count">0</h2></div>
+                <div class="stat-card" style="border-color: #10b981;"><span>STUDENT UPLOADS</span><h2 id="stat-s-count">0</h2></div>
             </div>
         </div>
 
@@ -314,8 +270,82 @@
 <script>
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
+    let resourceMode = 'link'; // Default mode
 
-    function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
+    function toggleModal(show) { 
+        document.getElementById('resource-modal').classList.toggle('hidden', !show); 
+        if(!show) resetModal();
+    }
+
+    function toggleResourceMode(mode) {
+        resourceMode = mode;
+        document.getElementById('mode-link').classList.toggle('hidden', mode !== 'link');
+        document.getElementById('mode-file').classList.toggle('hidden', mode !== 'file');
+        document.getElementById('mode-link-btn').classList.toggle('active', mode === 'link');
+        document.getElementById('mode-file-btn').classList.toggle('active', mode === 'file');
+    }
+
+    function resetModal() {
+        document.getElementById('res-title').value = "";
+        document.getElementById('res-url').value = "";
+        document.getElementById('res-file').value = "";
+        toggleResourceMode('link');
+    }
+
+    async function saveResource() {
+        const title = document.getElementById('res-title').value;
+        const type = document.getElementById('res-type').value;
+        const publishBtn = document.getElementById('publish-btn');
+        let finalUrl = "";
+
+        if (!title) return alert("Please enter a title.");
+
+        publishBtn.disabled = true;
+        publishBtn.innerText = "Processing...";
+
+        try {
+            if (resourceMode === 'link') {
+                finalUrl = document.getElementById('res-url').value;
+                if (!finalUrl) throw new Error("Please enter a URL.");
+            } else {
+                const fileInput = document.getElementById('res-file');
+                const file = fileInput.files[0];
+                if (!file) throw new Error("Please select a file to upload.");
+
+                // Upload to Supabase Storage
+                const fileName = `${Date.now()}-${file.name}`;
+                const { data, error: uploadError } = await _supabase.storage
+                    .from('resources') // Ensure bucket 'resources' exists and is public
+                    .upload(`uploads/${fileName}`, file);
+
+                if (uploadError) throw uploadError;
+
+                // Get Public URL
+                const { data: urlData } = _supabase.storage
+                    .from('resources')
+                    .getPublicUrl(`uploads/${fileName}`);
+                
+                finalUrl = urlData.publicUrl;
+            }
+
+            // Save to DB
+            const { error } = await _supabase.from('resources').insert([
+                { title, type, url: finalUrl, created_by: currentUser.id }
+            ]);
+
+            if (error) throw error;
+
+            toggleModal(false);
+            fetchResources();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            publishBtn.disabled = false;
+            publishBtn.innerText = "Publish Now";
+        }
+    }
+
+    /* --- REMAINING FUNCTIONS (FETCH, AUTH, ETC) --- */
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
@@ -330,19 +360,6 @@
         document.getElementById('nav-' + (tabName === 'overview' ? 'overview' : tabName)).classList.add('active');
         if(tabName === 'resources' || tabName === 'overview') fetchResources();
         if(tabName === 'submissions' || tabName === 'overview') fetchSubmissions();
-    }
-
-    async function saveResource() {
-        const title = document.getElementById('res-title').value;
-        const type = document.getElementById('res-type').value;
-        const url = document.getElementById('res-url').value;
-        if (!title || !url) return alert("Required fields missing.");
-        const { error } = await _supabase.from('resources').insert([{ title, type, url, created_by: currentUser.id }]);
-        if (error) alert(error.message);
-        else {
-            toggleModal(false); fetchResources();
-            document.getElementById('res-title').value = ""; document.getElementById('res-url').value = "";
-        }
     }
 
     async function fetchResources() {
