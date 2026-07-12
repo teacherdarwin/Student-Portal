@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math | Faculty Console</title>
-    <link rel="icon" type="image/png" href="WCGNHS.png">
+    <link rel="icon" type="image/png" href="NCC.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -62,7 +62,7 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url("WCGNHS.jpg");
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url("NCC.jpg");
             background-size: cover;
             background-repeat: no-repeat;
             animation: backgroundPan 25s ease-in-out infinite;
@@ -229,7 +229,7 @@
     <div class="bg-panning-container"></div>
     <div id="login-form" class="auth-card animate__animated animate__fadeIn">
         <div class="auth-header">
-            <img src="WCGNHS.png" alt="Logo">
+            <img src="NCC.png" alt="Logo">
             <h2>Faculty Portal</h2>
             <p style="color: var(--text-p); margin-top: 5px; font-size: 0.95rem;">Sign in to your console</p>
         </div>
@@ -243,7 +243,7 @@
 
     <div id="register-form" class="auth-card hidden animate__animated animate__fadeIn">
         <div class="auth-header">
-            <img src="WCGNHS.png" alt="Logo">
+            <img src="NCC.png" alt="Logo">
             <h2>Create Account</h2>
             <p style="color: var(--text-p); margin-top: 5px; font-size: 0.95rem;">Join the Mathematics Faculty</p>
         </div>
@@ -261,7 +261,7 @@
 <!-- TOP MOBILE NAV STICKY BAR -->
 <div id="mobile-navigation-bar" class="mobile-nav hidden">
     <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="WCGNHS.png" alt="Logo" height="28" width="auto">
+        <img src="NCC.png" alt="Logo" height="28" width="auto">
         <span style="color:white; font-weight:800; font-size:1.1rem;">MathClass</span>
     </div>
     <button onclick="toggleMobileMenu()" style="background:transparent; border:none; color:white; font-size:1.5rem; cursor:pointer;">
@@ -273,20 +273,20 @@
 <div id="mobile-menu-dropdown" class="mobile-nav-menu">
     <button class="nav-link active" id="m-nav-overview" onclick="showTab('overview'); toggleMobileMenu();"><i class="fas fa-house-chimney"></i> Overview</button>
     <button class="nav-link" id="m-nav-resources" onclick="showTab('resources'); toggleMobileMenu();"><i class="fas fa-book-open"></i> Curriculum</button>
-    <button class="nav-link" id="m-nav-submissions" onclick="showTab('submissions'); toggleMobileMenu();"><i class="fas fa-pen-nib"></i> Submissions</button>
+    <button class="nav-link" id="m-nav-submissions" onclick="showTab('submissions'); toggleMobileMenu();"><i class="fas fa-pen-nib"></i> Assignments</button>
     <button class="nav-link" style="color:#ef4444; margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:14px;" onclick="signOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
 </div>
 
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
         <div style="margin-bottom: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px;">
-            <img src="WCGNHS.png" alt="Logo" height="32" width="auto">
+            <img src="NCC.png" alt="Logo" height="32" width="auto">
             <span style="color:white; font-weight:800; font-size:1.25rem; letter-spacing:0.5px;">MathClass</span>
         </div>
         <nav style="flex:1">
             <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-house-chimney"></i> Overview</button>
             <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-book-open"></i> Curriculum</button>
-            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-pen-nib"></i> Assignments</button>
+            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-pen-nib"></i> Submissions</button>
         </nav>
         <div style="padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
             <div style="margin-bottom: 20px; padding: 0 12px;">
