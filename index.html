@@ -122,11 +122,35 @@
         .badge-done { background: #ecfdf5; color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
 
         /* --- PORTAL LAYOUT --- */
-        .portal-layout { display: flex; height: 100vh; }
-        .sidebar { width: 280px; background: var(--sidebar-bg); padding: 32px 20px; display: flex; flex-direction: column; z-index: 10; }
+        .portal-layout { display: flex; height: 100vh; width: 100%; }
+        .sidebar { width: 280px; background: var(--sidebar-bg); padding: 32px 20px; display: flex; flex-direction: column; z-index: 10; flex-shrink: 0; }
         .sidebar-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 12px; }
         .sidebar-brand img { height: 32px; width: auto; object-fit: contain; }
         .sidebar-brand span { color: white; font-weight: 800; font-size: 1.25rem; }
+
+        /* Mobile Layout Components */
+        .mobile-nav {
+            display: none;
+            background: var(--sidebar-bg);
+            padding: 12px 20px;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .mobile-nav-menu {
+            display: none;
+            background: #1e293b;
+            padding: 10px;
+            position: absolute;
+            top: 56px;
+            left: 0;
+            width: 100%;
+            box-shadow: var(--shadow);
+            z-index: 99;
+        }
 
         .nav-link {
             display: flex; align-items: center; gap: 12px; width: 100%;
@@ -148,19 +172,21 @@
         .list-item {
             display: flex; align-items: center; justify-content: space-between;
             padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border);
-            margin-bottom: 12px; background: #fff; transition: 0.3s;
+            margin-bottom: 12px; background: #fff; transition: 0.3s; gap: 16px;
         }
         .list-item:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
         
-        .resource-info { display: flex; align-items: center; gap: 16px; }
+        .resource-info { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; }
+        .resource-info h4 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
         .resource-icon { 
-            width: 44px; height: 44px; border-radius: 10px; 
+            width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
         }
         .icon-module { background: #edf2ff; color: #4c6ef5; }
         .icon-assignment { background: #fff0f6; color: #d6336c; }
 
-        .action-group { display: flex; align-items: center; gap: 10px; }
+        .action-group { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
         .hidden { display: none !important; }
 
@@ -169,6 +195,36 @@
             border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- PHONE RESPONSIVE STYLES --- */
+        @media (max-width: 768px) {
+            body { overflow: auto; height: auto; min-height: 100vh; }
+            
+            /* Auth Panel Collapse */
+            .auth-wrapper { flex-direction: column; }
+            .auth-side-brand { padding: 40px 20px; flex: none; }
+            .auth-side-form { padding: 32px 16px; }
+            .brand-logo-container { width: 100px; height: 100px; margin-bottom: 16px; }
+            .auth-card h2 { font-size: 1.6rem; }
+            
+            /* Dashboard Sidebar & Core Content Switch */
+            .portal-layout { flex-direction: column; height: auto; min-height: 100vh; }
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; }
+            .mobile-nav-menu.show { display: block; }
+            
+            .main-content { padding: 24px 16px; }
+            .main-content header { margin-bottom: 24px; }
+            .main-content header h2 { font-size: 1.8rem; }
+            
+            .stat-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
+            .card { padding: 18px; }
+            
+            /* Responsive Task Rows */
+            .list-item { flex-direction: column; align-items: stretch; gap: 14px; padding: 16px; }
+            .action-group { justify-content: flex-start; }
+            .action-group .btn { flex: 1; }
+        }
     </style>
 </head>
 <body>
@@ -228,6 +284,25 @@
     </div>
 </div>
 
+<!-- TOP MOBILE NAV STICKY BAR -->
+<div id="mobile-navigation-bar" class="mobile-nav hidden">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="NCC.png" alt="Logo" height="28" width="auto">
+        <span style="color:white; font-weight:800; font-size:1.1rem;">MathClass</span>
+    </div>
+    <button onclick="toggleMobileMenu()" style="background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<!-- COLLAPSIBLE MOBILE DROPDOWN LINKS -->
+<div id="mobile-menu-dropdown" class="mobile-nav-menu">
+    <button class="nav-link active" id="m-nav-dashboard" onclick="showTab('dashboard'); toggleMobileMenu();"><i class="fas fa-house-chimney"></i> Dashboard</button>
+    <button class="nav-link" id="m-nav-modules" onclick="showTab('modules'); toggleMobileMenu();"><i class="fas fa-book-open"></i> Curriculum</button>
+    <button class="nav-link" id="m-nav-assignments" onclick="showTab('assignments'); toggleMobileMenu();"><i class="fas fa-pen-nib"></i> Assignments</button>
+    <button class="nav-link" style="color:#ef4444; margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:14px;" onclick="signOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
+</div>
+
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
         <div class="sidebar-brand">
@@ -273,14 +348,17 @@
 <script>
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
-    let completedTaskIds = new Set(); // Will now sync seamlessly with Supabase
+    let completedTaskIds = new Set();
 
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
     }
 
-    // NEW: Fetch persistent completions from the database
+    function toggleMobileMenu() {
+        document.getElementById('mobile-menu-dropdown').classList.toggle('show');
+    }
+
     async function fetchUserProgress() {
         if (!currentUser) return;
         const { data, error } = await _supabase
@@ -292,7 +370,6 @@
             console.error("Error loading progress:", error);
             return;
         }
-        
         completedTaskIds = new Set(data.map(item => item.resource_id.toString()));
     }
 
@@ -301,7 +378,6 @@
         const mStat = document.getElementById('stat-modules');
         const aStat = document.getElementById('stat-assignments');
         
-        // Ensure progress is loaded before calculating stats
         await fetchUserProgress();
         
         const { data, error } = await _supabase.from('resources').select('type');
@@ -310,7 +386,6 @@
         const modules = data.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
         const totalTasks = data.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
         
-        // Accurate calculation using live database tracking
         const actualPending = Math.max(0, totalTasks - completedTaskIds.size);
         
         mStat.innerText = modules;
@@ -324,9 +399,16 @@
         const titles = { dashboard: 'Dashboard', modules: 'Learning Modules', assignments: 'Active Submissions' };
         document.getElementById('tab-title').innerText = titles[tabName];
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        
+        // Sync Desktop Nav Active State
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => link.classList.remove('active'));
         document.getElementById('nav-' + tabName).classList.add('active');
+
+        // Sync Mobile Nav Active State
+        document.querySelectorAll('.mobile-nav-menu .nav-link').forEach(link => link.classList.remove('active'));
+        document.getElementById('m-nav-' + tabName).classList.add('active');
+
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
         if(tabName === 'dashboard') updateDashboardStats();
         else fetchResources();
     }
@@ -335,7 +417,6 @@
         const mContainer = document.getElementById('modules-container');
         const aContainer = document.getElementById('assignments-container');
         
-        // Refresh progress list right before displaying assignments
         await fetchUserProgress();
         
         const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
@@ -351,9 +432,9 @@
                     <div class="list-item">
                         <div class="resource-info">
                             <div class="resource-icon icon-assignment"><i class="fas fa-scroll"></i></div>
-                            <div>
-                                <h4 style="margin:0">${item.title}</h4>
-                                <span id="badge-${item.id}" class="status-badge ${isDone ? 'badge-done' : 'badge-pending'}">
+                            <div style="min-width: 0; flex: 1;">
+                                <h4 style="margin:0; text-overflow: ellipsis; overflow: hidden;" title="${item.title}">${item.title}</h4>
+                                <span id="badge-${item.id}" class="status-badge ${isDone ? 'badge-done' : 'badge-pending'}" style="margin-top: 4px;">
                                     ${isDone ? '<i class="fas fa-circle-check"></i> Completed' : '<i class="fas fa-clock"></i> Pending'}
                                 </span>
                             </div>
@@ -372,7 +453,7 @@
                     <div class="list-item">
                         <div class="resource-info">
                             <div class="resource-icon icon-module"><i class="fas fa-book"></i></div>
-                            <div><h4 style="margin:0">${item.title}</h4></div>
+                            <div style="min-width: 0; flex: 1;"><h4 style="margin:0; text-overflow: ellipsis; overflow: hidden;" title="${item.title}">${item.title}</h4></div>
                         </div>
                         <a href="${item.url}" target="_blank" class="btn btn-primary" style="width:auto; padding:10px 20px;">
                             <i class="fas fa-book-open"></i>
@@ -382,14 +463,12 @@
         });
     }
 
-    // MODIFIED: Saves the execution state securely to Supabase on interaction
     async function toggleTaskStatus(id) {
         const badge = document.getElementById('badge-' + id);
         const btn = document.getElementById('done-btn-' + id);
         const stringId = id.toString();
         
         if (!completedTaskIds.has(stringId)) {
-            // Save completion to database
             const { error } = await _supabase
                 .from('student_progress')
                 .insert([{ user_id: currentUser.id, resource_id: stringId }]);
@@ -401,7 +480,6 @@
             badge.innerHTML = `<i class="fas fa-circle-check"></i> Completed`;
             btn.style.opacity = "0.5";
         } else {
-            // Remove completion from database
             const { error } = await _supabase
                 .from('student_progress')
                 .delete()
@@ -437,10 +515,9 @@
         currentUser = user;
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
-        document.getElementById('display-name').innerText = user.user_metadata.display_name;
-        document.getElementById('display-id').innerText = "ID: " + user.user_metadata.student_id;
+        document.getElementById('mobile-navigation-bar').classList.remove('hidden');
+        document.getElementById('email').innerText = user.user_metadata.email;
         
-        // New workflow setup chain
         await fetchUserProgress();
         updateDashboardStats();
     }
