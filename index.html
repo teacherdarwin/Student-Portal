@@ -23,6 +23,8 @@
             --radius-lg: 16px;
             --radius-md: 12px;
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --success: #10b981;
+            --success-dark: #059669;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,11 +43,10 @@
             flex: 1.2;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             color: white; padding: 60px; position: relative; overflow: hidden;
-            background: #000; /* Fallback background */
+            background: #000;
         }
 
-        /* Animated & Blurred Background Layer */
-       .brand-bg-overlay {
+        .brand-bg-overlay {
             position: absolute;
             top: -10%; left: -10%;
             width: 120%; height: 120%;
@@ -53,20 +54,13 @@
             background-size: cover;
             background-position: center;
             filter: blur(8px);
-            /* Set speed here (8s) */
             animation: panBackground 8s infinite alternate ease-in-out;
             z-index: 1;
         }
 
         @keyframes panBackground {
-            0% { 
-                /* Start shifted left */
-                transform: scale(1.1) translateX(-5%); 
-            }
-            100% { 
-                /* Move to the right */
-                transform: scale(1.1) translateX(0%); 
-            }
+            0% { transform: scale(1.1) translateX(-5%); }
+            100% { transform: scale(1.1) translateX(0%); }
         }
 
         .brand-content { 
@@ -76,7 +70,6 @@
             text-shadow: 0 4px 15px rgba(0,0,0,0.5); 
         }
 
-        /* --- LOGO ADJUSTMENTS --- */
         .brand-logo-container {
             width: 160px; height: 160px; margin: 0 auto 24px;
             display: flex; align-items: center; justify-content: center;
@@ -96,7 +89,6 @@
         .auth-card h2 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; color: var(--text-h); }
         .auth-card p.subtitle { color: var(--text-p); margin-bottom: 32px; font-size: 0.95rem; }
 
-        /* --- INPUT STYLING --- */
         .input-field { margin-bottom: 18px; }
         .input-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--text-h); }
         .input-wrapper { position: relative; }
@@ -113,10 +105,13 @@
         .btn {
             width: 100%; padding: 14px; border-radius: var(--radius-md); border: none;
             font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); }
+        
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: var(--success-dark); transform: translateY(-2px); }
 
         /* --- PORTAL LAYOUT --- */
         .portal-layout { display: flex; height: 100vh; }
@@ -141,11 +136,30 @@
         .stat-card { background: #fff; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border); }
         .stat-card h4 { font-size: 1.8rem; margin-top: 4px; font-weight: 800; color: var(--accent); }
 
+        /* --- RESOURCE ITEMS --- */
         .list-item {
             display: flex; align-items: center; justify-content: space-between;
             padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border);
             margin-bottom: 12px; background: #fff; transition: 0.3s;
         }
+        .list-item:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        
+        .resource-info { display: flex; align-items: center; gap: 16px; }
+        .resource-icon { 
+            width: 44px; height: 44px; border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
+        .icon-module { background: #edf2ff; color: #4c6ef5; }
+        .icon-assignment { background: #fff0f6; color: #d6336c; }
+
+        .action-group { display: flex; align-items: center; gap: 10px; }
+        
+        .file-select-label {
+            padding: 10px 14px; background: #f8fafc; border: 1.5px dashed #cbd5e1;
+            border-radius: var(--radius-md); cursor: pointer; font-size: 0.85rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 8px; color: var(--text-p); transition: 0.2s;
+        }
+        .file-select-label:hover { background: #f1f5f9; border-color: var(--accent); }
 
         .hidden { display: none !important; }
 
@@ -160,9 +174,7 @@
 
 <div id="login-section" class="auth-wrapper">
     <div class="auth-side-brand">
-        <!-- Background layer for Blur and Pan -->
         <div class="brand-bg-overlay"></div>
-        
         <div class="brand-content animate__animated animate__fadeIn">
             <div class="brand-logo-container">
                 <img src="NCC.png" alt="NCC Logo">
@@ -298,12 +310,105 @@
         const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
         if (error) return;
         mContainer.innerHTML = ""; aContainer.innerHTML = "";
+        
         data.forEach(item => {
             const type = (item.type || "module").toLowerCase();
-            const html = `<div class="list-item"><div><h4 style="margin:0">${item.title}</h4></div><a href="${item.url}" target="_blank" class="btn" style="width:auto; padding:8px 20px;">View</a></div>`;
-            if (type === 'assignment') aContainer.innerHTML += html;
-            else mContainer.innerHTML += html;
+            
+            if (type === 'assignment') {
+                // Customized Assignment Bin with Paperclip File Selection and Done/Checkmark Icon workflow
+                aContainer.innerHTML += `
+                    <div class="list-item">
+                        <div class="resource-info">
+                            <div class="resource-icon icon-assignment"><i class="fas fa-scroll"></i></div>
+                            <div><h4 style="margin:0">${item.title}</h4></div>
+                        </div>
+                        <div class="action-group">
+                            <a href="${item.url}" target="_blank" class="btn btn-primary" style="width:auto; padding:10px 16px;" title="View Assignment Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <label class="file-select-label" for="file-${item.id}">
+                                <i class="fas fa-paperclip"></i> <span id="label-${item.id}" style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Attach File</span>
+                            </label>
+                            <input type="file" id="file-${item.id}" class="hidden" onchange="fileSelected('${item.id}')">
+                            <button class="btn btn-success" style="width:auto; padding:10px 16px;" onclick="submitAssignment('${item.id}', '${item.title.replace(/'/g, "\\'")}')" title="Mark as Done & Submit">
+                                <i class="fas fa-circle-check"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            } else {
+                // Curriculum row with an open book/eye theme icon structure
+                mContainer.innerHTML += `
+                    <div class="list-item">
+                        <div class="resource-info">
+                            <div class="resource-icon icon-module"><i class="fas fa-book"></i></div>
+                            <div><h4 style="margin:0">${item.title}</h4></div>
+                        </div>
+                        <a href="${item.url}" target="_blank" class="btn btn-primary" style="width:auto; padding:10px 20px;">
+                            <i class="fas fa-book-open"></i>
+                        </a>
+                    </div>`;
+            }
         });
+    }
+
+    function fileSelected(id) {
+        const input = document.getElementById('file-' + id);
+        const label = document.getElementById('label-' + id);
+        if(input.files.length > 0) {
+            label.innerText = input.files[0].name;
+            label.style.color = "var(--accent)";
+        }
+    }
+
+    async function submitAssignment(assignmentId, assignmentTitle) {
+        const fileInput = document.getElementById(`file-${assignmentId}`);
+        if (fileInput.files.length === 0) {
+            alert("Please attach your file using the paperclip button before hitting done!");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const studentId = currentUser.user_metadata.student_id || "unknown_id";
+        const studentName = currentUser.user_metadata.display_name || "Unknown Student";
+        
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${assignmentId}/${studentId}_${Date.now()}.${fileExt}`;
+
+        try {
+            // 1. Upload to Supabase Storage Bucket
+            const { data: uploadData, error: uploadError } = await _supabase.storage
+                .from('submissions')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Insert tracking index using default structure mapping column 'created_at'
+            const { error: dbError } = await _supabase
+                .from('student_submissions')
+                .insert([
+                    {
+                        student_id: studentId,
+                        student_name: studentName,
+                        assignment_id: assignmentId,
+                        assignment_title: assignmentTitle,
+                        file_path: filePath,
+                        created_at: new Date().toISOString()
+                    }
+                ]);
+
+            if (dbError) throw dbError;
+
+            alert(`Perfect! Your assignment for "${assignmentTitle}" has been marked as done and recorded.`);
+            
+            // UI Cleanup
+            fileInput.value = "";
+            document.getElementById(`label-${assignmentId}`).innerText = "Attach File";
+            document.getElementById(`label-${assignmentId}`).style.color = "var(--text-p)";
+
+        } catch (err) {
+            console.error(err);
+            alert("Submission error: " + (err.message || err));
+        }
     }
 
     async function signIn() {
