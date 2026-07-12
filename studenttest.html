@@ -350,7 +350,7 @@
 
             if (uploadError) throw uploadError;
 
-            // 2. Insert record log into database table ('student_submissions')
+           // Updated block:
             const { error: dbError } = await _supabase
                 .from('student_submissions')
                 .insert([
@@ -360,7 +360,7 @@
                         assignment_id: assignmentId,
                         assignment_title: assignmentTitle,
                         file_path: filePath,
-                        submitted_at: new Date().toISOString()
+                        created_at: new Date().toISOString() // <-- Changed to created_at
                     }
                 ]);
 
