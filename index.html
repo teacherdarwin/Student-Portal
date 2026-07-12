@@ -140,7 +140,7 @@
         .main-content { flex: 1; padding: 48px; overflow-y: auto; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
 
         .card { background: #fff; border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow); }
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 32px; }
         .stat-card { background: #fff; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border); }
         .stat-card h4 { font-size: 1.8rem; margin-top: 4px; font-weight: 800; color: var(--accent); }
 
@@ -258,7 +258,6 @@
             <div class="stat-grid animate__animated animate__fadeInUp">
                 <div class="stat-card"><span>Active Modules</span><h4 id="stat-modules">--</h4></div>
                 <div class="stat-card"><span>Pending Tasks</span><h4 id="stat-assignments">--</h4></div>
-                <div class="stat-card"><span>Current Grade</span><h4>A-</h4></div>
             </div>
             <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
                 <h3>Status Report</h3>
@@ -274,6 +273,7 @@
 <script>
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
+    let completedTaskIds = new Set(); // Keeps track of what the user has completed locally
 
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
@@ -286,12 +286,18 @@
         const aStat = document.getElementById('stat-assignments');
         const { data, error } = await _supabase.from('resources').select('type');
         if (error) return;
+        
         const modules = data.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
-        const tasks = data.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
+        const totalTasks = data.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
+        
+        // Subtract completed tasks to accurately show what's currently pending
+        const actualPending = Math.max(0, totalTasks - completedTaskIds.size);
+        
         mStat.innerText = modules;
-        aStat.innerText = tasks;
+        aStat.innerText = actualPending;
+        
         const name = currentUser.user_metadata.display_name || "Student";
-        welcomeMsg.innerHTML = tasks > 0 ? `Greetings, <strong>${name}</strong>. There are <strong>${tasks}</strong> assignments awaiting.` : `Greetings, <strong>${name}</strong>. Everything is up to date.`;
+        welcomeMsg.innerHTML = actualPending > 0 ? `Greetings, <strong>${name}</strong>. There are <strong>${actualPending}</strong> assignments awaiting.` : `Greetings, <strong>${name}</strong>. Everything is up to date.`;
     }
 
     function showTab(tabName) {
@@ -316,14 +322,15 @@
             const type = (item.type || "module").toLowerCase();
             
             if (type === 'assignment') {
+                const isDone = completedTaskIds.has(item.id.toString());
                 aContainer.innerHTML += `
                     <div class="list-item">
                         <div class="resource-info">
                             <div class="resource-icon icon-assignment"><i class="fas fa-scroll"></i></div>
                             <div>
                                 <h4 style="margin:0">${item.title}</h4>
-                                <span id="badge-${item.id}" class="status-badge badge-pending">
-                                    <i class="fas fa-clock"></i> Pending
+                                <span id="badge-${item.id}" class="status-badge ${isDone ? 'badge-done' : 'badge-pending'}">
+                                    ${isDone ? '<i class="fas fa-circle-check"></i> Completed' : '<i class="fas fa-clock"></i> Pending'}
                                 </span>
                             </div>
                         </div>
@@ -331,7 +338,7 @@
                             <a href="${item.url}" target="_blank" class="btn btn-primary" style="width:auto; padding:10px 16px;" title="View Assignment Details">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <button id="done-btn-${item.id}" class="btn btn-success" style="width:auto; padding:10px 16px;" onclick="toggleTaskStatus('${item.id}')" title="Toggle Done Status">
+                            <button id="done-btn-${item.id}" class="btn btn-success" style="width:auto; padding:10px 16px; opacity: ${isDone ? '0.5' : '1'};" onclick="toggleTaskStatus('${item.id}')" title="Toggle Done Status">
                                 <i class="fas fa-check-double"></i>
                             </button>
                         </div>
@@ -354,14 +361,17 @@
     function toggleTaskStatus(id) {
         const badge = document.getElementById('badge-' + id);
         const btn = document.getElementById('done-btn-' + id);
+        const stringId = id.toString();
         
-        if (badge.classList.contains('badge-pending')) {
+        if (!completedTaskIds.has(stringId)) {
             // Switch to Done
+            completedTaskIds.add(stringId);
             badge.className = "status-badge badge-done";
             badge.innerHTML = `<i class="fas fa-circle-check"></i> Completed`;
             btn.style.opacity = "0.5";
         } else {
             // Revert back to Pending
+            completedTaskIds.delete(stringId);
             badge.className = "status-badge badge-pending";
             badge.innerHTML = `<i class="fas fa-clock"></i> Pending`;
             btn.style.opacity = "1";
