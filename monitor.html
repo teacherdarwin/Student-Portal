@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math | Faculty Console</title>
-    <link rel="icon" type="image/png" href="NCC.png">
+    <link rel="icon" type="image/png" href="WCGNHS.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -52,6 +52,7 @@
             width: 100%;
             overflow: hidden;
             background: #0f172a;
+            padding: 20px;
         }
 
         .bg-panning-container {
@@ -61,7 +62,7 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url("NCC.jpg");
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url("WCGNHS.jpg");
             background-size: cover;
             background-repeat: no-repeat;
             animation: backgroundPan 25s ease-in-out infinite;
@@ -71,7 +72,7 @@
             position: relative;
             z-index: 10;
             background: #fff;
-            padding: 40px;
+            padding: 40px 30px;
             border-radius: var(--radius-lg); 
             box-shadow: var(--shadow);
             width: 100%;
@@ -83,9 +84,56 @@
         .auth-header img { width: 80px; margin-bottom: 15px; }
         .auth-header h2 { font-weight: 800; color: var(--text-h); font-size: 1.8rem; }
 
-        .portal-layout { display: flex; height: 100vh; width: 100%; background: var(--canvas); position: relative; z-index: 20; }
-        .sidebar { width: 280px; background: var(--sidebar-bg); padding: 32px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .main-content { flex-grow: 1; padding: 48px; overflow-y: auto; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
+        /* Portal Layout Responsiveness */
+        .portal-layout { 
+            display: flex; 
+            flex-direction: row;
+            height: 100vh; 
+            width: 100%; 
+            background: var(--canvas); 
+            position: relative; 
+            z-index: 20; 
+        }
+        
+        .sidebar { 
+            width: 280px; 
+            background: var(--sidebar-bg); 
+            padding: 32px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0; 
+        }
+        
+        /* Mobile Sticky Navigation Setup */
+        .mobile-nav {
+            display: none;
+            background: var(--sidebar-bg);
+            padding: 12px 20px;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .mobile-nav-menu {
+            display: none;
+            background: #1e293b;
+            padding: 10px;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            box-shadow: var(--shadow);
+            z-index: 99;
+        }
+
+        .main-content { 
+            flex-grow: 1; 
+            padding: 40px; 
+            overflow-y: auto; 
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); 
+        }
 
         .nav-link { 
             padding: 14px 16px; border-radius: var(--radius-md); color: #94a3b8; font-weight: 500; 
@@ -95,10 +143,22 @@
         .nav-link.active { background: var(--accent); color: white; }
 
         .card { background: white; border-radius: var(--radius-lg); padding: 28px; border: 1px solid var(--card-border); box-shadow: var(--shadow); }
+        
+        /* Responsive Table Container Wrapper */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .stat-grid {
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px;
+        }
         .stat-card { background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border); }
         .stat-card h2 { font-size: 1.8rem; margin-top: 4px; font-weight: 800; color: var(--accent); }
         
-        /* --- ACCENT COHESIVE BUTTON STYLES --- */
         .btn { 
             padding: 14px 24px; border-radius: var(--radius-md); font-weight: 700; font-size: 1rem;
             cursor: pointer; transition: all 0.3s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
@@ -114,12 +174,26 @@
 
         .hidden { display: none !important; }
         
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
         th { text-align: left; padding: 15px; color: var(--text-p); font-size: 0.85rem; font-weight: 600; border-bottom: 2px solid #f1f5f9; }
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; color: var(--text-h); font-size: 15px; }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
         .file-input-wrapper { border: 1.5px dashed var(--card-border); padding: 20px; border-radius: var(--radius-md); text-align: center; background: #f8fafc; margin-bottom: 18px; }
+
+        /* Media Queries for Phone Adjustments */
+        @media (max-width: 768px) {
+            .portal-layout { flex-direction: column; }
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; }
+            .mobile-nav-menu.show { display: block; }
+            .main-content { padding: 24px 16px; }
+            .header-row { flex-direction: column; align-items: flex-start !important; gap: 16px; }
+            .header-row button { width: 100%; }
+            .stat-grid { grid-template-columns: 1fr; gap: 12px; }
+            .card { padding: 16px; }
+            .modal-overlay .card { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -138,7 +212,7 @@
         
         <div id="file-upload-zone" class="file-input-wrapper">
             <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-p); display: block; margin-bottom: 10px;">UPLOAD FILE (PDF, DOCX, IMG)</label>
-            <input type="file" id="res-file" style="border:none; margin:0; padding:0; background:transparent;">
+            <input type="file" id="res-file" style="border:none; margin:0; padding:0; background:transparent; width:100%;">
         </div>
 
         <p style="text-align:center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; margin-bottom: 14px;">— OR USE EXTERNAL LINK —</p>
@@ -155,7 +229,7 @@
     <div class="bg-panning-container"></div>
     <div id="login-form" class="auth-card animate__animated animate__fadeIn">
         <div class="auth-header">
-            <img src="NCC.png" alt="Logo">
+            <img src="WCGNHS.png" alt="Logo">
             <h2>Faculty Portal</h2>
             <p style="color: var(--text-p); margin-top: 5px; font-size: 0.95rem;">Sign in to your console</p>
         </div>
@@ -169,7 +243,7 @@
 
     <div id="register-form" class="auth-card hidden animate__animated animate__fadeIn">
         <div class="auth-header">
-            <img src="NCC.png" alt="Logo">
+            <img src="WCGNHS.png" alt="Logo">
             <h2>Create Account</h2>
             <p style="color: var(--text-p); margin-top: 5px; font-size: 0.95rem;">Join the Mathematics Faculty</p>
         </div>
@@ -184,10 +258,29 @@
     </div>
 </div>
 
+<!-- TOP MOBILE NAV STICKY BAR -->
+<div id="mobile-navigation-bar" class="mobile-nav hidden">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="WCGNHS.png" alt="Logo" height="28" width="auto">
+        <span style="color:white; font-weight:800; font-size:1.1rem;">MathClass</span>
+    </div>
+    <button onclick="toggleMobileMenu()" style="background:transparent; border:none; color:white; font-size:1.5rem; cursor:pointer;">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<!-- COLLAPSIBLE MOBILE MENU DROPDOWN -->
+<div id="mobile-menu-dropdown" class="mobile-nav-menu">
+    <button class="nav-link active" id="m-nav-overview" onclick="showTab('overview'); toggleMobileMenu();"><i class="fas fa-house-chimney"></i> Overview</button>
+    <button class="nav-link" id="m-nav-resources" onclick="showTab('resources'); toggleMobileMenu();"><i class="fas fa-book-open"></i> Curriculum</button>
+    <button class="nav-link" id="m-nav-submissions" onclick="showTab('submissions'); toggleMobileMenu();"><i class="fas fa-pen-nib"></i> Submissions</button>
+    <button class="nav-link" style="color:#ef4444; margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:14px;" onclick="signOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
+</div>
+
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
         <div style="margin-bottom: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px;">
-            <img src="NCC.png" alt="Logo" height="32" width="auto">
+            <img src="WCGNHS.png" alt="Logo" height="32" width="auto">
             <span style="color:white; font-weight:800; font-size:1.25rem; letter-spacing:0.5px;">MathClass</span>
         </div>
         <nav style="flex:1">
@@ -205,7 +298,7 @@
     </aside>
 
     <main class="main-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;" class="animate__animated animate__fadeInDown">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;" class="header-row animate__animated animate__fadeInDown">
             <div>
                 <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Console v2.6</span>
                 <h1 id="tab-title" style="font-size:2.5rem; font-weight:800; color: var(--text-h); letter-spacing:-1px;">Overview</h1>
@@ -214,7 +307,7 @@
         </div>
 
         <div id="tab-overview" class="tab-content">
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;" class="animate__animated animate__fadeInUp">
+            <div class="stat-grid animate__animated animate__fadeInUp">
                 <div class="stat-card">
                     <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Modules</span>
                     <h2 id="stat-m-count">0</h2>
@@ -232,19 +325,23 @@
 
         <div id="tab-resources" class="tab-content hidden">
             <div class="card animate__animated animate__fadeInUp">
-                <table>
-                    <thead><tr><th>Resource Title</th><th>Category</th><th>Link</th><th>Action</th></tr></thead>
-                    <tbody id="resource-list"></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Resource Title</th><th>Category</th><th>Link</th><th>Action</th></tr></thead>
+                        <tbody id="resource-list"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <div id="tab-submissions" class="tab-content hidden">
             <div class="card animate__animated animate__fadeInUp">
-                <table>
-                    <thead><tr><th>File Name</th><th>Size</th><th>Date Uploaded</th><th>Action</th></tr></thead>
-                    <tbody id="submission-list"></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>File Name</th><th>Size</th><th>Date Uploaded</th><th>Action</th></tr></thead>
+                        <tbody id="submission-list"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -256,6 +353,10 @@
 
     function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
     
+    function toggleMobileMenu() {
+        document.getElementById('mobile-menu-dropdown').classList.toggle('show');
+    }
+
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
@@ -287,6 +388,7 @@
         currentUser = user;
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
+        document.getElementById('mobile-navigation-bar').classList.remove('hidden');
         document.getElementById('display-name').innerText = user.user_metadata.display_name;
         document.getElementById('display-id').innerText = "ID: " + user.user_metadata.employee_id;
         showTab('overview');
@@ -295,9 +397,16 @@
     function showTab(name) {
         document.getElementById('tab-title').innerText = name.charAt(0).toUpperCase() + name.slice(1);
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById(`tab-${name}`).classList.remove('hidden');
+        
+        // Desktop Active State Sync
+        document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
         document.getElementById(`nav-${name}`).classList.add('active');
+        
+        // Mobile Active State Sync
+        document.querySelectorAll('.mobile-nav-menu .nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(`m-nav-${name}`).classList.add('active');
+
+        document.getElementById(`tab-${name}`).classList.remove('hidden');
         fetchData();
     }
 
