@@ -273,24 +273,44 @@
 <script>
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
-    let completedTaskIds = new Set(); // Keeps track of what the user has completed locally
+    let completedTaskIds = new Set(); // Will now sync seamlessly with Supabase
 
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
     }
 
+    // NEW: Fetch persistent completions from the database
+    async function fetchUserProgress() {
+        if (!currentUser) return;
+        const { data, error } = await _supabase
+            .from('student_progress')
+            .select('resource_id')
+            .eq('user_id', currentUser.id);
+            
+        if (error) {
+            console.error("Error loading progress:", error);
+            return;
+        }
+        
+        completedTaskIds = new Set(data.map(item => item.resource_id.toString()));
+    }
+
     async function updateDashboardStats() {
         const welcomeMsg = document.getElementById('welcome-msg');
         const mStat = document.getElementById('stat-modules');
         const aStat = document.getElementById('stat-assignments');
+        
+        // Ensure progress is loaded before calculating stats
+        await fetchUserProgress();
+        
         const { data, error } = await _supabase.from('resources').select('type');
         if (error) return;
         
         const modules = data.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
         const totalTasks = data.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
         
-        // Subtract completed tasks to accurately show what's currently pending
+        // Accurate calculation using live database tracking
         const actualPending = Math.max(0, totalTasks - completedTaskIds.size);
         
         mStat.innerText = modules;
@@ -314,6 +334,10 @@
     async function fetchResources() {
         const mContainer = document.getElementById('modules-container');
         const aContainer = document.getElementById('assignments-container');
+        
+        // Refresh progress list right before displaying assignments
+        await fetchUserProgress();
+        
         const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
         if (error) return;
         mContainer.innerHTML = ""; aContainer.innerHTML = "";
@@ -358,19 +382,34 @@
         });
     }
 
-    function toggleTaskStatus(id) {
+    // MODIFIED: Saves the execution state securely to Supabase on interaction
+    async function toggleTaskStatus(id) {
         const badge = document.getElementById('badge-' + id);
         const btn = document.getElementById('done-btn-' + id);
         const stringId = id.toString();
         
         if (!completedTaskIds.has(stringId)) {
-            // Switch to Done
+            // Save completion to database
+            const { error } = await _supabase
+                .from('student_progress')
+                .insert([{ user_id: currentUser.id, resource_id: stringId }]);
+                
+            if (error) { alert("Failed to save progress!"); return; }
+
             completedTaskIds.add(stringId);
             badge.className = "status-badge badge-done";
             badge.innerHTML = `<i class="fas fa-circle-check"></i> Completed`;
             btn.style.opacity = "0.5";
         } else {
-            // Revert back to Pending
+            // Remove completion from database
+            const { error } = await _supabase
+                .from('student_progress')
+                .delete()
+                .eq('user_id', currentUser.id)
+                .eq('resource_id', stringId);
+                
+            if (error) { alert("Failed to revert progress!"); return; }
+
             completedTaskIds.delete(stringId);
             badge.className = "status-badge badge-pending";
             badge.innerHTML = `<i class="fas fa-clock"></i> Pending`;
@@ -394,12 +433,15 @@
         if (error) alert(error.message); else alert("Verify your email.");
     }
 
-    function showPortal(user) {
+    async function showPortal(user) {
         currentUser = user;
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
         document.getElementById('display-name').innerText = user.user_metadata.display_name;
         document.getElementById('display-id').innerText = "ID: " + user.user_metadata.student_id;
+        
+        // New workflow setup chain
+        await fetchUserProgress();
         updateDashboardStats();
     }
 
