@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math | Advanced Learning Portal</title>
+    <title>Math | Faculty Console</title>
     <link rel="icon" type="image/png" href="NCC.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -24,9 +24,11 @@
             --radius-md: 12px;
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
             --success: #10b981;
+            --success-dark: #059669;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background: var(--canvas); 
@@ -35,193 +37,259 @@
             overflow: hidden;
         }
 
-        /* --- AUTHENTICATION --- */
-        .auth-wrapper { display: flex; min-height: 100vh; background: #fff; }
-        
-        .auth-side-brand {
-            flex: 1.2;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: white; padding: 60px; position: relative; overflow: hidden;
-            background: #000;
+        @keyframes backgroundPan {
+            0% { background-position: 0% 50%; transform: scale(1); }
+            50% { background-position: 100% 50%; transform: scale(1.1); }
+            100% { background-position: 0% 50%; transform: scale(1); }
         }
 
-        .brand-bg-overlay {
+        #login-section {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            background: #0f172a;
+            padding: 20px;
+        }
+
+        .bg-panning-container {
             position: absolute;
-            top: -10%; left: -10%;
-            width: 120%; height: 120%;
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("NCC.jpg");
-            background-size: cover;
-            background-position: center;
-            filter: blur(8px);
-            animation: panBackground 8s infinite alternate ease-in-out;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 1;
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url("NCC.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            animation: backgroundPan 25s ease-in-out infinite;
         }
 
-        @keyframes panBackground {
-            0% { transform: scale(1.1) translateX(-5%); }
-            100% { transform: scale(1.1) translateX(0%); }
-        }
-
-        .brand-content { 
-            position: relative; 
-            z-index: 2; 
-            text-align: center; 
-            text-shadow: 0 4px 15px rgba(0,0,0,0.5); 
-        }
-
-        .brand-logo-container {
-            width: 160px; height: 160px; margin: 0 auto 24px;
-            display: flex; align-items: center; justify-content: center;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .brand-logo-container img {
-            max-width: 100%; max-height: 100%; object-fit: contain;
-            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
-            transition: transform 0.4s;
-        }
-
-        .brand-logo-container:hover img { transform: scale(1.1) translateY(-5px); }
-
-        .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
-        .auth-card { width: 100%; max-width: 420px; }
-        .auth-card h2 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; color: var(--text-h); }
-        .auth-card p.subtitle { color: var(--text-p); margin-bottom: 32px; font-size: 0.95rem; }
-
-        .input-field { margin-bottom: 18px; }
-        .input-field label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--text-h); }
-        .input-wrapper { position: relative; }
-        .input-wrapper i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-        
-        input {
-            width: 100%; padding: 14px 16px 14px 48px; border: 1.5px solid var(--card-border);
-            border-radius: var(--radius-md); font-size: 15px; transition: all 0.3s;
+        .auth-card { 
+            position: relative;
+            z-index: 10;
             background: #fff;
+            padding: 40px 30px;
+            border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--card-border);
         }
-        input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
 
-        .btn {
-            width: 100%; padding: 14px; border-radius: var(--radius-md); border: none;
-            font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+        .auth-header { text-align: center; margin-bottom: 30px; }
+        .auth-header img { width: 80px; margin-bottom: 15px; }
+        .auth-header h2 { font-weight: 800; color: var(--text-h); font-size: 1.8rem; }
+
+        /* Portal Layout Responsiveness */
+        .portal-layout { 
+            display: flex; 
+            flex-direction: row;
+            height: 100vh; 
+            width: 100%; 
+            background: var(--canvas); 
+            position: relative; 
+            z-index: 20; 
+        }
+        
+        .sidebar { 
+            width: 280px; 
+            background: var(--sidebar-bg); 
+            padding: 32px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0; 
+        }
+        
+        /* Mobile Sticky Navigation Setup */
+        .mobile-nav {
+            display: none;
+            background: var(--sidebar-bg);
+            padding: 12px 20px;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .mobile-nav-menu {
+            display: none;
+            background: #1e293b;
+            padding: 10px;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            box-shadow: var(--shadow);
+            z-index: 99;
+        }
+
+        .main-content { 
+            flex-grow: 1; 
+            padding: 40px; 
+            overflow-y: auto; 
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); 
+        }
+
+        .nav-link { 
+            padding: 14px 16px; border-radius: var(--radius-md); color: #94a3b8; font-weight: 500; 
+            transition: 0.2s; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 4px;
+        }
+        .nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-link.active { background: var(--accent); color: white; }
+
+        .card { background: white; border-radius: var(--radius-lg); padding: 28px; border: 1px solid var(--card-border); box-shadow: var(--shadow); }
+        
+        /* Responsive Table Container Wrapper */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .stat-grid {
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px;
+        }
+        .stat-card { background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border); }
+        .stat-card h2 { font-size: 1.8rem; margin-top: 4px; font-weight: 800; color: var(--accent); }
+        
+        .btn { 
+            padding: 14px 24px; border-radius: var(--radius-md); font-weight: 700; font-size: 1rem;
+            cursor: pointer; transition: all 0.3s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
         }
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); }
+        
         .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: var(--success-dark); transform: translateY(-2px); }
 
-        /* --- PORTAL LAYOUT --- */
-        .portal-layout { display: flex; height: 100vh; }
-        .sidebar { width: 280px; background: var(--sidebar-bg); padding: 32px 20px; display: flex; flex-direction: column; z-index: 10; }
-        .sidebar-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 0 12px; }
-        .sidebar-brand img { height: 32px; width: auto; object-fit: contain; }
-        .sidebar-brand span { color: white; font-weight: 800; font-size: 1.25rem; }
-
-        .nav-link {
-            display: flex; align-items: center; gap: 12px; width: 100%;
-            padding: 14px 16px; border: none; background: transparent;
-            color: #94a3b8; font-weight: 500; cursor: pointer; border-radius: var(--radius-md); transition: 0.2s;
-            margin-bottom: 4px;
-        }
-        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .nav-link.active { background: var(--accent); color: #fff; }
-
-        .main-content { flex: 1; padding: 48px; overflow-y: auto; background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
-
-        .card { background: #fff; border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow); margin-bottom: 24px;}
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
-        .stat-card { background: #fff; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border); }
-        .stat-card h4 { font-size: 1.8rem; margin-top: 4px; font-weight: 800; color: var(--accent); }
-
-        .list-item {
-            display: flex; flex-direction: column; gap: 16px;
-            padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border);
-            margin-bottom: 16px; background: #fff; transition: 0.3s;
-        }
-        @media(min-width: 768px) {
-            .list-item { flex-direction: row; align-items: center; justify-content: space-between; }
-        }
-
-        .submission-control { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
-        .file-label { 
-            padding: 8px 16px; background: #f1f5f9; border: 1px dashed #cbd5e1; 
-            border-radius: var(--radius-md); cursor: pointer; font-size: 0.85rem; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 8px; color: var(--text-p);
-        }
-        .file-label:hover { background: #e2e8f0; }
+        input, select { width: 100%; padding: 14px 16px; border: 1.5px solid var(--card-border); border-radius: var(--radius-md); outline: none; margin-bottom: 18px; font-family: inherit; font-size: 15px; background: #fff; transition: all 0.3s; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
 
         .hidden { display: none !important; }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { text-align: left; padding: 15px; color: var(--text-p); font-size: 0.85rem; font-weight: 600; border-bottom: 2px solid #f1f5f9; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; color: var(--text-h); font-size: 15px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .file-input-wrapper { border: 1.5px dashed var(--card-border); padding: 20px; border-radius: var(--radius-md); text-align: center; background: #f8fafc; margin-bottom: 18px; }
+
+        /* Media Queries for Phone Adjustments */
+        @media (max-width: 768px) {
+            .portal-layout { flex-direction: column; }
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; }
+            .mobile-nav-menu.show { display: block; }
+            .main-content { padding: 24px 16px; }
+            .header-row { flex-direction: column; align-items: flex-start !important; gap: 16px; }
+            .header-row button { width: 100%; }
+            .stat-grid { grid-template-columns: 1fr; gap: 12px; }
+            .card { padding: 16px; }
+            .modal-overlay .card { width: 100%; }
+        }
     </style>
 </head>
 <body>
 
-<div id="login-section" class="auth-wrapper">
-    <div class="auth-side-brand">
-        <div class="brand-bg-overlay"></div>
-        <div class="brand-content animate__animated animate__fadeIn">
-            <div class="brand-logo-container">
-                <img src="NCC.png" alt="NCC Logo">
-            </div>
-            <h1>Teacher Darwin Class</h1>
-            <p>Where Mathematics turns to Life</p>
-        </div>
-    </div>
-
-    <div class="auth-side-form">
-        <div id="login-form" class="auth-card animate__animated animate__fadeInRight">
-            <h2>Welcome Back</h2>
-            <p class="subtitle">Log in to access your dashboard.</p>
-            <div class="input-field">
-                <label>Email Address</label>
-                <div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="name@gmail.com"></div>
-            </div>
-            <div class="input-field">
-                <label>Password</label>
-                <div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="••••••••"></div>
-            </div>
-            <button class="btn btn-primary" onclick="signIn()"><span>Sign In</span><i class="fas fa-arrow-right"></i></button>
-            <p style="text-align:center; margin-top:24px; font-size:14px; color: var(--text-p);">
-                New student? <a href="#" onclick="toggleAuth('register')" style="color:var(--accent); font-weight:700; text-decoration:none;">Create Account</a>
-            </p>
+<!-- MODAL WITH FILE SUPPORT -->
+<div id="resource-modal" class="modal-overlay hidden">
+    <div class="card animate__animated animate__zoomIn" style="width: 100%; max-width: 450px;">
+        <h2 style="margin-bottom: 20px; font-weight: 800; letter-spacing: -0.5px;">Publish Content</h2>
+        
+        <input type="text" id="res-title" placeholder="Title">
+        
+        <select id="res-type">
+            <option value="Module">Learning Module</option>
+            <option value="Assignment">Assignment</option>
+        </select>
+        
+        <div id="file-upload-zone" class="file-input-wrapper">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-p); display: block; margin-bottom: 10px;">UPLOAD FILE (PDF, DOCX, IMG)</label>
+            <input type="file" id="res-file" style="border:none; margin:0; padding:0; background:transparent; width:100%;">
         </div>
 
-        <div id="register-form" class="auth-card hidden animate__animated animate__fadeInRight">
-            <h2>Join the Class</h2>
-            <p class="subtitle">Create your student profile.</p>
-            <div class="input-field">
-                <label>Full Name</label>
-                <div class="input-wrapper"><i class="fas fa-user"></i><input type="text" id="reg-username" placeholder="Juan Dela Cruz"></div>
-            </div>
-            <div class="input-field">
-                <label>Student ID</label>
-                <div class="input-wrapper"><i class="fas fa-id-card"></i><input type="text" id="reg-id" placeholder="LRN"></div>
-            </div>
-            <div class="input-field">
-                <label>Email</label>
-                <div class="input-wrapper"><i class="fas fa-at"></i><input type="email" id="reg-email" placeholder="email@gmail.com"></div>
-            </div>
-            <div class="input-field">
-                <label>Password</label>
-                <div class="input-wrapper"><i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="••••••••"></div>
-            </div>
-            <button class="btn btn-primary" onclick="signUp()">Initialize Account</button>
-            <p style="text-align:center; margin-top:24px; font-size:14px;"><a href="#" onclick="toggleAuth('login')" style="color:var(--accent); font-weight:700; text-decoration:none;">Back to Sign In</a></p>
+        <p style="text-align:center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; margin-bottom: 14px;">— OR USE EXTERNAL LINK —</p>
+        <input type="text" id="res-url" placeholder="Resource Link (URL)">
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-primary" id="publish-btn" onclick="handleResourceSubmission()" style="flex:2;">Publish</button>
+            <button class="btn" style="background:#f1f5f9; color: var(--text-p); flex:1;" onclick="toggleModal(false)">Cancel</button>
         </div>
     </div>
 </div>
 
+<div id="login-section">
+    <div class="bg-panning-container"></div>
+    <div id="login-form" class="auth-card animate__animated animate__fadeIn">
+        <div class="auth-header">
+            <img src="NCC.png" alt="Logo">
+            <h2>Faculty Portal</h2>
+            <p style="color: var(--text-p); margin-top: 5px; font-size: 0.95rem;">Sign in to your console</p>
+        </div>
+        <input type="email" id="login-email" placeholder="Email Address">
+        <input type="password" id="login-password" placeholder="Passcode">
+        <button class="btn btn-primary" id="login-btn" onclick="signIn()" style="width:100%;">Sign In</button>
+        <p style="text-align:center; margin-top:24px; font-size:14px; color: var(--text-p);">
+            Don't have access? <a href="#" onclick="toggleAuth('register')" style="color:var(--accent); font-weight:700; text-decoration:none;">Request Account</a>
+        </p>
+    </div>
+
+    <div id="register-form" class="auth-card hidden animate__animated animate__fadeIn">
+        <div class="auth-header">
+            <img src="NCC.png" alt="Logo">
+            <h2>Create Account</h2>
+            <p style="color: var(--text-p); margin-top: 5px; font-size: 0.95rem;">Join the Mathematics Faculty</p>
+        </div>
+        <input type="text" id="reg-username" placeholder="Full Name">
+        <input type="text" id="reg-id" placeholder="Employee ID">
+        <input type="email" id="reg-email" placeholder="Email Address">
+        <input type="password" id="reg-password" placeholder="Password">
+        <button class="btn btn-primary" onclick="signUp()" style="width:100%;">Register</button>
+        <p style="text-align:center; margin-top:24px; font-size:14px;">
+            <a href="#" onclick="toggleAuth('login')" style="color:var(--accent); font-weight:700; text-decoration:none;">Back to Login</a>
+        </p>
+    </div>
+</div>
+
+<!-- TOP MOBILE NAV STICKY BAR -->
+<div id="mobile-navigation-bar" class="mobile-nav hidden">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="NCC.png" alt="Logo" height="28" width="auto">
+        <span style="color:white; font-weight:800; font-size:1.1rem;">MathClass</span>
+    </div>
+    <button onclick="toggleMobileMenu()" style="background:transparent; border:none; color:white; font-size:1.5rem; cursor:pointer;">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<!-- COLLAPSIBLE MOBILE MENU DROPDOWN -->
+<div id="mobile-menu-dropdown" class="mobile-nav-menu">
+    <button class="nav-link active" id="m-nav-overview" onclick="showTab('overview'); toggleMobileMenu();"><i class="fas fa-house-chimney"></i> Overview</button>
+    <button class="nav-link" id="m-nav-resources" onclick="showTab('resources'); toggleMobileMenu();"><i class="fas fa-book-open"></i> Curriculum</button>
+    <button class="nav-link" id="m-nav-submissions" onclick="showTab('submissions'); toggleMobileMenu();"><i class="fas fa-pen-nib"></i> Assignments</button>
+    <button class="nav-link" style="color:#ef4444; margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:14px;" onclick="signOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
+</div>
+
 <div id="portal-section" class="portal-layout hidden">
     <aside class="sidebar">
-        <div class="sidebar-brand">
-            <img src="NCC.png" alt="Logo">
-            <span>MathClass</span>
+        <div style="margin-bottom: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px;">
+            <img src="NCC.png" alt="Logo" height="32" width="auto">
+            <span style="color:white; font-weight:800; font-size:1.25rem; letter-spacing:0.5px;">MathClass</span>
         </div>
-        <div class="nav-group" style="flex:1">
-            <button class="nav-link active" id="nav-dashboard" onclick="showTab('dashboard')"><i class="fas fa-house-chimney"></i> Dashboard</button>
-            <button class="nav-link" id="nav-modules" onclick="showTab('modules')"><i class="fas fa-book-open"></i> Curriculum</button>
-            <button class="nav-link" id="nav-assignments" onclick="showTab('assignments')"><i class="fas fa-pen-nib"></i> Submissions</button>
-        </div>
+        <nav style="flex:1">
+            <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-house-chimney"></i> Overview</button>
+            <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-book-open"></i> Curriculum</button>
+            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-pen-nib"></i> Submissions</button>
+        </nav>
         <div style="padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <div id="user-info" style="margin-bottom: 20px; padding: 0 12px;">
+            <div style="margin-bottom: 20px; padding: 0 12px;">
                 <p id="display-name" style="color:white; font-weight:700; font-size:0.9rem;"></p>
                 <p id="display-id" style="color:#64748b; font-size:0.75rem;"></p>
             </div>
@@ -230,25 +298,52 @@
     </aside>
 
     <main class="main-content">
-        <header style="margin-bottom: 40px;" class="animate__animated animate__fadeInDown">
-            <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v2.6</span>
-            <h2 id="tab-title" style="font-size:2.5rem; font-weight:800; letter-spacing:-1px;">Dashboard</h2>
-        </header>
-
-        <div id="tab-dashboard" class="tab-content">
-            <div class="stat-grid animate__animated animate__fadeInUp">
-                <div class="stat-card"><span>Active Modules</span><h4 id="stat-modules">--</h4></div>
-                <div class="stat-card"><span>Pending Tasks</span><h4 id="stat-assignments">--</h4></div>
-                <div class="stat-card"><span>Current Grade</span><h4>A-</h4></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;" class="header-row animate__animated animate__fadeInDown">
+            <div>
+                <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Console v2.6</span>
+                <h1 id="tab-title" style="font-size:2.5rem; font-weight:800; color: var(--text-h); letter-spacing:-1px;">Overview</h1>
             </div>
-            <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-                <h3>Status Report</h3>
-                <p id="welcome-msg" style="color:var(--text-p); margin-top:10px;">Synchronizing with classroom server...</p>
+            <button class="btn btn-primary" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Add Content</button>
+        </div>
+
+        <div id="tab-overview" class="tab-content">
+            <div class="stat-grid animate__animated animate__fadeInUp">
+                <div class="stat-card">
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Modules</span>
+                    <h2 id="stat-m-count">0</h2>
+                </div>
+                <div class="stat-card">
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Assignments</span>
+                    <h2 id="stat-a-count">0</h2>
+                </div>
+                <div class="stat-card">
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Submissions</span>
+                    <h2 id="stat-s-count">0</h2>
+                </div>
             </div>
         </div>
 
-        <div id="tab-modules" class="tab-content hidden"><div class="card"><div id="modules-container"></div></div></div>
-        <div id="tab-assignments" class="tab-content hidden"><div class="card"><div id="assignments-container"></div></div></div>
+        <div id="tab-resources" class="tab-content hidden">
+            <div class="card animate__animated animate__fadeInUp">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Resource Title</th><th>Category</th><th>Link</th><th>Action</th></tr></thead>
+                        <tbody id="resource-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-submissions" class="tab-content hidden">
+            <div class="card animate__animated animate__fadeInUp">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>File Name</th><th>Size</th><th>Date Uploaded</th><th>Action</th></tr></thead>
+                        <tbody id="submission-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
@@ -256,154 +351,191 @@
     const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
     let currentUser = null;
 
+    function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
+    
+    function toggleMobileMenu() {
+        document.getElementById('mobile-menu-dropdown').classList.toggle('show');
+    }
+
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
     }
 
-    async function updateDashboardStats() {
-        const welcomeMsg = document.getElementById('welcome-msg');
-        const mStat = document.getElementById('stat-modules');
-        const aStat = document.getElementById('stat-assignments');
-        const { data, error } = await _supabase.from('resources').select('type');
-        if (error) return;
-        const modules = data.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
-        const tasks = data.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
-        mStat.innerText = modules;
-        aStat.innerText = tasks;
-        const name = currentUser.user_metadata.display_name || "Student";
-        welcomeMsg.innerHTML = tasks > 0 ? `Greetings, <strong>${name}</strong>. There are <strong>${tasks}</strong> assignments awaiting.` : `Greetings, <strong>${name}</strong>. Everything is up to date.`;
-    }
-
-    function showTab(tabName) {
-        const titles = { dashboard: 'Dashboard', modules: 'Learning Modules', assignments: 'Active Submissions' };
-        document.getElementById('tab-title').innerText = titles[tabName];
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-        document.getElementById('tab-' + tabName).classList.remove('hidden');
-        document.getElementById('nav-' + tabName).classList.add('active');
-        if(tabName === 'dashboard') updateDashboardStats();
-        else fetchResources();
-    }
-
-    async function fetchResources() {
-        const mContainer = document.getElementById('modules-container');
-        const aContainer = document.getElementById('assignments-container');
-        const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
-        if (error) return;
-        mContainer.innerHTML = ""; aContainer.innerHTML = "";
-        
-        data.forEach(item => {
-            const type = (item.type || "module").toLowerCase();
-            if (type === 'assignment') {
-                aContainer.innerHTML += `
-                    <div class="list-item">
-                        <div>
-                            <h4 style="margin:0 0 8px 0">${item.title}</h4>
-                            <a href="${item.url}" target="_blank" style="color: var(--accent); font-size:0.85rem; font-weight:600; text-decoration:none;"><i class="fas fa-file-download"></i> Download Instructions</a>
-                        </div>
-                        <div class="submission-control">
-                            <label class="file-label" for="file-${item.id}">
-                                <i class="fas fa-paperclip"></i> <span id="label-text-${item.id}">Choose file</span>
-                            </label>
-                            <input type="file" id="file-${item.id}" class="hidden" onchange="handleFileChange('${item.id}')">
-                            <button class="btn btn-success" style="width:auto; padding:8px 16px; font-size:0.85rem;" onclick="submitAssignment('${item.id}', '${item.title.replace(/'/g, "\\'")}')">
-                                <i class="fas fa-cloud-upload-alt"></i> Submit
-                            </button>
-                        </div>
-                    </div>`;
-            } else {
-                mContainer.innerHTML += `<div class="list-item"><div><h4 style="margin:0">${item.title}</h4></div><a href="${item.url}" target="_blank" class="btn" style="width:auto; padding:8px 20px;">View</a></div>`;
-            }
-        });
-    }
-
-    function handleFileChange(id) {
-        const fileInput = document.getElementById(`file-${id}`);
-        const labelText = document.getElementById(`label-text-${id}`);
-        if (fileInput.files.length > 0) {
-            labelText.innerText = fileInput.files[0].name;
-        }
-    }
-
-    async function submitAssignment(assignmentId, assignmentTitle) {
-        const fileInput = document.getElementById(`file-${assignmentId}`);
-        if (fileInput.files.length === 0) {
-            alert("Please select a file to upload first!");
-            return;
-        }
-
-        const file = fileInput.files[0];
-        const studentId = currentUser.user_metadata.student_id || "unknown_id";
-        const studentName = currentUser.user_metadata.display_name || "Unknown Student";
-        
-        // Sanitize file extension
-        const fileExt = file.name.split('.').pop();
-        // Create clean unique path path: bucket/assignment_id/student_id_timestamp.ext
-        const filePath = `${assignmentId}/${studentId}_${Date.now()}.${fileExt}`;
-
-        try {
-            // 1. Upload file to Supabase Storage Bucket ('submissions')
-            const { data: uploadData, error: uploadError } = await _supabase.storage
-                .from('submissions')
-                .upload(filePath, file);
-
-            if (uploadError) throw uploadError;
-
-           // Updated block:
-            const { error: dbError } = await _supabase
-                .from('student_submissions')
-                .insert([
-                    {
-                        student_id: studentId,
-                        student_name: studentName,
-                        assignment_id: assignmentId,
-                        assignment_title: assignmentTitle,
-                        file_path: filePath,
-                        created_at: new Date().toISOString() // <-- Changed to created_at
-                    }
-                ]);
-
-            if (dbError) throw dbError;
-
-            alert(`Success! "${file.name}" has been submitted for ${assignmentTitle}.`);
-            // Clear inputs
-            fileInput.value = "";
-            document.getElementById(`label-text-${assignmentId}`).innerText = "Choose file";
-
-        } catch (err) {
-            console.error(err);
-            alert("Submission failed: " + (err.message || err));
-        }
-    }
-
     async function signIn() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
+        const btn = document.getElementById('login-btn');
+        btn.innerText = "Verifying...";
         const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) alert(error.message); else showPortal(data.user);
+        if (error) { alert(error.message); btn.innerText = "Sign In"; }
+        else showPortal(data.user);
     }
 
     async function signUp() {
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
         const { error } = await _supabase.auth.signUp({
-            email: document.getElementById('reg-email').value,
-            password: document.getElementById('reg-password').value,
-            options: { data: { display_name: document.getElementById('reg-username').value, student_id: document.getElementById('reg-id').value }}
+            email, password, options: { data: { 
+                display_name: document.getElementById('reg-username').value,
+                employee_id: document.getElementById('reg-id').value 
+            }}
         });
-        if (error) alert(error.message); else alert("Verify your email.");
+        if (error) alert(error.message); else alert("Registration successful! Check your email for verification.");
     }
 
     function showPortal(user) {
         currentUser = user;
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
-        document.getElementById('display-name').innerText = user.user_metadata.display_name;
-        document.getElementById('display-id').innerText = "ID: " + user.user_metadata.student_id;
-        updateDashboardStats();
+        document.getElementById('mobile-navigation-bar').classList.remove('hidden');
+        
+        if (user.user_metadata) {
+            document.getElementById('display-name').innerText = user.user_metadata.display_name || "Faculty Member";
+            document.getElementById('display-id').innerText = user.user_metadata.employee_id || "";
+        }
+        
+        showTab('overview');
     }
 
-    async function signOut() { await _supabase.auth.signOut(); location.reload(); }
-    _supabase.auth.getSession().then(({ data }) => { if (data.session) showPortal(data.session.user); });
+    function showTab(name) {
+        document.getElementById('tab-title').innerText = name.charAt(0).toUpperCase() + name.slice(1);
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        
+        // Desktop Active State Sync
+        document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(`nav-${name}`).classList.add('active');
+        
+        // Mobile Active State Sync
+        document.querySelectorAll('.mobile-nav-menu .nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(`m-nav-${name}`).classList.add('active');
+
+        document.getElementById(`tab-${name}`).classList.remove('hidden');
+        fetchData();
+    }
+
+    async function fetchData() {
+        const { data: res } = await _supabase.from('resources').select('*');
+        if(res) {
+            document.getElementById('stat-m-count').innerText = res.filter(r => r.type === 'Module').length;
+            document.getElementById('stat-a-count').innerText = res.filter(r => r.type === 'Assignment').length;
+            document.getElementById('resource-list').innerHTML = res.map(r => `
+                <tr style="${r.is_hidden ? 'opacity: 0.75; background: #f8fafc;' : ''}">
+                    <td style="font-weight:600;">
+                        ${r.title}
+                        ${r.is_hidden ? '<span style="background:#e2e8f0; color:#475569; padding:4px 8px; border-radius:10px; font-size:0.7rem; margin-left:8px; font-weight:700;"><i class="fas fa-eye-slash"></i> Hidden</span>' : ''}
+                    </td>
+                    <td><span style="background:#edf2ff; color:#4c6ef5; padding:6px 12px; border-radius:30px; font-size:0.75rem; font-weight:700;">${r.type}</span></td>
+                    <td><a href="${r.url}" target="_blank" class="btn btn-primary" style="padding:10px 16px; width:auto;"><i class="fas fa-link"></i></a></td>
+                    <td>
+                        <button class="btn" style="background:${r.is_hidden ? '#e2e8f0' : '#fef08a'}; color:${r.is_hidden ? '#475569' : '#a16207'}; padding:10px 16px; width:auto; margin-right:5px;" onclick="toggleHideRes(${r.id}, ${r.is_hidden})" title="${r.is_hidden ? 'Make Visible' : 'Hide from Students'}">
+                            <i class="fas ${r.is_hidden ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                        </button>
+                        <button class="btn" style="background:#fee2e2; color:#ef4444; padding:10px 16px; width:auto;" onclick="deleteRes(${r.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        const { data: sub } = await _supabase.storage.from('assignments').list();
+        if(sub) {
+            const files = sub.filter(f => f.name !== '.emptyFolderPlaceholder');
+            document.getElementById('stat-s-count').innerText = files.length;
+            document.getElementById('submission-list').innerHTML = files.map(f => `
+                <tr>
+                    <td style="font-weight:600;">${f.name}</td>
+                    <td style="color:var(--text-p);">${(f.metadata.size/1024).toFixed(1)} KB</td>
+                    <td style="color:var(--text-p);">${new Date(f.created_at).toLocaleDateString()}</td>
+                    <td><button class="btn btn-primary" style="padding:10px 16px; width:auto;" onclick="window.open('${_supabase.storage.from('assignments').getPublicUrl(f.name).data.publicUrl}')"><i class="fas fa-eye"></i></button></td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    async function toggleHideRes(id, currentHiddenStatus) {
+        const { error } = await _supabase
+            .from('resources')
+            .update({ is_hidden: !currentHiddenStatus })
+            .eq('id', id);
+
+        if (error) {
+            alert("Error toggling visibility: " + error.message);
+        } else {
+            fetchData();
+        }
+    }
+
+    async function handleResourceSubmission() {
+        const title = document.getElementById('res-title').value;
+        const type = document.getElementById('res-type').value;
+        const urlInput = document.getElementById('res-url').value;
+        const fileInput = document.getElementById('res-file').files[0];
+        const btn = document.getElementById('publish-btn');
+
+        if (!title) return alert("Please enter a title");
+        if (!urlInput && !fileInput) return alert("Please provide a URL or upload a file");
+
+        btn.innerText = "Publishing...";
+        btn.disabled = true;
+
+        let finalUrl = urlInput;
+
+        try {
+            if (fileInput) {
+                const fileExt = fileInput.name.split('.').pop();
+                const fileName = `${Date.now()}_${title.replace(/\s+/g, '_')}.${fileExt}`;
+                
+                const { data: uploadData, error: uploadError } = await _supabase.storage
+                    .from('assignments')
+                    .upload(fileName, fileInput);
+
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = _supabase.storage
+                    .from('assignments')
+                    .getPublicUrl(fileName);
+                
+                finalUrl = publicUrlData.publicUrl;
+            }
+
+            const { error: dbError } = await _supabase
+                .from('resources')
+                .insert([{ 
+                    title, 
+                    type, 
+                    url: finalUrl, 
+                    created_by: currentUser.id,
+                    is_hidden: false
+                }]);
+
+            if (dbError) throw dbError;
+
+            alert("Resource successfully published!");
+            toggleModal(false);
+            
+            document.getElementById('res-title').value = '';
+            document.getElementById('res-url').value = '';
+            document.getElementById('res-file').value = '';
+            fetchData();
+
+        } catch (err) {
+            console.error(err);
+            alert("Error: " + err.message);
+        } finally {
+            btn.innerText = "Publish";
+            btn.disabled = false;
+        }
+    }
+
+    async function deleteRes(id) {
+        if(confirm("Delete this resource?")) {
+            await _supabase.from('resources').delete().eq('id', id);
+            fetchData();
+        }
+    }
+
+    function signOut() { _supabase.auth.signOut().then(() => location.reload()); }
+    _supabase.auth.getSession().then(({data}) => { if(data.session) showPortal(data.session.user); });
 </script>
 </body>
 </html>
