@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math | Faculty Console (Google Drive Backend)</title>
+    <title>Math | Faculty Console (MathClass DB Backend)</title>
     <link rel="icon" type="image/png" href="NCC.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -119,7 +119,7 @@
 <!-- MODAL WITH GOOGLE DRIVE FILE SUPPORT -->
 <div id="resource-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width: 100%; max-width: 450px;">
-        <h2 style="margin-bottom: 20px; font-weight: 800;">Upload to Drive & Sheet</h2>
+        <h2 style="margin-bottom: 20px; font-weight: 800;">Upload to Drive & MathClass DB</h2>
         
         <input type="text" id="res-title" placeholder="Title">
         
@@ -129,11 +129,11 @@
         </select>
         
         <div id="file-upload-zone" class="file-input-wrapper">
-            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-p); display: block; margin-bottom: 10px;">UPLOAD TO DRIVE (PDF, DOCX, IMG)</label>
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-p); display: block; margin-bottom: 10px;">ATTACH FILE (PDF, DOCX, IMG)</label>
             <input type="file" id="res-file" style="border:none; margin:0; padding:0; background:transparent; width:100%;">
         </div>
 
-        <p style="text-align:center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; margin-bottom: 14px;">— OR USE EXTERNAL LINK —</p>
+        <p style="text-align:center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; margin-bottom: 14px;">— OR ENTER EXTERNAL LINK —</p>
         <input type="text" id="res-url" placeholder="Resource Link (URL)">
 
         <div style="display:flex; gap:10px; margin-top:10px;">
@@ -159,7 +159,7 @@
     <main class="main-content">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;" class="header-row">
             <div>
-                <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase;">Google Drive Backend</span>
+                <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase;">MathClass DB Storage</span>
                 <h1 id="tab-title" style="font-size:2.2rem; font-weight:800;">Overview</h1>
             </div>
             <button class="btn btn-primary" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Add Content</button>
@@ -176,7 +176,7 @@
                     <h2 id="stat-a-count">0</h2>
                 </div>
                 <div class="stat-card">
-                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Drive Items</span>
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Stored Items</span>
                     <h2 id="stat-s-count">0</h2>
                 </div>
             </div>
@@ -196,8 +196,7 @@
 </div>
 
 <script>
-    // REPLACE THIS WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPq-JS6ufRb2A6_eaRDE-72IEoFhlk6sXu1hswtzh1HMnOAcQ4zusJIBJiQlDkj8n2/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZ-uSN9YOPyE3Iu5GNbfArYVI1BvvQr7CklbLbxMJ0FN1VojowXrN98Yv53jATXIqZ/exec";
 
     function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
 
@@ -215,7 +214,7 @@
             const res = await fetch(GOOGLE_SCRIPT_URL);
             const json = await res.json();
             
-            if (json.status === "success") {
+            if (json.status === "success" && Array.isArray(json.data)) {
                 const items = json.data;
                 document.getElementById('stat-m-count').innerText = items.filter(r => r.type === 'Module').length;
                 document.getElementById('stat-a-count').innerText = items.filter(r => r.type === 'Assignment').length;
@@ -225,13 +224,13 @@
                     <tr>
                         <td style="font-weight:600;">${r.title}</td>
                         <td><span style="background:#edf2ff; color:#4c6ef5; padding:6px 12px; border-radius:30px; font-size:0.75rem; font-weight:700;">${r.type}</span></td>
-                        <td style="color:var(--text-p);">${new Date(r.date).toLocaleDateString()}</td>
-                        <td><a href="${r.url}" target="_blank" class="btn btn-primary" style="padding:8px 14px;"><i class="fas fa-external-link-alt"></i> Open</a></td>
+                        <td style="color:var(--text-p);">${r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}</td>
+                        <td>${r.url ? `<a href="${r.url}" target="_blank" class="btn btn-primary" style="padding:8px 14px;"><i class="fas fa-external-link-alt"></i> Open Link</a>` : '<span style="color:#94a3b8;">No Link</span>'}</td>
                     </tr>
                 `).join('');
             }
         } catch (err) {
-            console.error("Error fetching data from Google Sheet:", err);
+            console.error("Error reading from MathClass DB:", err);
         }
     }
 
@@ -243,9 +242,9 @@
         const btn = document.getElementById('publish-btn');
 
         if (!title) return alert("Please enter a title");
-        if (!urlInput && !fileInput) return alert("Please provide a URL or choose a file");
+        if (!urlInput && !fileInput) return alert("Please attach a file or enter a link");
 
-        btn.innerText = "Uploading to Drive...";
+        btn.innerText = "Processing & Saving...";
         btn.disabled = true;
 
         const payload = {
@@ -279,12 +278,14 @@
                 body: JSON.stringify(payload)
             });
 
-            alert("Successfully uploaded to Google Drive & recorded in Sheet!");
+            alert("Saved to MathClass DB and Google Drive successfully!");
             toggleModal(false);
             document.getElementById('res-title').value = '';
             document.getElementById('res-url').value = '';
             document.getElementById('res-file').value = '';
-            fetchData();
+            
+            // Allow Drive and Sheet a moment to process before re-fetching
+            setTimeout(fetchData, 1500);
         } catch (err) {
             alert("Upload failed: " + err.message);
         } finally {
@@ -293,7 +294,7 @@
         }
     }
 
-    // Initial Data Fetch on Load
+    // Initial Data Fetch on Page Load
     fetchData();
 </script>
 </body>
