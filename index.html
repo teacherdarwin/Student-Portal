@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math | Advanced Learning Portal</title>
     <link rel="icon" type="image/png" href="NCC.png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
@@ -190,24 +189,16 @@
 
         .hidden { display: none !important; }
 
-        .loader {
-            border: 3px solid #f3f3f3; border-top: 3px solid var(--accent);
-            border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         /* --- PHONE RESPONSIVE STYLES --- */
         @media (max-width: 768px) {
             body { overflow: auto; height: auto; min-height: 100vh; }
             
-            /* Auth Panel Collapse */
             .auth-wrapper { flex-direction: column; }
             .auth-side-brand { padding: 40px 20px; flex: none; }
             .auth-side-form { padding: 32px 16px; }
             .brand-logo-container { width: 100px; height: 100px; margin-bottom: 16px; }
             .auth-card h2 { font-size: 1.6rem; }
             
-            /* Dashboard Sidebar & Core Content Switch */
             .portal-layout { flex-direction: column; height: auto; min-height: 100vh; }
             .sidebar { display: none; }
             .mobile-nav { display: flex; }
@@ -220,7 +211,6 @@
             .stat-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px; }
             .card { padding: 18px; }
             
-            /* Responsive Task Rows */
             .list-item { flex-direction: column; align-items: stretch; gap: 14px; padding: 16px; }
             .action-group { justify-content: flex-start; }
             .action-group .btn { flex: 1; }
@@ -346,7 +336,9 @@
 </div>
 
 <script>
-    const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
+    // Paste your Google Apps Script Web App URL here
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzRGsa_0-UG1ufHeojyDCr0fLyMXlb1zB1p7_bFuomxXnDU3tfUGekhLm2uWe9zw-d7w/exec';
+    
     let currentUser = null;
     let completedTaskIds = new Set();
 
@@ -359,18 +351,26 @@
         document.getElementById('mobile-menu-dropdown').classList.toggle('show');
     }
 
+    async function apiCall(payload) {
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            return await res.json();
+        } catch (err) {
+            console.error('API Error:', err);
+            return { success: false, message: 'Server connection error.' };
+        }
+    }
+
     async function fetchUserProgress() {
         if (!currentUser) return;
-        const { data, error } = await _supabase
-            .from('student_progress')
-            .select('resource_id')
-            .eq('user_id', currentUser.id);
-            
-        if (error) {
-            console.error("Error loading progress:", error);
-            return;
+        const res = await apiCall({ action: 'fetchProgress', userId: currentUser.id });
+        if (res.success) {
+            completedTaskIds = new Set(res.completedTaskIds);
         }
-        completedTaskIds = new Set(data.map(item => item.resource_id.toString()));
     }
 
     async function updateDashboardStats() {
@@ -379,20 +379,21 @@
         const aStat = document.getElementById('stat-assignments');
         
         await fetchUserProgress();
+        const res = await apiCall({ action: 'fetchResources' });
         
-        const { data, error } = await _supabase.from('resources').select('type');
-        if (error) return;
+        if (!res.success) return;
         
-        const modules = data.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
-        const totalTasks = data.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
-        
+        const modules = res.resources.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
+        const totalTasks = res.resources.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
         const actualPending = Math.max(0, totalTasks - completedTaskIds.size);
         
         mStat.innerText = modules;
         aStat.innerText = actualPending;
         
-        const name = currentUser.user_metadata.display_name || "Student";
-        welcomeMsg.innerHTML = actualPending > 0 ? `Greetings, <strong>${name}</strong>. There are <strong>${actualPending}</strong> assignments awaiting.` : `Greetings, <strong>${name}</strong>. Everything is up to date.`;
+        const name = currentUser.display_name || "Student";
+        welcomeMsg.innerHTML = actualPending > 0 
+            ? `Greetings, <strong>${name}</strong>. There are <strong>${actualPending}</strong> assignments awaiting.` 
+            : `Greetings, <strong>${name}</strong>. Everything is up to date.`;
     }
 
     function showTab(tabName) {
@@ -400,16 +401,14 @@
         document.getElementById('tab-title').innerText = titles[tabName];
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
         
-        // Sync Desktop Nav Active State
         document.querySelectorAll('.sidebar .nav-link').forEach(link => link.classList.remove('active'));
         document.getElementById('nav-' + tabName).classList.add('active');
 
-        // Sync Mobile Nav Active State
         document.querySelectorAll('.mobile-nav-menu .nav-link').forEach(link => link.classList.remove('active'));
         document.getElementById('m-nav-' + tabName).classList.add('active');
 
         document.getElementById('tab-' + tabName).classList.remove('hidden');
-        if(tabName === 'dashboard') updateDashboardStats();
+        if (tabName === 'dashboard') updateDashboardStats();
         else fetchResources();
     }
 
@@ -418,12 +417,12 @@
         const aContainer = document.getElementById('assignments-container');
         
         await fetchUserProgress();
+        const res = await apiCall({ action: 'fetchResources' });
         
-        const { data, error } = await _supabase.from('resources').select('*').order('created_at', { ascending: false });
-        if (error) return;
+        if (!res.success) return;
         mContainer.innerHTML = ""; aContainer.innerHTML = "";
         
-        data.forEach(item => {
+        res.resources.forEach(item => {
             const type = (item.type || "module").toLowerCase();
             
             if (type === 'assignment') {
@@ -468,26 +467,19 @@
         const btn = document.getElementById('done-btn-' + id);
         const stringId = id.toString();
         
-        if (!completedTaskIds.has(stringId)) {
-            const { error } = await _supabase
-                .from('student_progress')
-                .insert([{ user_id: currentUser.id, resource_id: stringId }]);
-                
-            if (error) { alert("Failed to save progress!"); return; }
+        const res = await apiCall({ action: 'toggleTask', userId: currentUser.id, resourceId: stringId });
+        
+        if (!res.success) {
+            alert("Failed to update status.");
+            return;
+        }
 
+        if (res.status === 'added') {
             completedTaskIds.add(stringId);
             badge.className = "status-badge badge-done";
             badge.innerHTML = `<i class="fas fa-circle-check"></i> Completed`;
             btn.style.opacity = "0.5";
         } else {
-            const { error } = await _supabase
-                .from('student_progress')
-                .delete()
-                .eq('user_id', currentUser.id)
-                .eq('resource_id', stringId);
-                
-            if (error) { alert("Failed to revert progress!"); return; }
-
             completedTaskIds.delete(stringId);
             badge.className = "status-badge badge-pending";
             badge.innerHTML = `<i class="fas fa-clock"></i> Pending`;
@@ -498,17 +490,32 @@
     async function signIn() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) alert(error.message); else showPortal(data.user);
+        
+        const res = await apiCall({ action: 'signIn', email, password });
+        if (res.success) {
+            sessionStorage.setItem('mathClass_user', JSON.stringify(res.user));
+            showPortal(res.user);
+        } else {
+            alert(res.message);
+        }
     }
 
     async function signUp() {
-        const { error } = await _supabase.auth.signUp({
+        const payload = {
+            action: 'signUp',
             email: document.getElementById('reg-email').value,
             password: document.getElementById('reg-password').value,
-            options: { data: { display_name: document.getElementById('reg-username').value, student_id: document.getElementById('reg-id').value }}
-        });
-        if (error) alert(error.message); else alert("Verify your email.");
+            display_name: document.getElementById('reg-username').value,
+            student_id: document.getElementById('reg-id').value
+        };
+        
+        const res = await apiCall(payload);
+        if (res.success) {
+            alert("Account created successfully. Please sign in.");
+            toggleAuth('login');
+        } else {
+            alert(res.message);
+        }
     }
 
     async function showPortal(user) {
@@ -516,14 +523,24 @@
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('portal-section').classList.remove('hidden');
         document.getElementById('mobile-navigation-bar').classList.remove('hidden');
-        document.getElementById('email').innerText = user.user_metadata.email;
+        
+        document.getElementById('display-name').innerText = user.display_name || user.email;
+        document.getElementById('display-id').innerText = user.student_id ? 'ID: ' + user.student_id : '';
         
         await fetchUserProgress();
         updateDashboardStats();
     }
 
-    async function signOut() { await _supabase.auth.signOut(); location.reload(); }
-    _supabase.auth.getSession().then(({ data }) => { if (data.session) showPortal(data.session.user); });
+    function signOut() { 
+        sessionStorage.removeItem('mathClass_user');
+        location.reload(); 
+    }
+
+    // Auto sign-in check using sessionStorage
+    const savedUser = sessionStorage.getItem('mathClass_user');
+    if (savedUser) {
+        showPortal(JSON.parse(savedUser));
+    }
 </script>
 </body>
 </html>
