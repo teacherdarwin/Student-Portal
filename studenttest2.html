@@ -3,333 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math | Faculty Console</title>
-    <link rel="icon" type="image/png" href="WCGNHS.png">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Math | Faculty Console (Google Drive Backend)</title>
+    <link rel="icon" type="image/png" href="NCC.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
         :root {
-            --accent: #7c4dff;
-            --accent-glow: rgba(124, 77, 255, 0.3);
-            --sidebar-bg: #0b0f1a;
+            --accent: #6366f1;
+            --accent-dark: #4f46e5;
+            --sidebar-bg: #0f172a;
             --canvas: #f8fafc;
-            --glass: rgba(255, 255, 255, 0.95);
-            --radius-lg: 20px;
+            --card-border: rgba(226, 232, 240, 0.8);
+            --text-h: #0f172a;
+            --text-p: #475569;
+            --radius-lg: 16px;
             --radius-md: 12px;
-            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --success: #10b981;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: #0f172a; 
+            background: var(--canvas); 
+            color: var(--text-h);
             height: 100vh;
             overflow: hidden;
         }
 
-        /* --- PANNING BACKGROUND ANIMATION --- */
-        @keyframes backgroundPan {
-            0% { background-position: 0% 50%; transform: scale(1); }
-            50% { background-position: 100% 50%; transform: scale(1.1); }
-            100% { background-position: 0% 50%; transform: scale(1); }
+        .portal-layout { 
+            display: flex; 
+            flex-direction: row;
+            height: 100vh; 
+            width: 100%; 
+            background: var(--canvas); 
+            position: relative; 
+            z-index: 20; 
         }
-
-        #login-section {
-            position: relative;
-            display: flex;
+        
+        .sidebar { 
+            width: 280px; 
+            background: var(--sidebar-bg); 
+            padding: 32px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0; 
+        }
+        
+        .mobile-nav {
+            display: none;
+            background: var(--sidebar-bg);
+            padding: 12px 20px;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
             width: 100%;
-            overflow: hidden;
-            background: #0f172a;
-        }
-
-        .bg-panning-container {
-            position: absolute;
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            /* Overlay gradient + Image */
-            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url("WCGNHS.jpg");
-            background-size: cover;
-            background-repeat: no-repeat;
-            animation: backgroundPan 25s ease-in-out infinite;
+            z-index: 100;
         }
 
-        .auth-card { 
-            position: relative;
-            z-index: 10; /* Ensure form stays above the moving background */
-            background: var(--glass);
-            padding: 40px;
-            border-radius: var(--radius-lg); 
-            box-shadow: var(--shadow-xl);
-            width: 100%;
-            max-width: 420px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .main-content { 
+            flex-grow: 1; 
+            padding: 40px; 
+            overflow-y: auto; 
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); 
         }
-
-        .auth-header { text-align: center; margin-bottom: 30px; }
-        .auth-header img { width: 80px; margin-bottom: 15px; filter: drop-shadow(0 4px 10px var(--accent-glow)); }
-        .auth-header h2 { font-weight: 800; color: #1e293b; font-size: 1.8rem; }
-
-        /* --- DASHBOARD LAYOUT --- */
-        .portal-layout { display: flex; height: 100vh; width: 100%; background: var(--canvas); position: relative; z-index: 20; }
-        .sidebar { width: 280px; background: var(--sidebar-bg); padding: 32px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .main-content { flex-grow: 1; padding: 40px 60px; overflow-y: auto; background: var(--canvas); }
 
         .nav-link { 
-            padding: 14px 16px; border-radius: var(--radius-md); color: #94a3b8; font-weight: 600; 
-            transition: all 0.3s; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 8px;
+            padding: 14px 16px; border-radius: var(--radius-md); color: #94a3b8; font-weight: 500; 
+            transition: 0.2s; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 4px;
         }
-        .nav-link:hover { background: rgba(255,255,255,0.05); color: white; padding-left: 22px; }
-        .nav-link.active { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
+        .nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-link.active { background: var(--accent); color: white; }
 
-        /* --- UI ELEMENTS --- */
-        .card { background: white; border-radius: var(--radius-lg); padding: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .stat-card { background: white; padding: 25px; border-radius: var(--radius-lg); border-left: 5px solid var(--accent); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .card { background: white; border-radius: var(--radius-lg); padding: 28px; border: 1px solid var(--card-border); box-shadow: var(--shadow); }
+        .table-responsive { width: 100%; overflow-x: auto; }
         
-        .btn { padding: 12px 24px; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; transition: 0.3s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--card-border); }
+        .stat-card h2 { font-size: 1.8rem; margin-top: 4px; font-weight: 800; color: var(--accent); }
+        
+        .btn { 
+            padding: 12px 20px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.95rem;
+            cursor: pointer; transition: all 0.3s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
+        }
         .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { background: #6236ff; transform: translateY(-2px); }
+        .btn-primary:hover { background: var(--accent-dark); }
 
-        input { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px; outline: none; margin-bottom: 15px; font-family: inherit; }
-        input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        input, select { width: 100%; padding: 14px 16px; border: 1.5px solid var(--card-border); border-radius: var(--radius-md); outline: none; margin-bottom: 18px; font-family: inherit; font-size: 15px; background: #fff; }
+        input:focus, select:focus { border-color: var(--accent); }
 
         .hidden { display: none !important; }
         
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #f1f5f9; }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th { text-align: left; padding: 15px; color: var(--text-p); font-size: 0.85rem; font-weight: 600; border-bottom: 2px solid #f1f5f9; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; color: var(--text-h); font-size: 15px; }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .file-input-wrapper { border: 1.5px dashed var(--card-border); padding: 20px; border-radius: var(--radius-md); text-align: center; background: #f8fafc; margin-bottom: 18px; }
+
+        @media (max-width: 768px) {
+            .portal-layout { flex-direction: column; }
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; }
+            .main-content { padding: 24px 16px; }
+            .stat-grid { grid-template-columns: 1fr; gap: 12px; }
+        }
     </style>
 </head>
 <body>
 
-<!-- MODAL -->
+<!-- MODAL WITH GOOGLE DRIVE FILE SUPPORT -->
 <div id="resource-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width: 100%; max-width: 450px;">
-        <h2 style="margin-bottom: 20px;">Publish Content</h2>
+        <h2 style="margin-bottom: 20px; font-weight: 800;">Upload to Drive & Sheet</h2>
+        
         <input type="text" id="res-title" placeholder="Title">
-        <select id="res-type" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:1.5px solid #e2e8f0;">
+        
+        <select id="res-type">
             <option value="Module">Learning Module</option>
             <option value="Assignment">Assignment</option>
         </select>
+        
+        <div id="file-upload-zone" class="file-input-wrapper">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-p); display: block; margin-bottom: 10px;">UPLOAD TO DRIVE (PDF, DOCX, IMG)</label>
+            <input type="file" id="res-file" style="border:none; margin:0; padding:0; background:transparent; width:100%;">
+        </div>
+
+        <p style="text-align:center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; margin-bottom: 14px;">— OR USE EXTERNAL LINK —</p>
         <input type="text" id="res-url" placeholder="Resource Link (URL)">
+
         <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="btn btn-primary" id="publish-btn" onclick="saveResource()" style="flex:2;">Publish</button>
-            <button class="btn" style="background:#f1f5f9; flex:1;" onclick="toggleModal(false)">Cancel</button>
+            <button class="btn btn-primary" id="publish-btn" onclick="handleResourceSubmission()" style="flex:2;">Upload & Save</button>
+            <button class="btn" style="background:#f1f5f9; color: var(--text-p); flex:1;" onclick="toggleModal(false)">Cancel</button>
         </div>
     </div>
 </div>
 
-<!-- CENTERED AUTH SECTION WITH PANNING BG -->
-<div id="login-section">
-    <div class="bg-panning-container"></div>
-    
-    <!-- Login Form -->
-    <div id="login-form" class="auth-card animate__animated animate__fadeIn">
-        <div class="auth-header">
-            <img src="WCGNHS.png" alt="Logo">
-            <h2>Faculty Portal</h2>
-            <p style="color: #64748b; margin-top: 5px;">Sign in to your console</p>
-        </div>
-        <input type="email" id="login-email" placeholder="Email Address">
-        <input type="password" id="login-password" placeholder="Passcode">
-        <button class="btn btn-primary" id="login-btn" onclick="signIn()" style="width:100%;">Sign In</button>
-        <p style="text-align:center; margin-top:20px; font-size:0.9rem; color: #64748b;">
-            Don't have access? <a href="#" onclick="toggleAuth('register')" style="color:var(--accent); font-weight:700; text-decoration:none;">Request Account</a>
-        </p>
-    </div>
-
-    <!-- Register Form -->
-    <div id="register-form" class="auth-card hidden animate__animated animate__fadeIn">
-        <div class="auth-header">
-            <img src="WCGNHS.png" alt="Logo">
-            <h2>Create Account</h2>
-            <p style="color: #64748b; margin-top: 5px;">Join the Mathematics Faculty</p>
-        </div>
-        <input type="text" id="reg-username" placeholder="Full Name">
-        <input type="text" id="reg-id" placeholder="Employee ID">
-        <input type="email" id="reg-email" placeholder="Email Address">
-        <input type="password" id="reg-password" placeholder="Password">
-        <button class="btn btn-primary" onclick="signUp()" style="width:100%;">Register</button>
-        <p style="text-align:center; margin-top:20px; font-size:0.9rem;">
-            <a href="#" onclick="toggleAuth('login')" style="color:var(--accent); text-decoration:none;">Back to Login</a>
-        </p>
-    </div>
-</div>
-
-<!-- DASHBOARD SECTION -->
-<div id="portal-section" class="portal-layout hidden">
+<!-- PORTAL LAYOUT -->
+<div id="portal-section" class="portal-layout">
     <aside class="sidebar">
-        <div style="margin-bottom: 40px; text-align: center;">
-            <img src="WCGNHS.png" alt="Logo" width="50" style="margin-bottom:10px;">
-            <h3 style="color:white; letter-spacing:1px; font-size: 1.1rem;">SIGMA MATH</h3>
+        <div style="margin-bottom: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px;">
+            <img src="NCC.png" alt="Logo" height="32" width="auto">
+            <span style="color:white; font-weight:800; font-size:1.25rem;">MathClass</span>
         </div>
         <nav style="flex:1">
-            <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-grid-2"></i> Overview</button>
-            <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-file-alt"></i> Curriculum</button>
-            <button class="nav-link" id="nav-submissions" onclick="showTab('submissions')"><i class="fas fa-upload"></i> Submissions</button>
+            <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-house-chimney"></i> Overview</button>
+            <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-book-open"></i> Curriculum</button>
         </nav>
-        <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px;">
-            <p id="display-name" style="color:white; font-weight:700; font-size:0.9rem;"></p>
-            <p id="display-id" style="color:#64748b; font-size:0.7rem;"></p>
-        </div>
-        <button class="nav-link" style="color:#f87171" onclick="signOut()"><i class="fas fa-power-off"></i> Sign Out</button>
     </aside>
 
     <main class="main-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-            <h1 id="tab-title" style="font-size:2.2rem; font-weight:800; color: #1e293b;">Overview</h1>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;" class="header-row">
+            <div>
+                <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase;">Google Drive Backend</span>
+                <h1 id="tab-title" style="font-size:2.2rem; font-weight:800;">Overview</h1>
+            </div>
             <button class="btn btn-primary" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Add Content</button>
         </div>
 
         <div id="tab-overview" class="tab-content">
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;">
+            <div class="stat-grid">
                 <div class="stat-card">
-                    <p style="font-size: 0.8rem; font-weight: 700; color: #64748b;">TOTAL MODULES</p>
-                    <h2 id="stat-m-count" style="font-size: 2rem; margin-top: 5px;">0</h2>
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Modules</span>
+                    <h2 id="stat-m-count">0</h2>
                 </div>
-                <div class="stat-card" style="border-color:#f59e0b">
-                    <p style="font-size: 0.8rem; font-weight: 700; color: #64748b;">ASSIGNMENTS</p>
-                    <h2 id="stat-a-count" style="font-size: 2rem; margin-top: 5px;">0</h2>
+                <div class="stat-card">
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Assignments</span>
+                    <h2 id="stat-a-count">0</h2>
                 </div>
-                <div class="stat-card" style="border-color:#10b981">
-                    <p style="font-size: 0.8rem; font-weight: 700; color: #64748b;">SUBMISSIONS</p>
-                    <h2 id="stat-s-count" style="font-size: 2rem; margin-top: 5px;">0</h2>
+                <div class="stat-card">
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Drive Items</span>
+                    <h2 id="stat-s-count">0</h2>
                 </div>
             </div>
         </div>
 
         <div id="tab-resources" class="tab-content hidden">
             <div class="card">
-                <table>
-                    <thead><tr><th>Resource Title</th><th>Category</th><th>Link</th><th>Action</th></tr></thead>
-                    <tbody id="resource-list"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="tab-submissions" class="tab-content hidden">
-            <div class="card">
-                <table>
-                    <thead><tr><th>File Name</th><th>Size</th><th>Date Uploaded</th><th>Action</th></tr></thead>
-                    <tbody id="submission-list"></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Title</th><th>Category</th><th>Upload Date</th><th>Drive / Link</th></tr></thead>
+                        <tbody id="resource-list"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
 </div>
 
 <script>
-    const _supabase = supabase.createClient('https://tghxsszdgedczywtplgi.supabase.co', 'sb_publishable_KQYxnqBIAoFs1pMdhEY-yQ_UO_Db4qj');
-    let currentUser = null;
+    // REPLACE THIS WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxnswTHgC4yrlp9d6PQT41eOhipnumkOKHrBqAiwuAzRUZkdKqZZztMqlc8NLY_A69Y/exec";
 
     function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
-    
-    function toggleAuth(type) {
-        document.getElementById('login-form').classList.toggle('hidden', type === 'register');
-        document.getElementById('register-form').classList.toggle('hidden', type === 'login');
-    }
-
-    async function signIn() {
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        const btn = document.getElementById('login-btn');
-        btn.innerText = "Verifying...";
-        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) { alert(error.message); btn.innerText = "Sign In"; }
-        else showPortal(data.user);
-    }
-
-    async function signUp() {
-        const email = document.getElementById('reg-email').value;
-        const password = document.getElementById('reg-password').value;
-        const { error } = await _supabase.auth.signUp({
-            email, password, options: { data: { 
-                display_name: document.getElementById('reg-username').value,
-                employee_id: document.getElementById('reg-id').value 
-            }}
-        });
-        if (error) alert(error.message); else alert("Registration successful! Check your email for verification.");
-    }
-
-    function showPortal(user) {
-        currentUser = user;
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('portal-section').classList.remove('hidden');
-        document.getElementById('display-name').innerText = user.user_metadata.display_name;
-        document.getElementById('display-id').innerText = "ID: " + user.user_metadata.employee_id;
-        showTab('overview');
-    }
 
     function showTab(name) {
         document.getElementById('tab-title').innerText = name.charAt(0).toUpperCase() + name.slice(1);
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById(`tab-${name}`).classList.remove('hidden');
+        document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
         document.getElementById(`nav-${name}`).classList.add('active');
+        document.getElementById(`tab-${name}`).classList.remove('hidden');
         fetchData();
     }
 
     async function fetchData() {
-        const { data: res } = await _supabase.from('resources').select('*');
-        if(res) {
-            document.getElementById('stat-m-count').innerText = res.filter(r => r.type === 'Module').length;
-            document.getElementById('stat-a-count').innerText = res.filter(r => r.type === 'Assignment').length;
-            document.getElementById('resource-list').innerHTML = res.map(r => `
-                <tr>
-                    <td style="font-weight:600;">${r.title}</td>
-                    <td><span style="background:#f1f5f9; padding:4px 8px; border-radius:4px; font-size:0.75rem;">${r.type}</span></td>
-                    <td><a href="${r.url}" target="_blank" style="color:var(--accent);"><i class="fas fa-link"></i></a></td>
-                    <td><i class="fas fa-trash" onclick="deleteRes(${r.id})" style="color:#f87171; cursor:pointer;"></i></td>
-                </tr>
-            `).join('');
-        }
-        
-        const { data: sub } = await _supabase.storage.from('assignments').list();
-        if(sub) {
-            const files = sub.filter(f => f.name !== '.emptyFolderPlaceholder');
-            document.getElementById('stat-s-count').innerText = files.length;
-            document.getElementById('submission-list').innerHTML = files.map(f => `
-                <tr>
-                    <td>${f.name}</td>
-                    <td>${(f.metadata.size/1024).toFixed(1)} KB</td>
-                    <td>${new Date(f.created_at).toLocaleDateString()}</td>
-                    <td><button class="btn btn-primary" style="padding:5px 10px; font-size:0.7rem;" onclick="window.open('${_supabase.storage.from('assignments').getPublicUrl(f.name).data.publicUrl}')">View</button></td>
-                </tr>
-            `).join('');
+        try {
+            const res = await fetch(GOOGLE_SCRIPT_URL);
+            const json = await res.json();
+            
+            if (json.status === "success") {
+                const items = json.data;
+                document.getElementById('stat-m-count').innerText = items.filter(r => r.type === 'Module').length;
+                document.getElementById('stat-a-count').innerText = items.filter(r => r.type === 'Assignment').length;
+                document.getElementById('stat-s-count').innerText = items.length;
+
+                document.getElementById('resource-list').innerHTML = items.map(r => `
+                    <tr>
+                        <td style="font-weight:600;">${r.title}</td>
+                        <td><span style="background:#edf2ff; color:#4c6ef5; padding:6px 12px; border-radius:30px; font-size:0.75rem; font-weight:700;">${r.type}</span></td>
+                        <td style="color:var(--text-p);">${new Date(r.date).toLocaleDateString()}</td>
+                        <td><a href="${r.url}" target="_blank" class="btn btn-primary" style="padding:8px 14px;"><i class="fas fa-external-link-alt"></i> Open</a></td>
+                    </tr>
+                `).join('');
+            }
+        } catch (err) {
+            console.error("Error fetching data from Google Sheet:", err);
         }
     }
 
-    async function saveResource() {
+    async function handleResourceSubmission() {
         const title = document.getElementById('res-title').value;
         const type = document.getElementById('res-type').value;
-        const url = document.getElementById('res-url').value;
-        if(!title || !url) return alert("Fill all fields");
-        await _supabase.from('resources').insert([{ title, type, url, created_by: currentUser.id }]);
-        toggleModal(false);
-        fetchData();
-    }
+        const urlInput = document.getElementById('res-url').value;
+        const fileInput = document.getElementById('res-file').files[0];
+        const btn = document.getElementById('publish-btn');
 
-    async function deleteRes(id) {
-        if(confirm("Delete this resource?")) {
-            await _supabase.from('resources').delete().eq('id', id);
-            fetchData();
+        if (!title) return alert("Please enter a title");
+        if (!urlInput && !fileInput) return alert("Please provide a URL or choose a file");
+
+        btn.innerText = "Uploading to Drive...";
+        btn.disabled = true;
+
+        const payload = {
+            title: title,
+            type: type,
+            url: urlInput || "",
+            user: "Faculty Member"
+        };
+
+        if (fileInput) {
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                payload.fileData = e.target.result;
+                payload.fileName = fileInput.name;
+                payload.fileMime = fileInput.type;
+                await sendToGoogleAppsScript(payload);
+            };
+            reader.readAsDataURL(fileInput);
+        } else {
+            await sendToGoogleAppsScript(payload);
         }
     }
 
-    function signOut() { _supabase.auth.signOut().then(() => location.reload()); }
-    _supabase.auth.getSession().then(({data}) => { if(data.session) showPortal(data.session.user); });
+    async function sendToGoogleAppsScript(payload) {
+        const btn = document.getElementById('publish-btn');
+        try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            alert("Successfully uploaded to Google Drive & recorded in Sheet!");
+            toggleModal(false);
+            document.getElementById('res-title').value = '';
+            document.getElementById('res-url').value = '';
+            document.getElementById('res-file').value = '';
+            fetchData();
+        } catch (err) {
+            alert("Upload failed: " + err.message);
+        } finally {
+            btn.innerText = "Upload & Save";
+            btn.disabled = false;
+        }
+    }
+
+    // Initial Data Fetch on Load
+    fetchData();
 </script>
 </body>
 </html>
