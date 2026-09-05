@@ -106,13 +106,13 @@
 <!-- UPLOAD MODAL -->
 <div id="resource-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width: 100%; max-width: 450px;">
-        <h2 style="margin-bottom: 20px; font-weight: 800;">Upload Content</h2>
+        <h2 style="margin-bottom: 20px; font-weight: 800;">Upload Resource</h2>
         
         <input type="text" id="res-title" placeholder="Title">
         
         <select id="res-type">
-            <option value="Module">Learning Module</option>
-            <option value="Assignment">Assignment</option>
+            <option value="module">Module</option>
+            <option value="assignment">Assignment</option>
         </select>
         
         <div id="file-upload-zone" class="file-input-wrapper">
@@ -121,7 +121,7 @@
         </div>
 
         <p style="text-align:center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; margin-bottom: 14px;">— OR ENTER EXTERNAL LINK —</p>
-        <input type="text" id="res-url" placeholder="Resource Link (URL)">
+        <input type="text" id="res-url" placeholder="Drive / External Resource Link (URL)">
 
         <div style="display:flex; gap:10px; margin-top:10px;">
             <button class="btn btn-primary" id="publish-btn" onclick="handleResourceSubmission()" style="flex:2;">Upload & Save</button>
@@ -139,7 +139,7 @@
         </div>
         <nav style="flex:1">
             <button class="nav-link active" id="nav-overview" onclick="showTab('overview')"><i class="fas fa-house-chimney"></i> Overview</button>
-            <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-book-open"></i> Curriculum</button>
+            <button class="nav-link" id="nav-resources" onclick="showTab('resources')"><i class="fas fa-book-open"></i> Resources</button>
         </nav>
     </aside>
 
@@ -149,7 +149,7 @@
                 <span style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase;">MathClass DB Storage</span>
                 <h1 id="tab-title" style="font-size:2.2rem; font-weight:800;">Overview</h1>
             </div>
-            <button class="btn btn-primary" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Add Content</button>
+            <button class="btn btn-primary" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Add Resource</button>
         </div>
 
         <div id="tab-overview" class="tab-content">
@@ -159,11 +159,11 @@
                     <h2 id="stat-m-count">0</h2>
                 </div>
                 <div class="stat-card">
-                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Assignments</span>
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Assignments</span>
                     <h2 id="stat-a-count">0</h2>
                 </div>
                 <div class="stat-card">
-                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Stored Items</span>
+                    <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-p);">Total Resources</span>
                     <h2 id="stat-s-count">0</h2>
                 </div>
             </div>
@@ -173,7 +173,7 @@
             <div class="card">
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Title</th><th>Category</th><th>Upload Date</th><th>Drive / Link</th></tr></thead>
+                        <thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Resource Link</th></tr></thead>
                         <tbody id="resource-list"></tbody>
                     </table>
                 </div>
@@ -183,8 +183,8 @@
 </div>
 
 <script>
-    // Paste your Web App URL from Apps Script deployment here:
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxF4r_oc-xeGMgL1UBSkoDT6VJISoEFg0vFdjdJpg_BenHJecM854RdhvNa55royfii/exec";
+    // Replace with your Google Apps Script Web App URL:
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHzSFUTcUQNPtCzjZxqWP91RcLaQ6Bb9OV4dFZ2j9bHfzpBpy_MeLOlx1dSyovjFKR/exec";
 
     function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
 
@@ -198,23 +198,23 @@
     }
 
     async function fetchData() {
-        if (GOOGLE_SCRIPT_URL.includes("YOUR_NEWLY")) return;
+        if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("YOUR_NEWLY")) return;
         try {
             const res = await fetch(GOOGLE_SCRIPT_URL);
             const json = await res.json();
             
             if (json.status === "success" && Array.isArray(json.data)) {
                 const items = json.data;
-                document.getElementById('stat-m-count').innerText = items.filter(r => r.type === 'Module').length;
-                document.getElementById('stat-a-count').innerText = items.filter(r => r.type === 'Assignment').length;
+                document.getElementById('stat-m-count').innerText = items.filter(r => String(r.type).toLowerCase() === 'module').length;
+                document.getElementById('stat-a-count').innerText = items.filter(r => String(r.type).toLowerCase() === 'assignment').length;
                 document.getElementById('stat-s-count').innerText = items.length;
 
                 document.getElementById('resource-list').innerHTML = items.map(r => `
                     <tr>
+                        <td style="font-weight:600; color: var(--text-p);">${r.id}</td>
                         <td style="font-weight:600;">${r.title}</td>
-                        <td><span style="background:#edf2ff; color:#4c6ef5; padding:6px 12px; border-radius:30px; font-size:0.75rem; font-weight:700;">${r.type}</span></td>
-                        <td style="color:var(--text-p);">${r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}</td>
-                        <td>${r.url ? `<a href="${r.url}" target="_blank" class="btn btn-primary" style="padding:8px 14px;"><i class="fas fa-external-link-alt"></i> Open File / Link</a>` : '<span style="color:#94a3b8;">No Link</span>'}</td>
+                        <td><span style="background:#edf2ff; color:#4c6ef5; padding:6px 12px; border-radius:30px; font-size:0.75rem; font-weight:700; text-transform:capitalize;">${r.type}</span></td>
+                        <td>${r.url ? `<a href="${r.url}" target="_blank" class="btn btn-primary" style="padding:8px 14px;"><i class="fas fa-external-link-alt"></i> View Link</a>` : '<span style="color:#94a3b8;">No Link</span>'}</td>
                     </tr>
                 `).join('');
             }
@@ -233,14 +233,13 @@
         if (!title) return alert("Please enter a title");
         if (!urlInput && !fileInput) return alert("Please attach a file or enter a link");
 
-        btn.innerText = "Saving to Drive & Sheets...";
+        btn.innerText = "Saving...";
         btn.disabled = true;
 
         const payload = {
             title: title,
             type: type,
-            url: urlInput || "",
-            user: "Faculty Member"
+            url: urlInput || ""
         };
 
         if (fileInput) {
@@ -266,7 +265,7 @@
                 body: JSON.stringify(payload)
             });
 
-            alert("Content saved to Google Sheet & Drive!");
+            alert("Resource successfully saved!");
             toggleModal(false);
             
             document.getElementById('res-title').value = '';
