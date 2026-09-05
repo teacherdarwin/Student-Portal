@@ -196,7 +196,8 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMlX0aD4gJBrNn00WZfqG4xxR2jm-MYJxAAEUJcZCUdTptpupOj8jasW--0LQ7QFPN/exec";
+    // Paste your deployed Google Apps Script Web App URL here
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDD51eCQKH6lDyETbpUYz6hjghw7L3ycA7p9TZid7JJzA34U9g2bBHtWDaAwuRWlMW/exec";
 
     function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
 
@@ -271,21 +272,23 @@
     async function sendToGoogleAppsScript(payload) {
         const btn = document.getElementById('publish-btn');
         try {
+            // Using text/plain content type prevents pre-flight CORS blocks from Google Apps Script
             await fetch(GOOGLE_SCRIPT_URL, {
                 method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify(payload)
             });
 
-            alert("Saved to MathClass DB and Google Drive successfully!");
+            alert("Data saved successfully!");
             toggleModal(false);
+            
+            // Clear inputs
             document.getElementById('res-title').value = '';
             document.getElementById('res-url').value = '';
             document.getElementById('res-file').value = '';
             
-            // Allow Drive and Sheet a moment to process before re-fetching
-            setTimeout(fetchData, 1500);
+            // Re-fetch updated list after Google Drive processes
+            setTimeout(fetchData, 2000);
         } catch (err) {
             alert("Upload failed: " + err.message);
         } finally {
@@ -294,7 +297,7 @@
         }
     }
 
-    // Initial Data Fetch on Page Load
+    // Initial load
     fetchData();
 </script>
 </body>
