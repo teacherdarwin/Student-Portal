@@ -24,6 +24,8 @@
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
             --success: #10b981;
             --success-dark: #059669;
+            --meet-blue: #1a73e8;
+            --meet-blue-dark: #1557b0;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -105,12 +107,25 @@
             width: 100%; padding: 14px; border-radius: var(--radius-md); border: none;
             font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.3s;
             display: flex; align-items: center; justify-content: center; gap: 8px;
+            text-decoration: none;
         }
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); }
         
         .btn-success { background: var(--success); color: white; }
         .btn-success:hover { background: var(--success-dark); transform: translateY(-2px); }
+
+        .btn-meet { 
+            background: var(--meet-blue); 
+            color: white; 
+            margin-top: 24px;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);
+        }
+        .btn-meet:hover { 
+            background: var(--meet-blue-dark); 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 16px rgba(26, 115, 232, 0.35);
+        }
         
         /* Status Badge */
         .status-badge {
@@ -327,6 +342,10 @@
             <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
                 <h3>Status Report</h3>
                 <p id="welcome-msg" style="color:var(--text-p); margin-top:10px;">Synchronizing with classroom server...</p>
+                <a href="https://meet.google.com/qoj-ijvf-otf" target="_blank" rel="noopener noreferrer" class="btn btn-meet">
+                    <i class="fa-solid fa-video"></i>
+                    <span>Join Online Class</span>
+                </a>
             </div>
         </div>
 
