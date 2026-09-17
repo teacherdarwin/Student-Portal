@@ -117,7 +117,7 @@
         .action-group{ display:flex; align-items:center; gap:10px; flex-shrink:0; flex-wrap:wrap; }
         .action-group .btn{ padding:10px 16px; }
 
-        /* ✚ NEW: instructions container + deadline badges */
+        /* ===== INSTRUCTIONS + DEADLINES ===== */
         .instr-box{ background:#f8fafc; border:1px solid var(--card-border); border-left:4px solid var(--accent); border-radius:10px; padding:12px 14px; margin-top:10px; font-size:.85rem; color:var(--text-p); white-space:pre-wrap; }
         .instr-box strong{ color:var(--text-h); display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; }
         .dl-badge{ padding:5px 12px; border-radius:30px; font-size:.72rem; font-weight:700; display:inline-flex; align-items:center; gap:5px; margin-top:8px; }
@@ -139,6 +139,14 @@
         .dl-cell{ font-size:.8rem; color:var(--text-p); }
         .dl-cell.overdue{ color:var(--danger); font-weight:700; }
 
+        /* ✚ NEW: section chips (teacher table) + section-link builder rows */
+        .sec-chip{ display:inline-flex; align-items:center; gap:4px; background:#edf2ff; color:#4c6ef5; border-radius:20px; padding:3px 10px; font-size:.7rem; font-weight:700; margin:2px; text-decoration:none; }
+        .sec-chip:hover{ background:#dbe4ff; }
+        [data-theme="dark"] .sec-chip{ background:rgba(99,102,241,.15); color:#a5b4fc; }
+        .sec-row{ display:grid; grid-template-columns:1fr 1.5fr auto; gap:8px; margin-bottom:8px; align-items:center; }
+        .sec-row input{ margin-bottom:0; padding:11px 14px; }
+        .sec-row .btn{ padding:10px 12px; }
+
         /* ===== ANNOUNCEMENTS ===== */
         .ann-item{ border:1px solid var(--card-border); border-radius:var(--radius-md); padding:18px 20px; margin-bottom:12px; background:#fff; }
         .ann-item h4{ font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:10px; }
@@ -147,13 +155,13 @@
         .ann-icon{ width:38px; height:38px; border-radius:10px; background:#fff7ed; color:#ea580c; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
         .ann-empty{ text-align:center; color:var(--text-p); font-size:.9rem; padding:20px; }
 
-        /* ===== ✚ NEW: GRADES ===== */
+        /* ===== GRADES ===== */
         .grade-card-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
         .grade-tile{ border:1px solid var(--card-border); border-radius:var(--radius-md); padding:18px; text-align:center; background:#fff; }
         .grade-tile .term{ font-size:.75rem; font-weight:700; color:var(--text-p); text-transform:uppercase; letter-spacing:.5px; }
         .grade-tile .val{ font-size:2.2rem; font-weight:800; color:var(--accent); margin-top:4px; }
         .grade-tile .rem{ font-size:.72rem; color:#94a3b8; margin-top:4px; min-height:1em; }
-        .gb-form{ display:grid; grid-template-columns:2fr 1fr 1fr 2fr auto; gap:10px; align-items:end; margin-bottom:8px; }
+        .gb-form{ display:grid; grid-template-columns:1fr 1.4fr 1fr .8fr 1.4fr auto; gap:10px; align-items:end; margin-bottom:8px; }
         .gb-form .input-field{ margin-bottom:0; }
 
         /* ===== MODALS / SHARED ===== */
@@ -195,6 +203,7 @@
             .action-group{ justify-content:flex-start; }
             .action-group .btn{ flex:1; }
             .gb-form{ grid-template-columns:1fr 1fr; }
+            .sec-row{ grid-template-columns:1fr; }
             #auth-theme-toggle{ top:12px; right:12px; }
         }
     </style>
@@ -254,6 +263,12 @@
             <div class="input-field" id="sid-field">
                 <label>Student ID</label>
                 <div class="input-wrapper"><i class="fas fa-id-card"></i><input type="text" id="reg-id" placeholder="Student Number"></div>
+            </div>
+            <!-- ✚ NEW: section (students only) -->
+            <div class="input-field" id="section-field">
+                <label>Section</label>
+                <div class="input-wrapper"><i class="fas fa-users-rectangle"></i><input type="text" id="reg-section" placeholder="e.g., 8 - Sampaguita" list="section-suggestions">
+                <datalist id="section-suggestions"></datalist></div>
             </div>
             <div class="input-field">
                 <label>Email</label>
@@ -330,6 +345,7 @@
         <div style="padding-top:20px; border-top:1px solid rgba(255,255,255,.1);">
             <div id="user-info" style="margin-bottom:20px; padding:0 12px;">
                 <p id="display-name" style="color:#fff; font-weight:700; font-size:.9rem;"></p>
+                <!-- ✚ NEW: also shows section -->
                 <p id="display-id" style="color:#64748b; font-size:.75rem;"></p>
             </div>
             <button class="theme-toggle" data-theme-toggle style="width:100%; justify-content:center; margin-bottom:8px; border-color:rgba(255,255,255,.15); color:#94a3b8;"><i class="fas fa-moon"></i>&nbsp;Theme</button>
@@ -339,7 +355,7 @@
 
     <main class="main-content">
         <header style="margin-bottom:40px;">
-            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v4.0</span>
+            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v5.0</span>
             <h2 id="tab-title" style="font-size:2.5rem; font-weight:800; letter-spacing:-1px;">Dashboard</h2>
         </header>
 
@@ -364,7 +380,6 @@
         <div id="tab-modules" class="tab-content hidden"><div class="card"><div id="modules-container"></div></div></div>
         <div id="tab-assignments" class="tab-content hidden"><div class="card"><div id="assignments-container"></div></div></div>
 
-        <!-- ✚ NEW: student grades tab -->
         <div id="tab-grades" class="tab-content hidden">
             <div class="card">
                 <h3 style="margin-bottom:18px;"><i class="fas fa-graduation-cap" style="color:var(--accent); margin-right:8px;"></i>My Term Grades</h3>
@@ -401,7 +416,7 @@
                 <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase;">MathClass DB Storage</span>
                 <h1 id="tab-title-t" style="font-size:2.2rem; font-weight:800;">Overview</h1>
             </div>
-            <button class="btn btn-primary" onclick="toggleModal(true)"><i class="fas fa-plus"></i> Add Resource</button>
+            <button class="btn btn-primary" onclick="openResourceModal()"><i class="fas fa-plus"></i> Add Resource</button>
         </div>
 
         <div id="tab-overview" class="tab-content">
@@ -422,7 +437,7 @@
             <div class="card">
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Link</th><th>Submission</th><th>✚ Deadline</th><th></th></tr></thead>
+                        <thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Link</th><th>✚ Submissions by Section</th><th>Deadline</th><th></th></tr></thead>
                         <tbody id="resource-list"></tbody>
                     </table>
                 </div>
@@ -442,11 +457,12 @@
             </div>
         </div>
 
-        <!-- ✚ NEW: gradebook tab -->
+        <!-- ✚ NEW: gradebook now organized by section -->
         <div id="tab-gradebook" class="tab-content hidden">
             <div class="card" style="margin-bottom:24px;">
                 <h3 style="margin-bottom:16px;"><i class="fas fa-pen-to-square" style="color:var(--accent); margin-right:8px;"></i>Encode a Grade</h3>
                 <div class="gb-form">
+                    <div class="input-field"><label>Section</label><select id="gb-section" onchange="renderGradebookStudents()"><option value="">All sections</option></select></div>
                     <div class="input-field"><label>Student</label><select id="gb-student"><option value="">Loading students…</option></select></div>
                     <div class="input-field"><label>Term</label><select id="gb-term"><option>Prelims</option><option>Midterms</option><option>Semi-Finals</option><option>Finals</option></select></div>
                     <div class="input-field"><label>Grade</label><input type="number" id="gb-grade" min="0" max="100" step="0.01" placeholder="0–100"></div>
@@ -459,8 +475,8 @@
                 <h3 style="margin-bottom:16px;">Recorded Grades</h3>
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Student</th><th>Student ID</th><th>Term</th><th>Grade</th><th>Remarks</th><th>Last Updated</th><th></th></tr></thead>
-                        <tbody id="grades-table"><tr><td colspan="7" class="ann-empty">No grades encoded yet.</td></tr></tbody>
+                        <thead><tr><th>Student</th><th>Student ID</th><th>✚ Section</th><th>Term</th><th>Grade</th><th>Remarks</th><th>Last Updated</th><th></th></tr></thead>
+                        <tbody id="grades-table"><tr><td colspan="8" class="ann-empty">No grades encoded yet.</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -480,9 +496,12 @@
             <option value="assignment">Assignment</option>
         </select>
 
-        <!-- ✚ NEW: assignment-only fields (submission link + deadline + instructions) -->
         <div id="assignment-fields" class="hidden">
-            <input type="text" id="res-submission" placeholder="Submission Link (Google Form / Drive folder)" style="margin-bottom:10px;">
+            <label style="font-size:.8rem; font-weight:600; display:block; margin-bottom:6px;">✚ Submission Links per Section <span style="color:#94a3b8; font-weight:400;">(students only see their own section's link)</span></label>
+            <div id="sec-links-list"></div>
+            <button type="button" class="btn btn-ghost" onclick="addSecLinkRow()" style="padding:9px 14px; font-size:.8rem; margin-bottom:6px;"><i class="fas fa-plus"></i> Add section link</button>
+            <p style="font-size:.72rem; color:#94a3b8; margin-bottom:14px;"><i class="fas fa-circle-info"></i> Leave empty if this assignment has no submission link. Use the same section names students registered with.</p>
+
             <label style="font-size:.8rem; font-weight:600; display:block; margin-bottom:6px;">Deadline <span style="color:#94a3b8; font-weight:400;">(students can't submit after this)</span></label>
             <input type="datetime-local" id="res-deadline" style="margin-bottom:14px;">
             <label style="font-size:.8rem; font-weight:600; display:block; margin-bottom:6px;">General Instructions</label>
@@ -504,7 +523,6 @@
     </div>
 </div>
 
-<!-- ✚ NEW: extend-deadline modal -->
 <div id="deadline-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width:100%; max-width:400px;">
         <h2 style="margin-bottom:6px; font-weight:800;">Extend Deadline</h2>
@@ -527,7 +545,8 @@
     let currentUser = null;
     let completedTaskIds = new Set();
     let selectedRole = 'student';
-    let dlTargetId = null;   // ✚ assignment currently being extended
+    let dlTargetId = null;
+    let allStudents = [];   // ✚ cached for gradebook section filtering
 
     /* ---------- shared helpers ---------- */
     function toggleAuth(type) {
@@ -555,13 +574,26 @@
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    /* ---------- role picker ---------- */
+    /* ---------- ✚ role picker (now toggles section too) ---------- */
     function pickRole(role) {
         selectedRole = role;
         document.querySelectorAll('.role-option').forEach(o => o.classList.toggle('selected', o.dataset.role === role));
         document.getElementById('teacher-code-field').classList.toggle('hidden', role !== 'teacher');
         document.getElementById('sid-field').style.display = role === 'teacher' ? 'none' : '';
+        document.getElementById('section-field').style.display = role === 'teacher' ? 'none' : '';
     }
+
+    /* ---------- ✚ load existing sections to suggest on registration ---------- */
+    async function loadSectionSuggestions() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            const json = await res.json();
+            const secs = [...new Set((json.sections || []).map(s => s))].filter(Boolean);
+            document.getElementById('section-suggestions').innerHTML =
+                secs.map(s => `<option value="${escapeHtml_(s)}">`).join('');
+        } catch (e) { /* non-critical */ }
+    }
+    loadSectionSuggestions();
 
     /* ---------- AUTH ---------- */
     async function signIn() {
@@ -587,10 +619,12 @@
             password:document.getElementById('reg-password').value,
             display_name:document.getElementById('reg-username').value.trim(),
             student_id:document.getElementById('reg-id').value.trim(),
+            section:document.getElementById('reg-section').value.trim(),   // ✚ NEW
             role:selectedRole,
             teacher_code:document.getElementById('reg-teacher-code').value
         };
         if (!payload.display_name || !payload.email || !payload.password) return showToast('Please fill in all required fields.', 'error');
+        if (payload.role === 'student' && !payload.section) return showToast('Please enter your section.', 'error');   // ✚ NEW
         if (payload.role === 'teacher' && !payload.teacher_code) return showToast('Faculty access code is required.', 'error');
         const btn = document.getElementById('signup-btn');
         btn.classList.add('is-loading');
@@ -615,7 +649,10 @@
             document.getElementById('portal-student').classList.remove('hidden');
             document.getElementById('mobile-menu-teacher').classList.add('hidden');
             document.getElementById('display-name').innerText = user.display_name || user.email;
-            document.getElementById('display-id').innerText = user.student_id ? 'ID: ' + user.student_id : '';
+            // ✚ NEW: show section under the name
+            document.getElementById('display-id').innerText =
+                (user.student_id ? 'ID: ' + user.student_id : '') +
+                (user.section ? (user.student_id ? ' · ' : '') + 'Sec: ' + user.section : '');
             updateDashboardStats();
         }
     }
@@ -632,7 +669,7 @@
         document.getElementById('m-nav-' + tabName).classList.add('active');
         document.getElementById('tab-' + tabName).classList.remove('hidden');
         if (tabName === 'dashboard') updateDashboardStats();
-        else if (tabName === 'grades') loadStudentGrades();          // ✚ NEW
+        else if (tabName === 'grades') loadStudentGrades();
         else fetchResources();
     }
 
@@ -645,7 +682,7 @@
     async function updateDashboardStats() {
         const welcomeMsg = document.getElementById('welcome-msg');
         await Promise.all([fetchUserProgress(), fetchAnnouncementsStudent()]);
-        const res = await apiCall({ action:'fetchResources' });
+        const res = await apiCall({ action:'fetchResources', userId:currentUser.id });   // ✚ userId → server returns own section's links
         if (!res.success) return;
         const modules = res.resources.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
         const totalTasks = res.resources.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
@@ -658,7 +695,6 @@
             : `Greetings, <strong>${name}</strong>. Everything is up to date.`;
     }
 
-    /* ---------- student announcements ---------- */
     async function fetchAnnouncementsStudent() {
         const box = document.getElementById('student-announcements');
         const res = await apiCall({ action:'fetchAnnouncements' });
@@ -674,7 +710,6 @@
             </div>`).join('');
     }
 
-    /* ---------- ✚ deadline badge helper ---------- */
     function deadlineBadge(deadlineIso) {
         if (!deadlineIso) return '';
         const dl = new Date(deadlineIso);
@@ -685,12 +720,12 @@
         return `<span class="dl-badge dl-open"><i class="fas fa-calendar"></i> Due ${when}</span>`;
     }
 
-    /* ---------- STUDENT RESOURCES (✚ with instructions + deadline lock) ---------- */
+    /* ---------- STUDENT RESOURCES (server sends only THIS student's section link) ---------- */
     async function fetchResources() {
         const mContainer = document.getElementById('modules-container');
         const aContainer = document.getElementById('assignments-container');
         await fetchUserProgress();
-        const res = await apiCall({ action:'fetchResources' });
+        const res = await apiCall({ action:'fetchResources', userId:currentUser.id });   // ✚
         if (!res.success) return;
         mContainer.innerHTML = ""; aContainer.innerHTML = "";
 
@@ -701,10 +736,11 @@
                 const isDone = completedTaskIds.has(item.id.toString());
                 const closed = item.deadline && (new Date(item.deadline) - new Date() < 0);
 
+                // item.submissionUrl now contains ONLY this student's section's link (or '' if none)
                 const submitBtn = item.submissionUrl
                     ? (closed
                         ? `<button class="btn btn-locked" disabled title="The deadline for this assignment has passed"><i class="fas fa-lock"></i> Submission Closed</button>`
-                        : `<button class="btn btn-submit" onclick="attemptSubmit('${item.id}', this)" data-url="${escapeHtml_(item.url || '')}" data-sub="${escapeHtml_(item.submissionUrl)}" title="Submit your work"><i class="fas fa-upload"></i> Submit Work</button>`)
+                        : `<button class="btn btn-submit" onclick="attemptSubmit('${item.id}', this)" data-sub="${escapeHtml_(item.submissionUrl)}" title="Submit your work"><i class="fas fa-upload"></i> Submit Work</button>`)
                     : '';
 
                 const instrBox = item.instructions
@@ -747,7 +783,6 @@
         });
     }
 
-    /* ---------- ✚ SUBMIT WORK (server-verified deadline) ---------- */
     async function attemptSubmit(resourceId, btnEl) {
         const subUrl = btnEl.dataset.sub;
         btnEl.classList.add('is-loading');
@@ -755,7 +790,7 @@
         btnEl.classList.remove('is-loading');
         if (!res.success) {
             showToast(res.message || 'Submission failed.', 'error');
-            fetchResources();   // refresh lock state
+            fetchResources();
             return;
         }
         showToast('Submission recorded — good luck! 🍀', 'success');
@@ -781,7 +816,7 @@
         }
     }
 
-    /* ---------- ✚ STUDENT GRADES ---------- */
+    /* ---------- STUDENT GRADES ---------- */
     async function loadStudentGrades() {
         const box = document.getElementById('grades-container');
         const res = await apiCall({ action:'fetchGrades', userId:currentUser.id });
@@ -790,7 +825,7 @@
             box.innerHTML = '<div class="ann-empty">No grades posted yet. Check back after your first quiz! 📊</div>';
             return;
         }
-        const order = ['Quarter 1','Quarter 2','Quarter 3','Quarter 4'];
+        const order = ['Prelims','Midterms','Semi-Finals','Finals'];
         res.grades.sort((a,b) => order.indexOf(a.term) - order.indexOf(b.term));
         const avg = (res.grades.reduce((s,g) => s + parseFloat(g.grade || 0), 0) / res.grades.length).toFixed(2);
         box.innerHTML = `
@@ -822,36 +857,44 @@
         else loadTeacherData();
     }
 
+    /* ✚ teacher data now fetched via authenticated POST (so section links stay private) */
     async function loadTeacherData() {
-        try {
-            const res = await fetch(SCRIPT_URL);
-            const json = await res.json();
-            if (json.status === "success" && Array.isArray(json.data)) {
-                const items = json.data;
-                document.getElementById('stat-m-count').innerText = items.filter(r => String(r.type).toLowerCase() === 'module').length;
-                document.getElementById('stat-a-count').innerText = items.filter(r => String(r.type).toLowerCase() === 'assignment').length;
-                document.getElementById('stat-s-count').innerText = items.length;
+        const json = await apiCall({ action:'fetchResourcesTeacher', userId:currentUser.id });
+        if (!json.success) { showToast(json.message || 'Failed to load data.', 'error'); return; }
 
-                document.getElementById('resource-list').innerHTML = items.map(r => {
-                    const isAssign = String(r.type).toLowerCase() === 'assignment';
-                    const dl = r.deadline ? new Date(r.deadline) : null;
-                    const dlCell = dl
-                        ? `<span class="dl-cell ${dl < new Date() ? 'overdue' : ''}">${dl.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}${dl < new Date() ? ' · passed' : ''}</span>`
-                        : '<span style="color:#94a3b8;">—</span>';
-                    return `
-                    <tr>
-                        <td style="font-weight:600; color:var(--text-p);">${r.id}</td>
-                        <td style="font-weight:600;">${escapeHtml_(r.title)}</td>
-                        <td><span class="type-pill ${isAssign ? 'assignment' : ''}">${r.type}</span></td>
-                        <td>${r.url ? `<a href="${escapeHtml_(r.url)}" target="_blank" class="btn btn-primary" style="padding:8px 14px;"><i class="fas fa-external-link-alt"></i> View</a>` : '<span style="color:#94a3b8;">No Link</span>'}</td>
-                        <td>${r.submissionUrl ? `<a href="${escapeHtml_(r.submissionUrl)}" target="_blank" class="btn btn-submit" style="padding:8px 14px;"><i class="fas fa-upload"></i> Link</a>` : '<span style="color:#94a3b8;">—</span>'}</td>
-                        <td>${dlCell}</td>
-                        <td>${isAssign ? `<button class="btn btn-ghost" style="padding:8px 14px; font-size:.8rem;" onclick="openDeadlineModal('${r.id}', ${r.deadline ? `'${r.deadline}'` : 'null'})"><i class="fas fa-clock-rotate-left"></i> ${r.deadline ? 'Extend' : 'Set'}</button>` : ''}</td>
-                    </tr>`;
-                }).join('');
+        const items = json.resources || [];
+        document.getElementById('stat-m-count').innerText = items.filter(r => String(r.type).toLowerCase() === 'module').length;
+        document.getElementById('stat-a-count').innerText = items.filter(r => String(r.type).toLowerCase() === 'assignment').length;
+        document.getElementById('stat-s-count').innerText = items.length;
+
+        document.getElementById('resource-list').innerHTML = items.map(r => {
+            const isAssign = String(r.type).toLowerCase() === 'assignment';
+            const dl = r.deadline ? new Date(r.deadline) : null;
+            const dlCell = dl
+                ? `<span class="dl-cell ${dl < new Date() ? 'overdue' : ''}">${dl.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}${dl < new Date() ? ' · passed' : ''}</span>`
+                : '<span style="color:#94a3b8;">—</span>';
+            // ✚ render one chip per section link
+            let subCell = '<span style="color:#94a3b8;">—</span>';
+            const map = r.submissionMap || {};
+            const keys = Object.keys(map);
+            if (keys.length) {
+                subCell = keys.map(k => `<a class="sec-chip" href="${escapeHtml_(map[k])}" target="_blank" title="${escapeHtml_(map[k])}"><i class="fas fa-upload"></i> ${escapeHtml_(k)}</a>`).join('');
+            } else if (r.submissionUrl) {
+                subCell = `<a class="sec-chip" href="${escapeHtml_(r.submissionUrl)}" target="_blank"><i class="fas fa-upload"></i> All sections</a>`;
             }
-            renderTeacherAnnouncements(Array.isArray(json.announcements) ? json.announcements : []);
-        } catch (err) { console.error("Error reading from MathClass DB:", err); }
+            return `
+            <tr>
+                <td style="font-weight:600; color:var(--text-p);">${r.id}</td>
+                <td style="font-weight:600;">${escapeHtml_(r.title)}</td>
+                <td><span class="type-pill ${isAssign ? 'assignment' : ''}">${r.type}</span></td>
+                <td>${r.url ? `<a href="${escapeHtml_(r.url)}" target="_blank" class="btn btn-primary" style="padding:8px 14px;"><i class="fas fa-external-link-alt"></i> View</a>` : '<span style="color:#94a3b8;">No Link</span>'}</td>
+                <td style="max-width:260px;">${subCell}</td>
+                <td>${dlCell}</td>
+                <td>${isAssign ? `<button class="btn btn-ghost" style="padding:8px 14px; font-size:.8rem;" onclick="openDeadlineModal('${r.id}', ${r.deadline ? `'${r.deadline}'` : 'null'})"><i class="fas fa-clock-rotate-left"></i> ${r.deadline ? 'Extend' : 'Set'}</button>` : ''}</td>
+            </tr>`;
+        }).join('');
+
+        renderTeacherAnnouncements(json.announcements || []);
     }
 
     function renderTeacherAnnouncements(anns) {
@@ -891,12 +934,11 @@
         else showToast('Failed to delete.', 'error');
     }
 
-    /* ---------- ✚ EXTEND DEADLINE ---------- */
+    /* ---------- EXTEND DEADLINE ---------- */
     function openDeadlineModal(resourceId, currentIso) {
         dlTargetId = resourceId;
         document.getElementById('dl-label').innerHTML = `Set a new due date & time. Students <strong>cannot submit</strong> after the deadline.`;
-        const input = document.getElementById('dl-input');
-        input.value = currentIso ? currentIso.slice(0, 16) : '';
+        document.getElementById('dl-input').value = currentIso ? currentIso.slice(0, 16) : '';
         toggleDeadlineModal(true);
     }
 
@@ -908,38 +950,68 @@
         const res = await apiCall({ action:'extendDeadline', userId:currentUser.id, resourceId:dlTargetId, deadline:val });
         btn.classList.remove('is-loading');
         if (res.success) {
-            showToast('Deadline updated — students were notified on their next sync. ⏰', 'success');
+            showToast('Deadline updated ⏰', 'success');
             toggleDeadlineModal(false);
             loadTeacherData();
         } else showToast(res.message || 'Failed to update deadline.', 'error');
     }
 
-    /* ---------- ✚ GRADEBOOK (teacher) ---------- */
+    /* ---------- ✚ GRADEBOOK (section-organized) ---------- */
     async function loadGradebook() {
         const [stuRes, gradeRes] = await Promise.all([
             apiCall({ action:'fetchStudents', userId:currentUser.id }),
-            apiCall({ action:'fetchGrades', userId:currentUser.id })   // teacher → all grades
+            apiCall({ action:'fetchGrades', userId:currentUser.id })
         ]);
+
+        allStudents = stuRes.success ? stuRes.students : [];
+
+        // ✚ populate the section filter
+        const sections = [...new Set(allStudents.map(s => s.section).filter(Boolean))].sort();
+        const secSel = document.getElementById('gb-section');
+        const prev = secSel.value;
+        secSel.innerHTML = '<option value="">All sections</option>' +
+            sections.map(s => `<option value="${escapeHtml_(s)}">${escapeHtml_(s)}</option>`).join('');
+        if (prev && sections.includes(prev)) secSel.value = prev;
+
+        renderGradebookStudents();
+        renderGradesTable(gradeRes.success ? gradeRes.grades : []);
+    }
+
+    // ✚ student dropdown filtered by chosen section
+    function renderGradebookStudents() {
+        const sec = document.getElementById('gb-section').value;
         const sel = document.getElementById('gb-student');
-        if (stuRes.success) {
-            sel.innerHTML = '<option value="">Select student…</option>' +
-                stuRes.students.map(s => `<option value="${s.id}">${escapeHtml_(s.display_name)}${s.student_id ? ' (' + escapeHtml_(s.student_id) + ')' : ''}</option>`).join('');
-        }
+        const pool = sec ? allStudents.filter(s => s.section === sec) : allStudents;
+        sel.innerHTML = '<option value="">Select student…</option>' +
+            pool.map(s => `<option value="${s.id}">${escapeHtml_(s.display_name)}${s.student_id ? ' (' + escapeHtml_(s.student_id) + ')' : ''}${s.section ? ' · ' + escapeHtml_(s.section) : ''}</option>`).join('');
+        renderGradesTable(lastGrades);
+    }
+
+    let lastGrades = [];
+    function renderGradesTable(grades) {
+        lastGrades = grades;
+        const sec = document.getElementById('gb-section').value;
+        const stuMap = Object.fromEntries(allStudents.map(s => [s.id, s]));
+        const rows = grades
+            .map(g => ({ ...g, section: (stuMap[g.userId] || {}).section || '' }))
+            .filter(g => !sec || g.section === sec);
+
         const tbody = document.getElementById('grades-table');
-        if (gradeRes.success && gradeRes.grades.length) {
-            tbody.innerHTML = gradeRes.grades.map(g => `
-                <tr>
-                    <td style="font-weight:600;">${escapeHtml_(g.studentName || g.userId)}</td>
-                    <td style="color:var(--text-p);">${escapeHtml_(g.studentId || '')}</td>
-                    <td>${escapeHtml_(g.term)}</td>
-                    <td><strong style="color:var(--accent); font-size:1.1rem;">${parseFloat(g.grade).toFixed(0)}</strong></td>
-                    <td style="color:var(--text-p);">${escapeHtml_(g.remarks || '—')}</td>
-                    <td style="color:#94a3b8; font-size:.8rem;">${new Date(g.updated_at).toLocaleString()}</td>
-                    <td><button class="btn btn-danger-icon" style="padding:6px 12px; font-size:.75rem;" onclick="deleteGrade('${g.id}')"><i class="fas fa-trash"></i></button></td>
-                </tr>`).join('');
-        } else {
-            tbody.innerHTML = '<tr><td colspan="7" class="ann-empty">No grades encoded yet.</td></tr>';
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="ann-empty">No grades encoded yet.</td></tr>';
+            return;
         }
+        tbody.innerHTML = rows.map(g => `
+            <tr>
+                <td style="font-weight:600;">${escapeHtml_(g.studentName || g.userId)}</td>
+                <td style="color:var(--text-p);">${escapeHtml_(g.studentId || '')}</td>
+                <td><span class="sec-chip"><i class="fas fa-users-rectangle"></i> ${escapeHtml_(g.section || '—')}</span></td>
+                <td>${escapeHtml_(g.term)}</td>
+                <td><strong style="color:var(--accent); font-size:1.1rem;">${parseFloat(g.grade).toFixed(0)}</strong></td>
+                <td style="color:var(--text-p);">${escapeHtml_(g.remarks || '—')}</td>
+                <td style="color:#94a3b8; font-size:.8rem;">${new Date(g.updated_at).toLocaleString()}</td>
+                <td><button class="btn btn-danger-icon" style="padding:6px 12px; font-size:.75rem;" onclick="deleteGrade('${g.id}')"><i class="fas fa-trash"></i></button></td>
+            </tr>`).join('');
     }
 
     async function saveGrade() {
@@ -968,7 +1040,30 @@
         else showToast('Failed to delete.', 'error');
     }
 
-    /* ---------- UPLOAD (✚ sends instructions/deadline/submissionUrl) ---------- */
+    /* ---------- ✚ UPLOAD: section-link builder ---------- */
+    function openResourceModal() {
+        document.getElementById('sec-links-list').innerHTML = '';
+        toggleModal(true);
+    }
+    function addSecLinkRow(sec = '', url = '') {
+        const row = document.createElement('div');
+        row.className = 'sec-row';
+        row.innerHTML = `
+            <input type="text" class="sec-name" placeholder="Section (e.g., 8 - Sampaguita)" value="${escapeHtml_(sec)}">
+            <input type="text" class="sec-url" placeholder="Submission URL for this section" value="${escapeHtml_(url)}">
+            <button type="button" class="btn btn-danger-icon" onclick="this.parentElement.remove()" title="Remove"><i class="fas fa-trash"></i></button>`;
+        document.getElementById('sec-links-list').appendChild(row);
+    }
+    function collectSecLinks() {
+        const map = {};
+        document.querySelectorAll('#sec-links-list .sec-row').forEach(r => {
+            const name = r.querySelector('.sec-name').value.trim();
+            const url = r.querySelector('.sec-url').value.trim();
+            if (name && url) map[name] = url;
+        });
+        return map;
+    }
+
     function onTypeChange() {
         document.getElementById('assignment-fields').classList.toggle('hidden', document.getElementById('res-type').value !== 'assignment');
     }
@@ -982,18 +1077,16 @@
 
         if (!title) return showToast('Please enter a title', 'error');
         if (!urlInput && !fileInput) return showToast('Please attach a file or enter a link', 'error');
-        if (type === 'assignment') {
-            const dl = document.getElementById('res-deadline').value;
-            if (!dl) return showToast('Please set a deadline for the assignment.', 'error');
-        }
+        if (type === 'assignment' && !document.getElementById('res-deadline').value)
+            return showToast('Please set a deadline for the assignment.', 'error');
 
         btn.classList.add('is-loading');
         btn.innerText = "Saving...";
         const payload = {
             title, type, url:urlInput || "",
-            submissionUrl:(document.getElementById('res-submission').value || '').trim(),     // ✚
-            deadline:document.getElementById('res-deadline').value,                            // ✚
-            instructions:(document.getElementById('res-instructions').value || '').trim()      // ✚
+            submissionUrls:JSON.stringify(collectSecLinks()),   // ✚ map of section → URL
+            deadline:document.getElementById('res-deadline').value,
+            instructions:(document.getElementById('res-instructions').value || '').trim()
         };
 
         if (fileInput) {
@@ -1016,7 +1109,8 @@
             await fetch(SCRIPT_URL, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body:JSON.stringify(payload) });
             showToast('Resource successfully saved!', 'success');
             toggleModal(false);
-            ['res-title','res-url','res-file','res-submission','res-deadline','res-instructions'].forEach(id => document.getElementById(id).value = '');
+            ['res-title','res-url','res-file','res-deadline','res-instructions'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('sec-links-list').innerHTML = '';
             onTypeChange();
             setTimeout(loadTeacherData, 2000);
         } catch (err) {
