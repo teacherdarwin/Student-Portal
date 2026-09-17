@@ -51,6 +51,8 @@
         .input-wrapper i{ position:absolute; left:16px; top:50%; transform:translateY(-50%); color:#94a3b8; }
         input,select,textarea{ width:100%; padding:14px 16px 14px 48px; border:1.5px solid var(--card-border); border-radius:var(--radius-md); font-size:15px; transition:.3s; background:#fff; font-family:inherit; outline:none; }
         select,textarea{ padding-left:16px; }
+        /* ✚ NEW: selects inside icon wrappers keep room for the icon */
+        .input-wrapper select{ padding-left:48px; appearance:auto; cursor:pointer; }
         textarea{ resize:vertical; min-height:90px; }
         input:focus,select:focus,textarea:focus{ border-color:var(--accent); box-shadow:0 0 0 4px rgba(99,102,241,.1); }
 
@@ -139,12 +141,12 @@
         .dl-cell{ font-size:.8rem; color:var(--text-p); }
         .dl-cell.overdue{ color:var(--danger); font-weight:700; }
 
-        /* ✚ NEW: section chips (teacher table) + section-link builder rows */
+        /* ===== section chips + section-link rows ===== */
         .sec-chip{ display:inline-flex; align-items:center; gap:4px; background:#edf2ff; color:#4c6ef5; border-radius:20px; padding:3px 10px; font-size:.7rem; font-weight:700; margin:2px; text-decoration:none; }
         .sec-chip:hover{ background:#dbe4ff; }
         [data-theme="dark"] .sec-chip{ background:rgba(99,102,241,.15); color:#a5b4fc; }
         .sec-row{ display:grid; grid-template-columns:1fr 1.5fr auto; gap:8px; margin-bottom:8px; align-items:center; }
-        .sec-row input{ margin-bottom:0; padding:11px 14px; }
+        .sec-row input, .sec-row select{ margin-bottom:0; padding:11px 14px; }
         .sec-row .btn{ padding:10px 12px; }
 
         /* ===== ANNOUNCEMENTS ===== */
@@ -264,11 +266,13 @@
                 <label>Student ID</label>
                 <div class="input-wrapper"><i class="fas fa-id-card"></i><input type="text" id="reg-id" placeholder="Student Number"></div>
             </div>
-            <!-- ✚ NEW: section (students only) -->
+            <!-- ✚ CHANGED: section is now a fixed dropdown -->
             <div class="input-field" id="section-field">
                 <label>Section</label>
-                <div class="input-wrapper"><i class="fas fa-users-rectangle"></i><input type="text" id="reg-section" placeholder="e.g., 8 - Sampaguita" list="section-suggestions">
-                <datalist id="section-suggestions"></datalist></div>
+                <div class="input-wrapper">
+                    <i class="fas fa-users-rectangle"></i>
+                    <select id="reg-section"><option value="">Select your section…</option></select>
+                </div>
             </div>
             <div class="input-field">
                 <label>Email</label>
@@ -345,7 +349,6 @@
         <div style="padding-top:20px; border-top:1px solid rgba(255,255,255,.1);">
             <div id="user-info" style="margin-bottom:20px; padding:0 12px;">
                 <p id="display-name" style="color:#fff; font-weight:700; font-size:.9rem;"></p>
-                <!-- ✚ NEW: also shows section -->
                 <p id="display-id" style="color:#64748b; font-size:.75rem;"></p>
             </div>
             <button class="theme-toggle" data-theme-toggle style="width:100%; justify-content:center; margin-bottom:8px; border-color:rgba(255,255,255,.15); color:#94a3b8;"><i class="fas fa-moon"></i>&nbsp;Theme</button>
@@ -355,7 +358,7 @@
 
     <main class="main-content">
         <header style="margin-bottom:40px;">
-            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v5.0</span>
+            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v5.1</span>
             <h2 id="tab-title" style="font-size:2.5rem; font-weight:800; letter-spacing:-1px;">Dashboard</h2>
         </header>
 
@@ -437,7 +440,7 @@
             <div class="card">
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Link</th><th>✚ Submissions by Section</th><th>Deadline</th><th></th></tr></thead>
+                        <thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Link</th><th>Submissions by Section</th><th>Deadline</th><th></th></tr></thead>
                         <tbody id="resource-list"></tbody>
                     </table>
                 </div>
@@ -457,7 +460,6 @@
             </div>
         </div>
 
-        <!-- ✚ NEW: gradebook now organized by section -->
         <div id="tab-gradebook" class="tab-content hidden">
             <div class="card" style="margin-bottom:24px;">
                 <h3 style="margin-bottom:16px;"><i class="fas fa-pen-to-square" style="color:var(--accent); margin-right:8px;"></i>Encode a Grade</h3>
@@ -475,7 +477,7 @@
                 <h3 style="margin-bottom:16px;">Recorded Grades</h3>
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Student</th><th>Student ID</th><th>✚ Section</th><th>Term</th><th>Grade</th><th>Remarks</th><th>Last Updated</th><th></th></tr></thead>
+                        <thead><tr><th>Student</th><th>Student ID</th><th>Section</th><th>Term</th><th>Grade</th><th>Remarks</th><th>Last Updated</th><th></th></tr></thead>
                         <tbody id="grades-table"><tr><td colspan="8" class="ann-empty">No grades encoded yet.</td></tr></tbody>
                     </table>
                 </div>
@@ -497,10 +499,10 @@
         </select>
 
         <div id="assignment-fields" class="hidden">
-            <label style="font-size:.8rem; font-weight:600; display:block; margin-bottom:6px;">✚ Submission Links per Section <span style="color:#94a3b8; font-weight:400;">(students only see their own section's link)</span></label>
+            <label style="font-size:.8rem; font-weight:600; display:block; margin-bottom:6px;">Submission Links per Section <span style="color:#94a3b8; font-weight:400;">(students only see their own section's link)</span></label>
             <div id="sec-links-list"></div>
             <button type="button" class="btn btn-ghost" onclick="addSecLinkRow()" style="padding:9px 14px; font-size:.8rem; margin-bottom:6px;"><i class="fas fa-plus"></i> Add section link</button>
-            <p style="font-size:.72rem; color:#94a3b8; margin-bottom:14px;"><i class="fas fa-circle-info"></i> Leave empty if this assignment has no submission link. Use the same section names students registered with.</p>
+            <p style="font-size:.72rem; color:#94a3b8; margin-bottom:14px;"><i class="fas fa-circle-info"></i> Sections are pre-listed — pick from the dropdown and paste that section's submission URL.</p>
 
             <label style="font-size:.8rem; font-weight:600; display:block; margin-bottom:6px;">Deadline <span style="color:#94a3b8; font-weight:400;">(students can't submit after this)</span></label>
             <input type="datetime-local" id="res-deadline" style="margin-bottom:14px;">
@@ -542,11 +544,18 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0IihZjy8w3AsAZjRJp3wLu2iZvMafRJIfCTFPZC6qqeF8BzENs01-reOX4A-cYLvF/exec';
     const SESSION_KEY = 'mathClass_user';
 
+    /* ✚ NEW: single source of truth for sections.
+       Add or remove sections here and EVERYWHERE updates at once. */
+    const SECTIONS = [
+        'UNIVERSAL SBE', 'UNIVERSAL STE',
+        'BSN 1B', 'BSN 1C', 'BSN 1D', 'BSN 1E', 'BSN 1G', 'BSN 1H', 'BSN 1M'
+    ];
+
     let currentUser = null;
     let completedTaskIds = new Set();
     let selectedRole = 'student';
     let dlTargetId = null;
-    let allStudents = [];   // ✚ cached for gradebook section filtering
+    let allStudents = [];
 
     /* ---------- shared helpers ---------- */
     function toggleAuth(type) {
@@ -574,7 +583,14 @@
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    /* ---------- ✚ role picker (now toggles section too) ---------- */
+    /* ---------- ✚ NEW: populate every section dropdown from SECTIONS ---------- */
+    function sectionOptions(selected, placeholder) {
+        return `<option value="">${placeholder}</option>` +
+            SECTIONS.map(s => `<option value="${escapeHtml_(s)}" ${s === selected ? 'selected' : ''}>${escapeHtml_(s)}</option>`).join('');
+    }
+    document.getElementById('reg-section').innerHTML = sectionOptions('', 'Select your section…');
+
+    /* ---------- role picker ---------- */
     function pickRole(role) {
         selectedRole = role;
         document.querySelectorAll('.role-option').forEach(o => o.classList.toggle('selected', o.dataset.role === role));
@@ -582,18 +598,6 @@
         document.getElementById('sid-field').style.display = role === 'teacher' ? 'none' : '';
         document.getElementById('section-field').style.display = role === 'teacher' ? 'none' : '';
     }
-
-    /* ---------- ✚ load existing sections to suggest on registration ---------- */
-    async function loadSectionSuggestions() {
-        try {
-            const res = await fetch(SCRIPT_URL);
-            const json = await res.json();
-            const secs = [...new Set((json.sections || []).map(s => s))].filter(Boolean);
-            document.getElementById('section-suggestions').innerHTML =
-                secs.map(s => `<option value="${escapeHtml_(s)}">`).join('');
-        } catch (e) { /* non-critical */ }
-    }
-    loadSectionSuggestions();
 
     /* ---------- AUTH ---------- */
     async function signIn() {
@@ -619,12 +623,12 @@
             password:document.getElementById('reg-password').value,
             display_name:document.getElementById('reg-username').value.trim(),
             student_id:document.getElementById('reg-id').value.trim(),
-            section:document.getElementById('reg-section').value.trim(),   // ✚ NEW
+            section:document.getElementById('reg-section').value,   // ✚ now from dropdown
             role:selectedRole,
             teacher_code:document.getElementById('reg-teacher-code').value
         };
         if (!payload.display_name || !payload.email || !payload.password) return showToast('Please fill in all required fields.', 'error');
-        if (payload.role === 'student' && !payload.section) return showToast('Please enter your section.', 'error');   // ✚ NEW
+        if (payload.role === 'student' && !payload.section) return showToast('Please select your section.', 'error');
         if (payload.role === 'teacher' && !payload.teacher_code) return showToast('Faculty access code is required.', 'error');
         const btn = document.getElementById('signup-btn');
         btn.classList.add('is-loading');
@@ -649,7 +653,6 @@
             document.getElementById('portal-student').classList.remove('hidden');
             document.getElementById('mobile-menu-teacher').classList.add('hidden');
             document.getElementById('display-name').innerText = user.display_name || user.email;
-            // ✚ NEW: show section under the name
             document.getElementById('display-id').innerText =
                 (user.student_id ? 'ID: ' + user.student_id : '') +
                 (user.section ? (user.student_id ? ' · ' : '') + 'Sec: ' + user.section : '');
@@ -682,7 +685,7 @@
     async function updateDashboardStats() {
         const welcomeMsg = document.getElementById('welcome-msg');
         await Promise.all([fetchUserProgress(), fetchAnnouncementsStudent()]);
-        const res = await apiCall({ action:'fetchResources', userId:currentUser.id });   // ✚ userId → server returns own section's links
+        const res = await apiCall({ action:'fetchResources', userId:currentUser.id });
         if (!res.success) return;
         const modules = res.resources.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
         const totalTasks = res.resources.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
@@ -720,12 +723,12 @@
         return `<span class="dl-badge dl-open"><i class="fas fa-calendar"></i> Due ${when}</span>`;
     }
 
-    /* ---------- STUDENT RESOURCES (server sends only THIS student's section link) ---------- */
+    /* ---------- STUDENT RESOURCES ---------- */
     async function fetchResources() {
         const mContainer = document.getElementById('modules-container');
         const aContainer = document.getElementById('assignments-container');
         await fetchUserProgress();
-        const res = await apiCall({ action:'fetchResources', userId:currentUser.id });   // ✚
+        const res = await apiCall({ action:'fetchResources', userId:currentUser.id });
         if (!res.success) return;
         mContainer.innerHTML = ""; aContainer.innerHTML = "";
 
@@ -736,7 +739,6 @@
                 const isDone = completedTaskIds.has(item.id.toString());
                 const closed = item.deadline && (new Date(item.deadline) - new Date() < 0);
 
-                // item.submissionUrl now contains ONLY this student's section's link (or '' if none)
                 const submitBtn = item.submissionUrl
                     ? (closed
                         ? `<button class="btn btn-locked" disabled title="The deadline for this assignment has passed"><i class="fas fa-lock"></i> Submission Closed</button>`
@@ -857,7 +859,6 @@
         else loadTeacherData();
     }
 
-    /* ✚ teacher data now fetched via authenticated POST (so section links stay private) */
     async function loadTeacherData() {
         const json = await apiCall({ action:'fetchResourcesTeacher', userId:currentUser.id });
         if (!json.success) { showToast(json.message || 'Failed to load data.', 'error'); return; }
@@ -873,7 +874,6 @@
             const dlCell = dl
                 ? `<span class="dl-cell ${dl < new Date() ? 'overdue' : ''}">${dl.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}${dl < new Date() ? ' · passed' : ''}</span>`
                 : '<span style="color:#94a3b8;">—</span>';
-            // ✚ render one chip per section link
             let subCell = '<span style="color:#94a3b8;">—</span>';
             const map = r.submissionMap || {};
             const keys = Object.keys(map);
@@ -956,7 +956,7 @@
         } else showToast(res.message || 'Failed to update deadline.', 'error');
     }
 
-    /* ---------- ✚ GRADEBOOK (section-organized) ---------- */
+    /* ---------- GRADEBOOK (section-organized) ---------- */
     async function loadGradebook() {
         const [stuRes, gradeRes] = await Promise.all([
             apiCall({ action:'fetchStudents', userId:currentUser.id }),
@@ -965,19 +965,19 @@
 
         allStudents = stuRes.success ? stuRes.students : [];
 
-        // ✚ populate the section filter
-        const sections = [...new Set(allStudents.map(s => s.section).filter(Boolean))].sort();
+        // ✚ CHANGED: section filter from the FIXED list (plus any legacy sections found in data)
+        const found = [...new Set(allStudents.map(s => s.section).filter(Boolean))];
+        const extras = found.filter(s => !SECTIONS.includes(s));
         const secSel = document.getElementById('gb-section');
         const prev = secSel.value;
         secSel.innerHTML = '<option value="">All sections</option>' +
-            sections.map(s => `<option value="${escapeHtml_(s)}">${escapeHtml_(s)}</option>`).join('');
-        if (prev && sections.includes(prev)) secSel.value = prev;
+            SECTIONS.concat(extras).map(s => `<option value="${escapeHtml_(s)}">${escapeHtml_(s)}</option>`).join('');
+        if (prev) secSel.value = prev;
 
         renderGradebookStudents();
         renderGradesTable(gradeRes.success ? gradeRes.grades : []);
     }
 
-    // ✚ student dropdown filtered by chosen section
     function renderGradebookStudents() {
         const sec = document.getElementById('gb-section').value;
         const sel = document.getElementById('gb-student');
@@ -1040,7 +1040,7 @@
         else showToast('Failed to delete.', 'error');
     }
 
-    /* ---------- ✚ UPLOAD: section-link builder ---------- */
+    /* ---------- UPLOAD: section-link builder (✚ now uses dropdowns) ---------- */
     function openResourceModal() {
         document.getElementById('sec-links-list').innerHTML = '';
         toggleModal(true);
@@ -1049,7 +1049,7 @@
         const row = document.createElement('div');
         row.className = 'sec-row';
         row.innerHTML = `
-            <input type="text" class="sec-name" placeholder="Section (e.g., 8 - Sampaguita)" value="${escapeHtml_(sec)}">
+            <select class="sec-name">${sectionOptions(sec, 'Select section…')}</select>
             <input type="text" class="sec-url" placeholder="Submission URL for this section" value="${escapeHtml_(url)}">
             <button type="button" class="btn btn-danger-icon" onclick="this.parentElement.remove()" title="Remove"><i class="fas fa-trash"></i></button>`;
         document.getElementById('sec-links-list').appendChild(row);
@@ -1057,7 +1057,7 @@
     function collectSecLinks() {
         const map = {};
         document.querySelectorAll('#sec-links-list .sec-row').forEach(r => {
-            const name = r.querySelector('.sec-name').value.trim();
+            const name = r.querySelector('.sec-name').value;
             const url = r.querySelector('.sec-url').value.trim();
             if (name && url) map[name] = url;
         });
@@ -1084,7 +1084,7 @@
         btn.innerText = "Saving...";
         const payload = {
             title, type, url:urlInput || "",
-            submissionUrls:JSON.stringify(collectSecLinks()),   // ✚ map of section → URL
+            submissionUrls:JSON.stringify(collectSecLinks()),
             deadline:document.getElementById('res-deadline').value,
             instructions:(document.getElementById('res-instructions').value || '').trim()
         };
