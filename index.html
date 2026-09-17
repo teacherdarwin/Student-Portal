@@ -28,6 +28,25 @@
             --meet-blue-dark: #1557b0;
         }
 
+        /* ✚ NEW: Dark theme variable overrides (light theme untouched) */
+        [data-theme="dark"] {
+            --canvas: #0b1220;
+            --card-border: #243147;
+            --text-h: #e6edf7;
+            --text-p: #8fa1b8;
+        }
+        [data-theme="dark"] body { background: var(--canvas); }
+        [data-theme="dark"] .auth-wrapper { background: #0f172a; }
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .list-item { background: #121a2b; }
+        [data-theme="dark"] input { background: #0e1626; border-color: #243147; color: var(--text-h); }
+        [data-theme="dark"] input::placeholder { color: #64748b; }
+        [data-theme="dark"] .main-content { background: linear-gradient(180deg, #0b1220 0%, #0e1626 100%); }
+        [data-theme="dark"] .badge-pending { background: #1e293b; color: #94a3b8; }
+        [data-theme="dark"] .badge-done { background: rgba(16, 185, 129, 0.12); color: #34d399; }
+        [data-theme="dark"] .mobile-nav-menu { background: #16213a; }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
@@ -85,7 +104,7 @@
 
         .brand-logo-container:hover img { transform: scale(1.1) translateY(-5px); }
 
-        .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
+        .auth-side-form { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; }
         .auth-card { width: 100%; max-width: 420px; }
         .auth-card h2 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; color: var(--text-h); }
         .auth-card p.subtitle { color: var(--text-p); margin-bottom: 32px; font-size: 0.95rem; }
@@ -204,6 +223,76 @@
 
         .hidden { display: none !important; }
 
+        /* ==================== ✚ NEW: ADDITIVE STYLES ==================== */
+
+        /* ✚ NEW: Dark-mode toggle button */
+        .theme-toggle {
+            width: 38px; height: 38px; border-radius: 10px; cursor: pointer;
+            border: 1px solid var(--card-border); background: transparent;
+            color: var(--text-p); display: grid; place-items: center; font-size: 0.95rem; transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+        #auth-theme-toggle { position: absolute; top: 20px; right: 20px; }
+        .sidebar .theme-toggle { border-color: rgba(255,255,255,0.15); color: #94a3b8; width: 100%; justify-content: center; margin-bottom: 8px; }
+
+        /* ✚ NEW: Password show/hide eye (targets only wrappers that contain it, via :has) */
+        .input-wrapper .eye-toggle {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: 0; color: #94a3b8; cursor: pointer;
+            padding: 6px; display: flex; font-size: 0.95rem;
+        }
+        .input-wrapper .eye-toggle:hover { color: var(--accent); }
+        .input-wrapper:has(.eye-toggle) input { padding-right: 44px; }
+
+        /* ✚ NEW: Remember me checkbox */
+        .remember-me {
+            display: flex; align-items: center; gap: 8px; cursor: pointer;
+            font-size: 0.85rem; color: var(--text-p); margin: -4px 0 18px;
+        }
+        .remember-me input { width: 16px; height: 16px; padding: 0; margin: 0; accent-color: var(--accent); }
+
+        /* ✚ NEW: Password strength meter */
+        .strength-bars { display: flex; gap: 5px; margin-top: 10px; }
+        .strength-bars i { height: 5px; flex: 1; border-radius: 99px; background: var(--card-border); transition: background 0.3s; }
+        .strength-label { font-size: 0.72rem; color: var(--text-p); margin-top: 5px; }
+
+        /* ✚ NEW: Toast notifications */
+        .toast {
+            position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 16px);
+            opacity: 0; pointer-events: none; z-index: 999;
+            background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 12px;
+            font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow);
+            transition: 0.3s; max-width: 90vw; text-align: center;
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); }
+        .toast.success { background: var(--success); }
+        .toast.error { background: #ef4444; }
+
+        /* ✚ NEW: Loading spinner on buttons */
+        .btn.is-loading { position: relative; pointer-events: none; opacity: 0.75; }
+        .btn.is-loading::before {
+            content: ""; width: 14px; height: 14px; margin-right: 8px;
+            border: 2px solid currentColor; border-right-color: transparent;
+            border-radius: 50%; animation: tdc-spin 0.7s linear infinite;
+        }
+        @keyframes tdc-spin { to { transform: rotate(360deg); } }
+
+        /* ✚ NEW: Dashboard progress bar */
+        .progress-track { height: 10px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+        .progress-fill {
+            height: 100%; width: 0; border-radius: 99px;
+            background: linear-gradient(90deg, var(--accent), #8b5cf6);
+            transition: width 0.8s ease;
+        }
+        [data-theme="dark"] .progress-track { background: #1e293b; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-p); margin-bottom: 10px; }
+
+        /* ✚ NEW: respect reduced-motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+
         /* --- PHONE RESPONSIVE STYLES --- */
         @media (max-width: 768px) {
             body { overflow: auto; height: auto; min-height: 100vh; }
@@ -229,6 +318,9 @@
             .list-item { flex-direction: column; align-items: stretch; gap: 14px; padding: 16px; }
             .action-group { justify-content: flex-start; }
             .action-group .btn { flex: 1; }
+
+            /* ✚ NEW: smaller auth theme toggle on phones */
+            #auth-theme-toggle { top: 12px; right: 12px; }
         }
     </style>
 </head>
@@ -247,6 +339,9 @@
     </div>
 
     <div class="auth-side-form">
+        <!-- ✚ NEW: dark mode toggle (auth screen) -->
+        <button id="auth-theme-toggle" class="theme-toggle" aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
+
         <div id="login-form" class="auth-card animate__animated animate__fadeInRight">
             <h2>Welcome Back</h2>
             <p class="subtitle">Log in to access your dashboard.</p>
@@ -256,11 +351,19 @@
             </div>
             <div class="input-field">
                 <label>Password</label>
-                <div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="••••••••"></div>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="••••••••">
+                    <!-- ✚ NEW: show/hide password eye -->
+                    <button type="button" class="eye-toggle" data-eye="login-password" aria-label="Show password"><i class="fas fa-eye"></i></button>
+                </div>
             </div>
+            <!-- ✚ NEW: Remember me -->
+            <label class="remember-me"><input type="checkbox" id="remember-me"> Remember me</label>
             <button class="btn btn-primary" onclick="signIn()"><span>Sign In</span><i class="fas fa-arrow-right"></i></button>
             <p style="text-align:center; margin-top:24px; font-size:14px; color: var(--text-p);">
                 New student? <a href="#" onclick="toggleAuth('register')" style="color:var(--accent); font-weight:700; text-decoration:none;">Create Account</a>
+                <!-- ✚ NEW: forgot password link -->
+                &nbsp;·&nbsp;<a href="#" onclick="showForgot(); return false;" style="color:var(--accent); font-weight:700; text-decoration:none;">Forgot password?</a>
             </p>
         </div>
 
@@ -281,10 +384,29 @@
             </div>
             <div class="input-field">
                 <label>Password</label>
-                <div class="input-wrapper"><i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="••••••••"></div>
+                <div class="input-wrapper">
+                    <i class="fas fa-key"></i><input type="password" id="reg-password" placeholder="••••••••">
+                    <!-- ✚ NEW: show/hide password eye -->
+                    <button type="button" class="eye-toggle" data-eye="reg-password" aria-label="Show password"><i class="fas fa-eye"></i></button>
+                </div>
+                <!-- ✚ NEW: strength meter -->
+                <div class="strength-bars" id="strength-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                <div class="strength-label" id="strength-label">Password strength</div>
             </div>
             <button class="btn btn-primary" onclick="signUp()">Initialize Account</button>
             <p style="text-align:center; margin-top:24px; font-size:14px;"><a href="#" onclick="toggleAuth('login')" style="color:var(--accent); font-weight:700; text-decoration:none;">Back to Sign In</a></p>
+        </div>
+
+        <!-- ✚ NEW: Forgot password card (new card only — original cards untouched) -->
+        <div id="forgot-form" class="auth-card hidden animate__animated animate__fadeInRight">
+            <h2>Reset Password</h2>
+            <p class="subtitle">Enter your email and we'll send you a reset link.</p>
+            <div class="input-field">
+                <label>Email Address</label>
+                <div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="forgot-email" placeholder="name@gmail.com"></div>
+            </div>
+            <button id="forgot-submit" class="btn btn-primary" onclick="sendReset()"><span>Send Reset Link</span></button>
+            <p style="text-align:center; margin-top:24px; font-size:14px;"><a href="#" onclick="closeForgot(); return false;" style="color:var(--accent); font-weight:700; text-decoration:none;">Back to Sign In</a></p>
         </div>
     </div>
 </div>
@@ -295,9 +417,13 @@
         <img src="NCC.png" alt="Logo" height="28" width="auto">
         <span style="color:white; font-weight:800; font-size:1.1rem;">MathClass</span>
     </div>
-    <button onclick="toggleMobileMenu()" style="background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
-        <i class="fas fa-bars"></i>
-    </button>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <!-- ✚ NEW: dark mode toggle (mobile bar) -->
+        <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode"><i class="fas fa-moon"></i></button>
+        <button onclick="toggleMobileMenu()" style="background:transparent; border:none; color:white; font-size:1.3rem; cursor:pointer;">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
 </div>
 
 <!-- COLLAPSIBLE MOBILE DROPDOWN LINKS -->
@@ -324,6 +450,8 @@
                 <p id="display-name" style="color:white; font-weight:700; font-size:0.9rem;"></p>
                 <p id="display-id" style="color:#64748b; font-size:0.75rem;"></p>
             </div>
+            <!-- ✚ NEW: dark mode toggle (sidebar) -->
+            <button class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode"><i class="fas fa-moon"></i>&nbsp;Theme</button>
             <button class="nav-link" style="color:#ef4444" onclick="signOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
         </div>
     </aside>
@@ -339,6 +467,17 @@
                 <div class="stat-card"><span>Active Modules</span><h4 id="stat-modules">--</h4></div>
                 <div class="stat-card"><span>Pending Tasks</span><h4 id="stat-assignments">--</h4></div>
             </div>
+
+            <!-- ✚ NEW: assignment progress bar (updates automatically, no original code touched) -->
+            <div class="card" id="progress-card" style="margin-bottom: 32px;">
+                <h3 style="margin-bottom:12px;">Assignment Progress</h3>
+                <div class="progress-meta">
+                    <span id="progress-text">Waiting for sync…</span>
+                    <strong id="progress-pct">—</strong>
+                </div>
+                <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+            </div>
+
             <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
                 <h3>Status Report</h3>
                 <p id="welcome-msg" style="color:var(--text-p); margin-top:10px;">Synchronizing with classroom server...</p>
@@ -353,6 +492,9 @@
         <div id="tab-assignments" class="tab-content hidden"><div class="card"><div id="assignments-container"></div></div></div>
     </main>
 </div>
+
+<!-- ✚ NEW: toast container -->
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
     // Paste your Google Apps Script Web App URL here
@@ -561,5 +703,190 @@
         showPortal(JSON.parse(savedUser));
     }
 </script>
+
+<!-- ============================================================
+     ✚ NEW FEATURES SCRIPT — purely additive.
+     None of the original functions above are modified.
+     Delete this whole block to revert to the original file.
+     ============================================================ -->
+<script>
+"use strict";
+
+/* ---------- ✚ Toast (used by all new features) ---------- */
+function showToast(msg, type = "") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast show " + type;
+    clearTimeout(t._h);
+    t._h = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+/* ---------- ✚ Dark mode (3 toggle buttons: auth screen, sidebar, mobile bar) ---------- */
+const THEME_KEY = "tdc_theme";
+const ICON_MOON = '<i class="fas fa-moon"></i>';
+const ICON_SUN  = '<i class="fas fa-sun"></i>';
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    document.querySelectorAll(".theme-toggle i").forEach(ic => {
+        ic.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
+    });
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+}
+function initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+    applyTheme(saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+}
+document.querySelectorAll(".theme-toggle").forEach(btn =>
+    btn.addEventListener("click", () => {
+        const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+        applyTheme(next);
+        showToast(next === "dark" ? "Dark mode on 🌙" : "Light mode on ☀️");
+    })
+);
+initTheme();
+
+/* ---------- ✚ Password show/hide eyes ---------- */
+document.querySelectorAll(".eye-toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const input = document.getElementById(btn.dataset.eye);
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        btn.innerHTML = show ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    });
+});
+
+/* ---------- ✚ Password strength meter (register form) ---------- */
+const regPass = document.getElementById("reg-password");
+if (regPass) {
+    regPass.addEventListener("input", e => {
+        const p = e.target.value;
+        let score = 0;
+        if (p.length >= 8) score++;
+        if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+        if (/\d/.test(p)) score++;
+        if (/[^A-Za-z0-9]/.test(p)) score++;
+        const colors = ["#ef4444", "#f59e0b", "#eab308", "#10b981"];
+        const labels = ["Weak", "Fair", "Good", "Strong"];
+        document.querySelectorAll("#strength-bars i").forEach((seg, i) => {
+            seg.style.background = (p && i < score) ? colors[score - 1] : "";
+        });
+        document.getElementById("strength-label").textContent =
+            p ? `Password strength: ${labels[Math.max(score - 1, 0)]}` : "Password strength";
+    });
+}
+
+/* ---------- ✚ Remember me (prefill email; original sign-in untouched) ---------- */
+const REMEMBER_KEY = "tdc_remember_email";
+(function initRemember() {
+    try {
+        const savedEmail = localStorage.getItem(REMEMBER_KEY);
+        if (savedEmail) {
+            document.getElementById("login-email").value = savedEmail;
+            document.getElementById("remember-me").checked = true;
+        }
+    } catch (e) {}
+    // Hook onto the Sign In button without modifying signIn()
+    document.querySelector('#login-form .btn-primary').addEventListener("click", () => {
+        const chk = document.getElementById("remember-me");
+        const email = document.getElementById("login-email").value.trim();
+        try {
+            if (chk && chk.checked && email) localStorage.setItem(REMEMBER_KEY, email);
+            else localStorage.removeItem(REMEMBER_KEY);
+        } catch (e) {}
+    });
+})();
+
+/* ---------- ✚ Forgot password card ---------- */
+function showForgot() {
+    document.getElementById("login-form").classList.add("hidden");
+    document.getElementById("register-form").classList.add("hidden");
+    document.getElementById("forgot-form").classList.remove("hidden");
+}
+function closeForgot() {
+    document.getElementById("forgot-form").classList.add("hidden");
+    toggleAuth("login");
+}
+async function sendReset() {
+    const email = document.getElementById("forgot-email").value.trim();
+    if (!email) { showToast("Please enter your email.", "error"); return; }
+    const btn = document.getElementById("forgot-submit");
+    btn.classList.add("is-loading");
+    const res = await apiCall({ action: "resetPassword", email });
+    btn.classList.remove("is-loading");
+    // Generic message → never reveals whether the account exists
+    showToast(res.success
+        ? "If that account exists, a reset link has been sent."
+        : "Could not send reset link right now. Try again later.",
+        res.success ? "success" : "error");
+    if (res.success) {
+        document.getElementById("forgot-email").value = "";
+        closeForgot();
+    }
+}
+
+/* ---------- ✚ Enter key submits forms ---------- */
+document.getElementById("login-password").addEventListener("keydown", e => {
+    if (e.key === "Enter") signIn();
+});
+document.getElementById("login-email").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("login-password").focus();
+});
+regPass.addEventListener("keydown", e => { if (e.key === "Enter") signUp(); });
+
+/* ---------- ✚ Loading spinner on auth buttons (visual only) ---------- */
+document.querySelectorAll("#login-form .btn-primary, #register-form .btn-primary").forEach(btn => {
+    btn.addEventListener("click", () => {
+        btn.classList.add("is-loading");
+        setTimeout(() => btn.classList.remove("is-loading"), 2000);
+    });
+});
+
+/* ---------- ✚ Dashboard progress bar ----------
+   Watches the existing stat counters. When the original
+   updateDashboardStats() refreshes them, this recalculates
+   automatically using the existing global completedTaskIds. ---------- */
+(function initProgressBar() {
+    const fill = document.getElementById("progress-fill");
+    const pct  = document.getElementById("progress-pct");
+    const txt  = document.getElementById("progress-text");
+    const statEl = document.getElementById("stat-assignments");
+
+    function refresh() {
+        const pending = parseInt(statEl.innerText, 10) || 0;
+        const done = (typeof completedTaskIds !== "undefined") ? completedTaskIds.size : 0;
+        const total = pending + done;
+        if (!total) {
+            txt.textContent = "Waiting for sync…";
+            pct.textContent = "—";
+            fill.style.width = "0%";
+            return;
+        }
+        const p = Math.round((done / total) * 100);
+        fill.style.width = p + "%";
+        pct.textContent = p + "%";
+        txt.textContent = `${done} of ${total} assignments completed`;
+    }
+    new MutationObserver(refresh)
+        .observe(statEl, { characterData: true, childList: true, subtree: true });
+    refresh();
+})();
+
+/* ---------- ✚ Welcome toast on fresh sign-in ----------
+   Watches portal-section; fires only when it becomes visible
+   (i.e., a live login — not the auto sign-in on page load). ---------- */
+(function initWelcomeToast() {
+    const portal = document.getElementById("portal-section");
+    new MutationObserver(() => {
+        if (!portal.classList.contains("hidden")) {
+            const name = document.getElementById("display-name").innerText || "Student";
+            showToast(`Welcome back, ${name}! 👋`, "success");
+        }
+    }).observe(portal, { attributes: true, attributeFilter: ["class"] });
+})();
+</script>
+
 </body>
 </html>
