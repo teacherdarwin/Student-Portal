@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathClass | Learning Slides</title>
+    <link rel="icon" type="image/png" href="NCC.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- ✚ PDF.js — renders each slide page to a canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --accent:#6366f1; --accent-dark:#4f46e5; --sidebar-bg:#0f172a; --canvas:#f8fafc;
+            --card-border:rgba(226,232,240,.8); --text-h:#0f172a; --text-p:#475569;
+            --radius-lg:16px; --radius-md:12px;
+            --shadow:0 10px 15px -3px rgba(0,0,0,.05),0 4px 6px -2px rgba(0,0,0,.02);
+            --success:#10b981; --danger:#ef4444;
+        }
+        [data-theme="dark"]{ --canvas:#0b1220; --card-border:#243147; --text-h:#e6edf7; --text-p:#8fa1b8; }
+        [data-theme="dark"] body{ background:var(--canvas); }
+        [data-theme="dark"] .auth-wrapper{ background:#0f172a; }
+        [data-theme="dark"] .card,[data-theme="dark"] .deck-card,[data-theme="dark"] .stat-card{ background:#121a2b; }
+        [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{ background:#0e1626; border-color:#243147; color:var(--text-h); }
+        [data-theme="dark"] .main-content{ background:linear-gradient(180deg,#0b1220 0%,#0e1626 100%); }
+
+        *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+        body{ font-family:'Plus Jakarta Sans',sans-serif; background:var(--canvas); color:var(--text-h); height:100vh; overflow:hidden; }
+
+        /* ✚ boot + ready (same pattern as portal) */
+        #boot-overlay{ position:fixed; inset:0; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; background:var(--canvas); transition:opacity .4s, visibility .4s; }
+        #boot-overlay.done{ opacity:0; visibility:hidden; pointer-events:none; }
+        .boot-ring{ width:46px; height:46px; border-radius:50%; border:4px solid var(--card-border); border-top-color:var(--accent); animation:spin .8s linear infinite; }
+        @keyframes spin{ to{ transform:rotate(360deg);} }
+        #ready-pill{ position:fixed; top:14px; right:14px; z-index:1500; display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:99px; font-size:.72rem; font-weight:800; background:#f1f5f9; color:#64748b; border:1px solid var(--card-border); transition:.3s; pointer-events:none; }
+        #ready-pill .r-dot{ width:8px; height:8px; border-radius:50%; background:#d97706; animation:pulse 1.4s infinite; }
+        #ready-pill.ready{ background:#ecfdf5; color:#059669; border-color:rgba(16,185,129,.3); }
+        #ready-pill.ready .r-dot{ background:var(--success); animation:none; }
+        #ready-pill.error{ background:#fee2e2; color:#b91c1c; }
+        #ready-pill.error .r-dot{ background:var(--danger); animation:none; }
+        @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(217,119,6,.4);} 70%{ box-shadow:0 0 0 7px rgba(217,119,6,0);} 100%{ box-shadow:0 0 0 0 rgba(217,119,6,0);} }
+        @media (max-width:768px){ #ready-pill{ top:auto; bottom:14px; right:14px; } }
+
+        .skel{ height:14px; border-radius:6px; margin:12px 0; background:linear-gradient(90deg,var(--card-border) 25%,transparent 50%,var(--card-border) 75%); background-size:200% 100%; animation:shimmer 1.1s infinite; }
+        @keyframes shimmer{ to{ background-position:-200% 0; } }
+
+        /* ===== AUTH (same design) ===== */
+        .auth-wrapper{ display:flex; min-height:100vh; background:#fff; }
+        .auth-side-brand{ flex:1.2; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#fff; padding:60px; position:relative; overflow:hidden; background:#000; }
+        .brand-bg-overlay{ position:absolute; top:-10%; left:-10%; width:120%; height:120%; background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)),url("NCC.jpg"); background-size:cover; background-position:center; filter:blur(8px); z-index:1; }
+        .brand-content{ position:relative; z-index:2; text-align:center; text-shadow:0 4px 15px rgba(0,0,0,.5); }
+        .brand-logo-container{ width:160px; height:160px; margin:0 auto 24px; display:flex; align-items:center; justify-content:center; }
+        .brand-logo-container img{ max-width:100%; max-height:100%; object-fit:contain; filter:drop-shadow(0 0 15px rgba(255,255,255,.2)); }
+        .auth-side-form{ flex:1; display:flex; align-items:center; justify-content:center; padding:40px; position:relative; }
+        .auth-card{ width:100%; max-width:420px; }
+        .auth-card h2{ font-size:2rem; font-weight:800; margin-bottom:8px; }
+        .auth-card p.subtitle{ color:var(--text-p); margin-bottom:32px; font-size:.95rem; }
+        .input-field{ margin-bottom:18px; }
+        .input-field label{ display:block; font-weight:600; font-size:.85rem; margin-bottom:8px; }
+        .input-wrapper{ position:relative; }
+        .input-wrapper i{ position:absolute; left:16px; top:50%; transform:translateY(-50%); color:#94a3b8; }
+        input,select,textarea{ width:100%; padding:14px 16px 14px 48px; border:1.5px solid var(--card-border); border-radius:var(--radius-md); font-size:15px; background:#fff; font-family:inherit; outline:none; transition:.3s; }
+        input:focus,select:focus{ border-color:var(--accent); box-shadow:0 0 0 4px rgba(99,102,241,.1); }
+        .btn{ padding:14px 20px; border-radius:var(--radius-md); border:none; font-weight:700; font-size:.95rem; cursor:pointer; transition:.25s; display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; font-family:inherit; }
+        .btn:active{ transform:scale(.97); }
+        .btn-primary{ background:var(--accent); color:#fff; }
+        .btn-primary:hover{ background:var(--accent-dark); transform:translateY(-2px); }
+        .btn-ghost{ background:#f1f5f9; color:var(--text-p); }
+        [data-theme="dark"] .btn-ghost{ background:#1e293b; color:#94a3b8; }
+        .btn-danger-icon{ background:transparent; color:var(--danger); border:1px solid rgba(239,68,68,.3); padding:8px 12px; }
+        .btn-danger-icon:hover{ background:rgba(239,68,68,.08); }
+        .btn.is-loading{ position:relative; pointer-events:none; opacity:.75; }
+        .btn.is-loading::before{ content:""; width:14px; height:14px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin .7s linear infinite; }
+        .input-wrapper .eye-toggle{ position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:0; color:#94a3b8; cursor:pointer; padding:6px; }
+        .hidden{ display:none !important; }
+        .toast{ position:fixed; left:50%; bottom:24px; transform:translate(-50%,16px); opacity:0; pointer-events:none; z-index:1500; background:#0f172a; color:#fff; padding:12px 20px; border-radius:12px; font-size:.9rem; font-weight:600; box-shadow:var(--shadow); transition:.3s; max-width:90vw; text-align:center; }
+        .toast.show{ opacity:1; transform:translate(-50%,0); }
+        .toast.success{ background:var(--success); }
+        .toast.error{ background:var(--danger); }
+        .theme-toggle{ width:38px; height:38px; border-radius:10px; cursor:pointer; border:1px solid var(--card-border); background:transparent; color:var(--text-p); display:grid; place-items:center; transition:.2s; }
+        #auth-theme-toggle{ position:absolute; top:20px; right:20px; }
+
+        /* ===== PORTAL ===== */
+        .portal-layout{ display:flex; height:100vh; width:100%; }
+        .sidebar{ width:280px; background:var(--sidebar-bg); padding:32px 20px; display:flex; flex-direction:column; flex-shrink:0; }
+        .sidebar-brand{ display:flex; align-items:center; gap:12px; margin-bottom:40px; padding:0 12px; }
+        .sidebar-brand img{ height:32px; width:auto; }
+        .sidebar-brand span{ color:#fff; font-weight:800; font-size:1.25rem; }
+        .nav-link{ display:flex; align-items:center; gap:12px; width:100%; padding:14px 16px; border:none; background:transparent; text-align:left; color:#94a3b8; font-weight:500; cursor:pointer; border-radius:var(--radius-md); transition:.2s; margin-bottom:4px; font-family:inherit; font-size:.95rem; }
+        .nav-link:hover{ color:#fff; background:rgba(255,255,255,.05); }
+        .nav-link.active{ background:var(--accent); color:#fff; }
+        .mobile-nav{ display:none; background:var(--sidebar-bg); padding:12px 20px; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; }
+        .main-content{ flex:1; padding:48px; overflow-y:auto; background:linear-gradient(180deg,#f8fafc 0%,#f1f5f9 100%); }
+        .card{ background:#fff; border:1px solid var(--card-border); border-radius:var(--radius-lg); padding:28px; box-shadow:var(--shadow); }
+        [data-theme="dark"] .card{ background:#121a2b; }
+
+        /* ===== ✚ DECK GRID (scalable thumbnails) ===== */
+        .topic-section{ margin-bottom:36px; }
+        .topic-head{ display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+        .topic-head i{ color:var(--accent); }
+        .topic-head h3{ font-size:1.1rem; font-weight:800; }
+        .deck-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(clamp(150px,22vw,240px),1fr)); gap:18px; }
+        .deck-card{ background:#fff; border:1px solid var(--card-border); border-radius:var(--radius-md); overflow:hidden; cursor:pointer; transition:.25s; display:flex; flex-direction:column; }
+        .deck-card:hover{ transform:translateY(-4px); box-shadow:0 12px 24px -10px rgba(15,23,42,.2); }
+        .deck-card:active{ transform:scale(.98); }
+        .deck-thumb{ aspect-ratio:16/10; background:#eef2f7; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+        [data-theme="dark"] .deck-thumb{ background:#0e1626; }
+        .deck-thumb img{ width:100%; height:100%; object-fit:cover; }
+        .deck-thumb .ph-icon{ font-size:2.2rem; color:#94a3b8; }
+        .deck-thumb .play-veil{ position:absolute; inset:0; background:rgba(99,102,241,.0); display:flex; align-items:center; justify-content:center; transition:.25s; }
+        .deck-card:hover .play-veil{ background:rgba(99,102,241,.25); }
+        .play-veil i{ color:#fff; font-size:1.6rem; opacity:0; transform:scale(.6); transition:.25s; }
+        .deck-card:hover .play-veil i{ opacity:1; transform:scale(1); }
+        .deck-meta{ padding:12px 14px; flex:1; }
+        .deck-meta h4{ font-size:.9rem; font-weight:700; line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+        .deck-meta .pages{ font-size:.7rem; color:#94a3b8; margin-top:6px; display:flex; gap:10px; }
+        .deck-tools{ display:flex; gap:8px; padding:0 14px 14px; }
+
+        /* ===== ✚ FLIPBOOK (fullscreen) ===== */
+        #flip-overlay{ position:fixed; inset:0; z-index:1200; background:rgba(11,18,32,.94); backdrop-filter:blur(6px); display:flex; flex-direction:column; opacity:0; pointer-events:none; transition:opacity .35s; }
+        #flip-overlay.open{ opacity:1; pointer-events:auto; }
+        .fb-top{ display:flex; justify-content:space-between; align-items:center; padding:16px 20px; color:#fff; }
+        .fb-top h3{ font-size:1rem; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .fb-top .btn-ghost{ color:#e2e8f0; background:rgba(255,255,255,.1); padding:9px 14px; }
+        .fb-stage{ flex:1; display:flex; align-items:center; justify-content:center; perspective:2400px; min-height:0; padding:0 12px; }
+        .book{ position:relative; width:min(880px,92vw); height:min(62vh,600px); display:flex; transform-style:preserve-3d; }
+        .book-face{ position:absolute; top:0; width:50%; height:100%; background:#fff; box-shadow:0 8px 30px rgba(0,0,0,.45); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+        .book-face img{ width:100%; height:100%; object-fit:contain; background:#fff; }
+        .bf-left{ left:0; border-radius:8px 0 0 8px; }
+        .bf-right{ right:0; border-radius:0 8px 8px 0; border-left:1px solid #e2e8f0; }
+        .bf-empty{ color:#cbd5e1; font-size:3rem; }
+        .book-spine{ position:absolute; left:50%; top:0; width:2px; height:100%; transform:translateX(-50%); background:linear-gradient(90deg,rgba(0,0,0,.25),rgba(0,0,0,.05)); z-index:2; }
+        .fb-bottom{ display:flex; justify-content:center; align-items:center; gap:14px; padding:16px; color:#e2e8f0; }
+        .fb-nav{ width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.08); color:#fff; font-size:1rem; cursor:pointer; display:grid; place-items:center; transition:.2s; }
+        .fb-nav:hover{ background:var(--accent); border-color:var(--accent); }
+        .fb-nav:disabled{ opacity:.3; cursor:not-allowed; }
+        .fb-page-ind{ font-size:.85rem; font-weight:700; min-width:110px; text-align:center; }
+        .fb-progress{ height:4px; background:rgba(255,255,255,.15); border-radius:99px; margin:0 20px 14px; overflow:hidden; }
+        .fb-progress i{ display:block; height:100%; background:var(--accent); border-radius:99px; transition:width .4s; }
+        .fb-loading{ color:#cbd5e1; font-size:.9rem; }
+
+        /* book shadow under pages */
+        .book::after{ content:""; position:absolute; left:6%; right:6%; bottom:-26px; height:40px; background:radial-gradient(ellipse at center,rgba(0,0,0,.45),transparent 70%); z-index:-1; }
+
+        /* single-page mode on phones */
+        .book.single .bf-left{ display:none; }
+        .book.single .bf-right{ width:100%; border-radius:8px; border:none; }
+
+        @media (max-width:768px){
+            body{ overflow:auto; height:auto; min-height:100vh; }
+            .auth-wrapper{ flex-direction:column; }
+            .auth-side-brand{ padding:40px 20px; flex:none; }
+            .auth-side-form{ padding:32px 16px; }
+            .portal-layout{ flex-direction:column; height:auto; min-height:100vh; }
+            .sidebar{ display:none; }
+            .mobile-nav{ display:flex; }
+            .main-content{ padding:20px 14px; }
+            .card{ padding:18px; }
+            #auth-theme-toggle{ top:12px; right:12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="boot-overlay"><div class="boot-ring"></div><div class="boot-label" style="font-weight:700;color:var(--text-p);">Loading Learning Slides…</div></div>
+<div id="ready-pill" aria-live="polite"><span class="r-dot"></span><span id="ready-text">Syncing…</span></div>
+
+<!-- ===================== AUTH ===================== -->
+<div id="login-section" class="auth-wrapper">
+    <div class="auth-side-brand">
+        <div class="brand-bg-overlay"></div>
+        <div class="brand-content">
+            <div class="brand-logo-container"><img src="NCC.png" alt="NCC Logo"></div>
+            <h1>Teacher Darwin Class</h1>
+            <p>Learning Slides — Flipbook Library</p>
+        </div>
+    </div>
+    <div class="auth-side-form">
+        <button id="auth-theme-toggle" class="theme-toggle"><i class="fas fa-moon"></i></button>
+        <div class="auth-card animate__animated animate__fadeInRight">
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Use your MathClass account.</p>
+            <div class="input-field">
+                <label>Email Address</label>
+                <div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="name@gmail.com"></div>
+            </div>
+            <div class="input-field">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="••••••••" id="login-password">
+                    <button type="button" class="eye-toggle" data-eye="login-password"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="signin-btn" onclick="signIn()"><span>Sign In</span><i class="fas fa-arrow-right"></i></button>
+            <p style="text-align:center; margin-top:20px; font-size:.82rem; color:var(--text-p);">
+                Create accounts on the main MathClass portal, then sign in here.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MOBILE NAV ===================== -->
+<div id="mobile-nav" class="mobile-nav hidden">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <img src="NCC.png" height="28" width="auto">
+        <span style="color:#fff; font-weight:800;">Slides</span>
+    </div>
+    <button class="theme-toggle" data-theme-toggle><i class="fas fa-moon"></i></button>
+</div>
+
+<!-- ===================== PORTAL ===================== -->
+<div id="portal" class="portal-layout hidden">
+    <aside class="sidebar">
+        <div class="sidebar-brand"><img src="NCC.png" alt="Logo"><span>MathClass Slides</span></div>
+        <nav style="flex:1">
+            <button class="nav-link active" onclick="renderLibrary()"><i class="fas fa-book-open"></i> Library</button>
+        </nav>
+        <div style="padding-top:20px; border-top:1px solid rgba(255,255,255,.1);">
+            <div style="margin-bottom:12px; padding:0 12px;">
+                <p id="user-name" style="color:#fff; font-weight:700; font-size:.9rem;"></p>
+                <p style="color:#64748b; font-size:.75rem;" id="user-role"></p>
+            </div>
+            <button class="theme-toggle" data-theme-toggle style="width:100%; justify-content:center; margin-bottom:8px; border-color:rgba(255,255,255,.15); color:#94a3b8;"><i class="fas fa-moon"></i>&nbsp;Theme</button>
+            <button class="nav-link" style="color:#ef4444" onclick="signOut()"><i class="fas fa-arrow-right-from-bracket"></i> Sign Out</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:36px; gap:16px; flex-wrap:wrap;">
+            <div>
+                <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Flipbook Library</span>
+                <h1 style="font-size:2.2rem; font-weight:800;">Learning Slides</h1>
+            </div>
+            <div id="teacher-actions" class="hidden">
+                <button class="btn btn-primary" onclick="openUploadModal()"><i class="fas fa-cloud-arrow-up"></i> Upload Deck</button>
+            </div>
+        </div>
+        <div id="library"></div>
+    </main>
+</div>
+
+<!-- ===================== UPLOAD MODAL (teacher) ===================== -->
+<div id="upload-modal" class="modal-overlay hidden" style="position:fixed; inset:0; background:rgba(15,23,42,.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;">
+    <div class="card animate__animated animate__zoomIn" style="width:100%; max-width:440px;">
+        <h2 style="margin-bottom:18px; font-weight:800;">Upload PowerPoint Deck</h2>
+        <div class="input-field"><label>Topic</label>
+            <input type="text" id="up-topic" placeholder="e.g., Polynomials, Quadratic Equations" list="topic-list">
+            <datalist id="topic-list"></datalist>
+        </div>
+        <div class="input-field"><label>Title</label>
+            <input type="text" id="up-title" placeholder="e.g., Week 3 — Factoring">
+        </div>
+        <div class="input-field"><label>Slide deck (PDF export of your PowerPoint)</label>
+            <input type="file" id="up-file" accept="application/pdf">
+        </div>
+        <p style="font-size:.75rem; color:#94a3b8; margin-bottom:16px;"><i class="fas fa-circle-info"></i>
+            Browsers can't play .pptx directly — in PowerPoint use <strong>File → Save As → PDF</strong>, then upload that. The flipbook is built from the PDF.</p>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary" id="up-btn" onclick="uploadDeck()" style="flex:2;"><i class="fas fa-cloud-arrow-up"></i> Upload</button>
+            <button class="btn btn-ghost" onclick="closeUploadModal()" style="flex:1;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== ✚ FLIPBOOK OVERLAY ===================== -->
+<div id="flip-overlay">
+    <div class="fb-top">
+        <h3 id="fb-title">—</h3>
+        <div style="display:flex; gap:8px;">
+            <button class="btn btn-ghost" onclick="toggleFullscreen_()" title="Fullscreen"><i class="fas fa-expand"></i></button>
+            <button class="btn btn-ghost" onclick="closeFlipbook()" title="Close"><i class="fas fa-xmark"></i>&nbsp;Close</button>
+        </div>
+    </div>
+    <div class="fb-stage" id="fb-stage">
+        <div class="book" id="book">
+            <div class="book-face bf-left" id="face-left"><i class="fas fa-book-open bf-empty"></i></div>
+            <div class="book-face bf-right" id="face-right"><i class="fas fa-book-open bf-empty"></i></div>
+            <div class="book-spine"></div>
+        </div>
+    </div>
+    <div class="fb-progress"><i id="fb-bar" style="width:0"></i></div>
+    <div class="fb-bottom">
+        <button class="fb-nav" id="fb-prev" onclick="flip(-1)"><i class="fas fa-chevron-left"></i></button>
+        <span class="fb-page-ind" id="fb-ind">— / —</span>
+        <button class="fb-nav" id="fb-next" onclick="flip(1)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    /* ✚ NEW Web App URL — deploy the slides backend below and paste it here */
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx2u1L4BAlGShHBhYxV2moMWrIPiM6GkcOsqT70EEDlIcqVir9PEHP603DiHkw61awjAQ/exec';
+    const SESSION_KEY = 'slides_user';
+
+    if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let currentUser = null;
+    let decks = [];              // metadata list
+    const pdfCache = {};         // deckId → pdfjs document
+    const thumbCache = {};       // deckId → dataURL
+
+    /* ---------- shared helpers (portal-style) ---------- */
+    function setReady(state, text) {
+        document.getElementById('ready-pill').className = state;
+        document.getElementById('ready-text').textContent = text;
+    }
+    function bootDone() { setTimeout(() => document.getElementById('boot-overlay').classList.add('done'), 350); }
+    function showToast(msg, type = "") {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.className = 'toast show ' + type;
+        clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+    function escape_(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    async function apiCall(payload) {
+        try {
+            const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
+            return await res.json();
+        } catch (e) { setReady('error','Offline'); return { success:false, message:'Server connection error.' }; }
+    }
+
+    /* ---------- AUTH (shared accounts with the main portal) ---------- */
+    async function signIn() {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        if (!email || !password) return showToast('Please fill in both fields.', 'error');
+        const btn = document.getElementById('signin-btn');
+        btn.classList.add('is-loading');
+        const res = await apiCall({ action:'signIn', email, password });
+        btn.classList.remove('is-loading');
+        if (res.success) {
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(res.user));
+            openPortal(res.user);
+        } else showToast(res.message || 'Invalid email or password.', 'error');
+    }
+    document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
+    document.querySelector('.eye-toggle').addEventListener('click', () => {
+        const inp = document.getElementById('login-password');
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+    });
+    function signOut() { sessionStorage.removeItem(SESSION_KEY); location.reload(); }
+
+    function openPortal(user) {
+        currentUser = user;
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('portal').classList.remove('hidden');
+        document.getElementById('mobile-nav').classList.remove('hidden');
+        document.getElementById('user-name').innerText = user.display_name || user.email;
+        document.getElementById('user-role').innerText = user.role === 'teacher' ? 'Faculty Console' : (user.section || 'Student');
+        document.getElementById('teacher-actions').classList.toggle('hidden', user.role !== 'teacher');
+        renderLibrary();
+    }
+
+    /* ---------- ✚ LIBRARY (grouped by topic, scalable grid) ---------- */
+    async function renderLibrary() {
+        setReady('', 'Syncing…');
+        const box = document.getElementById('library');
+        box.innerHTML = '<div class="skel" style="height:80px;border-radius:12px"></div><div class="skel" style="height:80px;border-radius:12px"></div>';
+        const res = await apiCall({ action:'fetchDecks' });
+        if (!res.success) { box.innerHTML = '<div class="card">Could not load the library. Try again later.</div>'; setReady('error','Sync failed'); return; }
+        decks = res.decks || [];
+        setReady('ready','Ready ✓');
+
+        if (!decks.length) {
+            box.innerHTML = `<div class="card" style="text-align:center; padding:48px 20px;">
+                <i class="fas fa-book-open" style="font-size:2.4rem; color:#cbd5e1;"></i>
+                <h3 style="margin-top:14px;">The library is empty</h3>
+                <p style="color:var(--text-p); margin-top:8px; font-size:.9rem;">${currentUser.role === 'teacher' ? 'Upload your first PowerPoint deck to get started.' : 'Your teacher hasn\'t uploaded any slides yet.'}</p>
+            </div>`;
+            return;
+        }
+
+        // topic suggestions for the upload modal
+        document.getElementById('topic-list').innerHTML = [...new Set(decks.map(d => d.topic))]
+            .map(t => `<option value="${escape_(t)}">`).join('');
+
+        // group by topic
+        const groups = {};
+        decks.forEach(d => { (groups[d.topic || 'General'] = groups[d.topic || 'General'] || []).push(d); });
+
+        box.innerHTML = Object.keys(groups).sort().map(topic => `
+            <div class="topic-section">
+                <div class="topic-head"><i class="fas fa-folder-open"></i><h3>${escape_(topic)}</h3>
+                    <span class="sec-chip" style="display:inline-flex;align-items:center;gap:4px;background:#edf2ff;color:#4c6ef5;border-radius:20px;padding:3px 10px;font-size:.7rem;font-weight:700;">${groups[topic].length} deck${groups[topic].length>1?'s':''}</span>
+                </div>
+                <div class="deck-grid">
+                    ${groups[topic].map(d => deckCardHTML(d)).join('')}
+                </div>
+            </div>`).join('');
+
+        // lazily render first-page thumbnails (non-blocking)
+        decks.forEach(d => hydrateThumb(d.id));
+    }
+
+    function deckCardHTML(d) {
+        const isTeacher = currentUser.role === 'teacher';
+        return `
+        <div class="deck-card" onclick="openFlipbook('${d.id}')" title="${escape_(d.title)}">
+            <div class="deck-thumb" id="thumb-${d.id}">
+                <i class="fas fa-file-pdf ph-icon" id="ph-${d.id}"></i>
+                <div class="play-veil"><i class="fas fa-play"></i></div>
+            </div>
+            <div class="deck-meta">
+                <h4>${escape_(d.title)}</h4>
+                <div class="pages"><span><i class="fas fa-layer-group"></i> ${d.pageCount || '…'} slides</span><span><i class="fas fa-clock"></i> ${new Date(d.created_at).toLocaleDateString()}</span></div>
+            </div>
+            ${isTeacher ? `<div class="deck-tools">
+                <button class="btn btn-danger-icon" style="padding:6px 12px; font-size:.75rem;" onclick="event.stopPropagation(); deleteDeck('${d.id}', '${escape_(d.title)}')"><i class="fas fa-trash"></i> Delete</button>
+            </div>` : ''}
+        </div>`;
+    }
+
+    /* ---------- ✚ thumbnails: render page 1 of each PDF lazily ---------- */
+    async function hydrateThumb(deckId) {
+        if (thumbCache[deckId]) return applyThumb_(deckId, thumbCache[deckId]);
+        try {
+            const pdf = await loadPdf(deckId);
+            if (!pdf) return;
+            const page = await pdf.getPage(1);
+            const vp = page.getViewport({ scale: 0.35 });
+            const canvas = document.createElement('canvas');
+            canvas.width = vp.width; canvas.height = vp.height;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+            thumbCache[deckId] = canvas.toDataURL('image/jpeg', 0.8);
+            applyThumb_(deckId, thumbCache[deckId]);
+            // update page count while we're here
+            const el = document.querySelector(`#thumb-${deckId}`).closest('.deck-card').querySelector('.pages span');
+            if (el && el.innerText.includes('…')) el.innerHTML = `<i class="fas fa-layer-group"></i> ${pdf.numPages} slides`;
+        } catch (e) { /* placeholder icon stays */ }
+    }
+    function applyThumb_(deckId, url) {
+        const box = document.getElementById('thumb-' + deckId);
+        if (!box) return;
+        const ph = document.getElementById('ph-' + deckId);
+        if (ph) ph.outerHTML = `<img src="${url}" alt="Cover slide">`;
+    }
+
+    async function loadPdf(deckId) {
+        if (pdfCache[deckId]) return pdfCache[deckId];
+        setReady('', 'Loading deck…');
+        const res = await apiCall({ action:'getDeck', deckId });
+        setReady('ready','Ready ✓');
+        if (!res.success || !res.fileData) { showToast(res.message || 'Could not load this deck.', 'error'); return null; }
+        const bin = atob(res.fileData);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        pdfCache[deckId] = await pdfjsLib.getDocument({ data: bytes }).promise;
+        return pdfCache[deckId];
+    }
+
+    /* ---------- ✚ FLIPBOOK ---------- */
+    const fb = { pdf:null, page:0, single:false, deckId:null, rendering:false };
+
+    async function openFlipbook(deckId) {
+        const deck = decks.find(d => d.id === deckId);
+        if (!deck) return;
+        document.getElementById('fb-title').textContent = deck.title;
+        document.getElementById('flip-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        fb.deckId = deckId; fb.page = 0;
+        document.getElementById('face-left').innerHTML = '<i class="fas fa-book-open bf-empty"></i>';
+        document.getElementById('face-right').innerHTML = '<div class="fb-loading" style="color:#cbd5e1;"><i class="fas fa-circle-notch fa-spin"></i>&nbsp;Rendering slides…</div>';
+        updateIndicator_();
+
+        const pdf = await loadPdf(deckId);
+        if (!pdf) { closeFlipbook(); return; }
+        fb.pdf = pdf;
+        fb.single = window.matchMedia('(max-width:768px)').matches;
+        document.getElementById('book').classList.toggle('single', fb.single);
+        await showPage_();
+    }
+
+    function closeFlipbook() {
+        document.getElementById('flip-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+        fb.pdf = null;
+    }
+
+    async function flip(dir) {
+        if (!fb.pdf || fb.rendering) return;
+        const step = fb.single ? 1 : 2;
+        const max = fb.pdf.numPages - 1;
+        const next = Math.min(Math.max(fb.page + dir * step, 0), max);
+        if (next === fb.page) return;
+        // ✚ page-turn feel: animate the turning face, then swap content
+        const turning = dir > 0 ? 'face-right' : (fb.single ? 'face-right' : 'face-left');
+        const face = document.getElementById(turning);
+        face.style.transition = 'transform .35s ease-in';
+        face.style.transform = dir > 0 ? 'rotateY(-14deg)' : 'rotateY(14deg)';
+        await new Promise(r => setTimeout(r, 180));
+        fb.page = next;
+        await showPage_();
+        face.style.transition = 'transform .3s ease-out';
+        face.style.transform = 'rotateY(0)';
+    }
+
+    async function showPage_() {
+        if (!fb.pdf) return;
+        fb.rendering = true;
+        const step = fb.single ? 1 : 2;
+        const leftNo  = fb.single ? null : fb.page;          // left page (even)
+        const rightNo = fb.single ? fb.page : fb.page + 1;   // right page
+
+        const draw = async (no) => {
+            if (no === null || no >= fb.pdf.numPages) return '<i class="fas fa-circle-check bf-empty" style="font-size:2rem;"></i>';
+            const page = await fb.pdf.getPage(no + 1);
+            const scale = Math.min(1.6, (fb.single ? 1400 : 760) / page.getViewport({ scale:1 }).width);
+            const vp = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            canvas.width = vp.width; canvas.height = vp.height;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+            return `<img src="${canvas.toDataURL('image/jpeg', 0.92)}" alt="Slide ${no+1}">`;
+        };
+        document.getElementById('face-left').innerHTML  = await draw(leftNo);
+        document.getElementById('face-right').innerHTML = await draw(rightNo);
+        updateIndicator_();
+        fb.rendering = false;
+    }
+
+    function updateIndicator_() {
+        const n = fb.pdf ? fb.pdf.numPages : 0;
+        const cur = n ? (fb.single ? fb.page + 1 : Math.min(fb.page + 2, n)) : 0;
+        document.getElementById('fb-ind').innerText = n ? `${cur} / ${n}` : '— / —';
+        document.getElementById('fb-bar').style.width = n ? ((cur / n) * 100) + '%' : '0';
+        document.getElementById('fb-prev').disabled = fb.page === 0;
+        document.getElementById('fb-next').disabled = !fb.pdf || fb.page >= fb.pdf.numPages - 1;
+    }
+
+    /* keyboard + swipe */
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('flip-overlay').classList.contains('open')) return;
+        if (e.key === 'ArrowRight') flip(1);
+        if (e.key === 'ArrowLeft') flip(-1);
+        if (e.key === 'Escape') closeFlipbook();
+    });
+    (function initSwipe() {
+        let x0 = null;
+        const stage = document.getElementById('fb-stage');
+        stage.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive:true });
+        stage.addEventListener('touchend', e => {
+            if (x0 === null) return;
+            const dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 50) flip(dx < 0 ? 1 : -1);
+            x0 = null;
+        });
+    })();
+    function toggleFullscreen_() {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+    }
+    window.addEventListener('resize', () => {
+        const single = window.matchMedia('(max-width:768px)').matches;
+        if (fb.pdf && single !== fb.single) { fb.single = single; fb.page = Math.min(fb.page, fb.pdf.numPages - 1); showPage_(); }
+        document.getElementById('book').classList.toggle('single', single);
+    });
+
+    /* ---------- TEACHER: upload & delete ---------- */
+    function openUploadModal() { document.getElementById('upload-modal').classList.remove('hidden'); }
+    function closeUploadModal() { document.getElementById('upload-modal').classList.add('hidden'); }
+
+    async function uploadDeck() {
+        const topic = document.getElementById('up-topic').value.trim();
+        const title = document.getElementById('up-title').value.trim();
+        const file = document.getElementById('up-file').files[0];
+        if (!title) return showToast('Please enter a title.', 'error');
+        if (!topic) return showToast('Please enter a topic (e.g., "Polynomials").', 'error');
+        if (!file) return showToast('Please choose a PDF file.', 'error');
+        if (file.type !== 'application/pdf') return showToast('Please upload the PDF export of your PowerPoint.', 'error');
+
+        const btn = document.getElementById('up-btn');
+        btn.classList.add('is-loading');
+        showToast('Uploading — this can take a minute for big decks…', '');
+
+        const dataUrl = await new Promise((ok, err) => {
+            const r = new FileReader();
+            r.onload = () => ok(r.result); r.onerror = err;
+            r.readAsDataURL(file);
+        });
+
+        const res = await apiCall({
+            action:'uploadDeck', userId:currentUser.id, topic, title,
+            fileName:file.name, fileMime:file.type,
+            fileData:dataUrl.split(',')[1]           // pure base64
+        });
+        btn.classList.remove('is-loading');
+        if (res.success) {
+            showToast('Deck uploaded — it\'s live for students! 📚', 'success');
+            document.getElementById('up-topic').value = '';
+            document.getElementById('up-title').value = '';
+            document.getElementById('up-file').value = '';
+            closeUploadModal();
+            renderLibrary();
+        } else showToast(res.message || 'Upload failed.', 'error');
+    }
+
+    async function deleteDeck(deckId, title) {
+        if (!confirm(`Delete "${title}"? Students will no longer see it.`)) return;
+        const res = await apiCall({ action:'deleteDeck', userId:currentUser.id, deckId });
+        if (res.success) {
+            delete pdfCache[deckId]; delete thumbCache[deckId];
+            showToast('Deck deleted.', 'success');
+            renderLibrary();
+        } else showToast(res.message || 'Failed to delete.', 'error');
+    }
+
+    /* ---------- theme ---------- */
+    (function initTheme() {
+        const KEY = "tdc_theme";
+        let saved = null; try { saved = localStorage.getItem(KEY); } catch (e) {}
+        const t = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", t);
+        document.querySelectorAll(".theme-toggle i").forEach(ic => ic.className = t === "dark" ? "fas fa-sun" : "fas fa-moon");
+        document.querySelectorAll(".theme-toggle").forEach(b => b.addEventListener("click", () => {
+            const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", next);
+            document.querySelectorAll(".theme-toggle i").forEach(ic => ic.className = next === "dark" ? "fas fa-sun" : "fas fa-moon");
+            try { localStorage.setItem(KEY, next); } catch (e) {}
+        }));
+    })();
+
+    /* ---------- boot ---------- */
+    const savedUser = sessionStorage.getItem(SESSION_KEY);
+    if (savedUser) openPortal(JSON.parse(savedUser));
+    else { bootDone(); setReady('ready','Ready ✓'); }
+</script>
+</body>
+</html>
