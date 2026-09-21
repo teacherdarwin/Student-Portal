@@ -950,8 +950,8 @@
             const keys = Object.keys(map);
             if (keys.length) {
                 subCell = keys.map(k => `<a class="sec-chip" href="${escapeHtml_(map[k])}" target="_blank" rel="noopener" title="${escapeHtml_(map[k])}"><i class="fas fa-inbox"></i> ${escapeHtml_(k)}</a>`).join('');
-            } else if (r.submissionUrl) {
-                subCell = `<a class="sec-chip" href="${escapeHtml_(r.submissionUrl)}" target="_blank" rel="noopener"><i class="fas fa-inbox"></i> All sections</a>`;
+            } else if (r.submissionUrls) {
+                subCell = `<a class="sec-chip" href="${escapeHtml_(r.submissionUrls)}" target="_blank" rel="noopener"><i class="fas fa-inbox"></i> All sections</a>`;
             }
             return `
             <tr>
