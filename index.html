@@ -950,8 +950,8 @@
             const keys = Object.keys(map);
             if (keys.length) {
                 subCell = keys.map(k => `<a class="sec-chip" href="${escapeHtml_(map[k])}" target="_blank" rel="noopener" title="${escapeHtml_(map[k])}"><i class="fas fa-inbox"></i> ${escapeHtml_(k)}</a>`).join('');
-            } else if (r.submissionUrls) {
-                subCell = `<a class="sec-chip" href="${escapeHtml_(r.submissionUrls)}" target="_blank" rel="noopener"><i class="fas fa-inbox"></i> All sections</a>`;
+            } else if (r.submissionUrl) {
+                subCell = `<a class="sec-chip" href="${escapeHtml_(r.submissionUrl)}" target="_blank" rel="noopener"><i class="fas fa-inbox"></i> All sections</a>`;
             }
             return `
             <tr>
@@ -1129,7 +1129,7 @@
         btn.classList.add('is-loading');
         const payload = {
             title, type, url:urlInput || "",
-            submissionUrls:JSON.stringify(collectSecLinks()),
+            submissionUrl:JSON.stringify(collectSecLinks()),
             deadline:document.getElementById('res-deadline').value,
             instructions:(document.getElementById('res-instructions').value || '').trim()
         };
