@@ -16,39 +16,45 @@
             --radius-lg:16px; --radius-md:12px;
             --shadow:0 10px 15px -3px rgba(0,0,0,.05),0 4px 6px -2px rgba(0,0,0,.02);
             --success:#10b981; --success-dark:#059669;
-            --meet-blue:#1a73e8; --meet-blue-dark:#1557b0; --danger:#ef4444; --amber:#d97706;
+            --meet-blue:#1a73e8; --meet-blue-dark:#1557b0; --danger:#ef4444;
         }
         [data-theme="dark"]{ --canvas:#0b1220; --card-border:#243147; --text-h:#e6edf7; --text-p:#8fa1b8; }
         [data-theme="dark"] body{ background:var(--canvas); }
         [data-theme="dark"] .auth-wrapper{ background:#0f172a; }
         [data-theme="dark"] .card,[data-theme="dark"] .stat-card,[data-theme="dark"] .list-item,
-        [data-theme="dark"] .ann-item,[data-theme="dark"] .instr-box{ background:#121a2b; }
+        [data-theme="dark"] .ann-item,[data-theme="dark"] .instr-box,[data-theme="dark"] .grade-tile{ background:#121a2b; }
         [data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{ background:#0e1626; border-color:#243147; color:var(--text-h); }
         [data-theme="dark"] .main-content{ background:linear-gradient(180deg,#0b1220 0%,#0e1626 100%); }
         [data-theme="dark"] .badge-pending{ background:#1e293b; color:#94a3b8; }
         [data-theme="dark"] .badge-done{ background:rgba(16,185,129,.12); color:#34d399; }
         [data-theme="dark"] th,[data-theme="dark"] td{ border-bottom-color:#1e293b; }
+        [data-theme="dark"] .file-input-wrapper{ background:#0e1626; }
+        [data-theme="dark"] .btn-submit{ background:rgba(16,185,129,.12); color:#34d399; }
+        [data-theme="dark"] .btn-locked{ background:rgba(239,68,68,.12); color:#fca5a5; }
+        [data-theme="dark"] .btn-ghost{ background:#1e293b; color:#94a3b8; }
+        [data-theme="dark"] .dl-open{ background:rgba(16,185,129,.12); color:#34d399; }
+        [data-theme="dark"] .dl-soon{ background:rgba(217,119,6,.14); color:#fcd34d; }
+        [data-theme="dark"] .dl-closed{ background:rgba(239,68,68,.12); color:#fca5a5; }
+        [data-theme="dark"] .sec-chip{ background:rgba(99,102,241,.15); color:#a5b4fc; }
 
         *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
         body{ font-family:'Plus Jakarta Sans',sans-serif; background:var(--canvas); color:var(--text-h); height:100vh; overflow:hidden; }
 
-        /* ✚ boot overlay — hidden once UI is fully ready */
+        /* ===== boot + ready ===== */
         #boot-overlay{ position:fixed; inset:0; z-index:2000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; background:var(--canvas); transition:opacity .4s, visibility .4s; }
         #boot-overlay.done{ opacity:0; visibility:hidden; pointer-events:none; }
-        .boot-ring{ width:46px; height:46px; border-radius:50%; border:4px solid var(--card-border); border-top-color:var(--accent); animation:tdc-spin .8s linear infinite; }
+        .boot-ring{ width:46px; height:46px; border-radius:50%; border:4px solid var(--card-border); border-top-color:var(--accent); animation:spin .8s linear infinite; }
         .boot-label{ font-weight:700; font-size:.9rem; color:var(--text-p); }
-
-        /* ✚ ready pill */
+        @keyframes spin{ to{ transform:rotate(360deg);} }
         #ready-pill{ position:fixed; top:14px; right:14px; z-index:1500; display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:99px; font-size:.72rem; font-weight:800; background:#f1f5f9; color:#64748b; border:1px solid var(--card-border); box-shadow:var(--shadow); transition:.3s; pointer-events:none; }
-        #ready-pill .r-dot{ width:8px; height:8px; border-radius:50%; background:var(--amber); animation:pulse-dot 1.4s infinite; }
+        #ready-pill .r-dot{ width:8px; height:8px; border-radius:50%; background:#d97706; animation:pulse 1.4s infinite; }
         #ready-pill.ready{ background:#ecfdf5; color:#059669; border-color:rgba(16,185,129,.3); }
         #ready-pill.ready .r-dot{ background:var(--success); animation:none; }
         #ready-pill.error{ background:#fee2e2; color:#b91c1c; }
         #ready-pill.error .r-dot{ background:var(--danger); animation:none; }
-        @keyframes pulse-dot{ 0%{ box-shadow:0 0 0 0 rgba(217,119,6,.4);} 70%{ box-shadow:0 0 0 7px rgba(217,119,6,0);} 100%{ box-shadow:0 0 0 0 rgba(217,119,6,0);} }
+        @keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(217,119,6,.4);} 70%{ box-shadow:0 0 0 7px rgba(217,119,6,0);} 100%{ box-shadow:0 0 0 0 rgba(217,119,6,0);} }
         @media (max-width:768px){ #ready-pill{ top:auto; bottom:14px; right:14px; } }
 
-        /* ✚ skeleton loaders */
         .skel{ height:14px; border-radius:6px; margin:12px 0; background:linear-gradient(90deg,var(--card-border) 25%,transparent 50%,var(--card-border) 75%); background-size:200% 100%; animation:shimmer 1.1s infinite; }
         .skel.card-skel{ height:86px; border-radius:var(--radius-md); }
         @keyframes shimmer{ to{ background-position:-200% 0; } }
@@ -89,15 +95,11 @@
         .btn-danger-icon:hover{ background:rgba(239,68,68,.08); }
         .btn-ghost{ background:#f1f5f9; color:var(--text-p); }
         .btn-ghost:hover{ background:#e2e8f0; }
-        .btn-locked{ background:#fee2e2; color:#b91c1c; cursor:not-allowed; border:1px solid rgba(185,28,28,.25); }
-        .btn-submit{ background:#ecfdf5; color:var(--success-dark); border:1.5px solid rgba(16,185,129,.35); }
+        .btn-locked{ background:#fee2e2; color:#b91c1c; cursor:not-allowed; border:1px solid rgba(185,28,28,.25); min-height:44px; padding:10px clamp(14px,3vw,22px); white-space:nowrap; }
+        .btn-submit{ background:#ecfdf5; color:var(--success-dark); border:1.5px solid rgba(16,185,129,.35); min-height:44px; padding:10px clamp(14px,3vw,22px); font-size:clamp(.82rem,1.6vw,.95rem); white-space:nowrap; }
         .btn-submit:hover{ background:var(--success); color:#fff; box-shadow:0 6px 14px rgba(16,185,129,.3); }
-        [data-theme="dark"] .btn-submit{ background:rgba(16,185,129,.12); color:#34d399; }
-        [data-theme="dark"] .btn-locked{ background:rgba(239,68,68,.12); color:#fca5a5; }
-        [data-theme="dark"] .btn-ghost{ background:#1e293b; color:#94a3b8; }
         .btn.is-loading{ position:relative; pointer-events:none; opacity:.75; }
-        .btn.is-loading::before{ content:""; width:14px; height:14px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:tdc-spin .7s linear infinite; }
-        @keyframes tdc-spin{ to{ transform:rotate(360deg);} }
+        .btn.is-loading::before{ content:""; width:14px; height:14px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin .7s linear infinite; }
 
         .status-badge{ padding:6px 12px; font-size:.75rem; font-weight:700; border-radius:30px; display:inline-flex; align-items:center; gap:4px; }
         .badge-pending{ background:#f1f5f9; color:#64748b; }
@@ -108,6 +110,14 @@
         .role-option i{ display:block; font-size:1.2rem; margin-bottom:6px; color:var(--text-p); }
         .role-option.selected{ border-color:var(--accent); background:rgba(99,102,241,.06); color:var(--accent); }
         .role-option.selected i{ color:var(--accent); }
+        .remember-me{ display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.85rem; color:var(--text-p); margin:-4px 0 18px; }
+        .remember-me input{ width:16px; height:16px; padding:0; accent-color:var(--accent); }
+        .strength-bars{ display:flex; gap:5px; margin-top:10px; }
+        .strength-bars i{ height:5px; flex:1; border-radius:99px; background:var(--card-border); transition:background .3s; }
+        .strength-label{ font-size:.72rem; color:var(--text-p); margin-top:5px; }
+        .input-wrapper .eye-toggle{ position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:0; color:#94a3b8; cursor:pointer; padding:6px; display:flex; font-size:.95rem; }
+        .input-wrapper:has(.eye-toggle) input{ padding-right:44px; }
+        .hidden{ display:none !important; }
 
         /* ===== PORTAL LAYOUT ===== */
         .portal-layout{ display:flex; height:100vh; width:100%; }
@@ -130,7 +140,7 @@
         .stat-card:hover{ transform:translateY(-3px); box-shadow:0 8px 18px -6px rgba(15,23,42,.12); }
         .stat-card h4,.stat-card h2{ font-size:1.8rem; margin-top:4px; font-weight:800; color:var(--accent); }
 
-        /* ===== RESOURCES (fluid) ===== */
+        /* ===== RESOURCES ===== */
         .list-item{ display:flex; align-items:center; justify-content:space-between; padding:20px; border-radius:var(--radius-md); border:1px solid var(--card-border); margin-bottom:12px; background:#fff; transition:.25s; gap:16px; }
         .list-item:hover{ border-color:#cbd5e1; transform:translateY(-2px); box-shadow:0 6px 16px -8px rgba(15,23,42,.12); }
         .resource-info{ display:flex; align-items:center; gap:16px; flex:1; min-width:0; }
@@ -142,20 +152,12 @@
         .action-group{ display:flex; align-items:center; gap:10px; flex-shrink:0; flex-wrap:wrap; }
         .action-group .btn{ padding:10px 16px; }
 
-        /* ✚ submission bin — fluid, large tap target, scales on any device */
-        .btn-submit, .btn-locked{ min-height:44px; padding:10px clamp(14px,3vw,22px); font-size:clamp(.82rem,1.6vw,.95rem); white-space:nowrap; }
-
-        /* ===== INSTRUCTIONS + DEADLINES ===== */
         .instr-box{ background:#f8fafc; border:1px solid var(--card-border); border-left:4px solid var(--accent); border-radius:10px; padding:12px 14px; margin-top:10px; font-size:.85rem; color:var(--text-p); white-space:pre-wrap; }
         .instr-box strong{ color:var(--text-h); display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; }
         .dl-badge{ padding:5px 12px; border-radius:30px; font-size:.72rem; font-weight:700; display:inline-flex; align-items:center; gap:5px; margin-top:8px; }
         .dl-open{ background:#ecfdf5; color:#059669; }
         .dl-soon{ background:#fef3c7; color:#b45309; }
         .dl-closed{ background:#fee2e2; color:#b91c1c; }
-        [data-theme="dark"] .dl-open{ background:rgba(16,185,129,.12); color:#34d399; }
-        [data-theme="dark"] .dl-soon{ background:rgba(217,119,6,.14); color:#fcd34d; }
-        [data-theme="dark"] .dl-closed{ background:rgba(239,68,68,.12); color:#fca5a5; }
-        [data-theme="dark"] .instr-box{ background:#0e1626; }
 
         /* ===== TEACHER TABLE ===== */
         .table-responsive{ width:100%; overflow-x:auto; }
@@ -166,10 +168,8 @@
         .type-pill.assignment{ background:#fff0f6; color:#d6336c; }
         .dl-cell{ font-size:.8rem; color:var(--text-p); }
         .dl-cell.overdue{ color:var(--danger); font-weight:700; }
-
         .sec-chip{ display:inline-flex; align-items:center; gap:4px; background:#edf2ff; color:#4c6ef5; border-radius:20px; padding:3px 10px; font-size:.7rem; font-weight:700; margin:2px; text-decoration:none; transition:.2s; }
         .sec-chip:hover{ background:#dbe4ff; transform:translateY(-1px); }
-        [data-theme="dark"] .sec-chip{ background:rgba(99,102,241,.15); color:#a5b4fc; }
         .sec-row{ display:grid; grid-template-columns:1fr 1.5fr auto; gap:8px; margin-bottom:8px; align-items:center; }
         .sec-row input, .sec-row select{ margin-bottom:0; padding:11px 14px; }
         .sec-row .btn{ padding:10px 12px; }
@@ -197,7 +197,6 @@
         .modal-overlay{ position:fixed; inset:0; background:rgba(15,23,42,.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; }
         .file-input-wrapper{ border:1.5px dashed var(--card-border); padding:20px; border-radius:var(--radius-md); text-align:center; background:#f8fafc; margin-bottom:18px; transition:.2s; }
         .file-input-wrapper:hover{ border-color:var(--accent); }
-        [data-theme="dark"] .file-input-wrapper{ background:#0e1626; }
         .toast{ position:fixed; left:50%; bottom:24px; transform:translate(-50%,16px); opacity:0; pointer-events:none; z-index:1500; background:#0f172a; color:#fff; padding:12px 20px; border-radius:12px; font-size:.9rem; font-weight:600; box-shadow:var(--shadow); transition:.3s; max-width:90vw; text-align:center; }
         .toast.show{ opacity:1; transform:translate(-50%,0); }
         .toast.success{ background:var(--success); }
@@ -205,14 +204,6 @@
         .theme-toggle{ width:38px; height:38px; border-radius:10px; cursor:pointer; border:1px solid var(--card-border); background:transparent; color:var(--text-p); display:grid; place-items:center; font-size:.95rem; transition:.2s; flex-shrink:0; }
         .theme-toggle:hover{ color:var(--accent); border-color:var(--accent); }
         #auth-theme-toggle{ position:absolute; top:20px; right:20px; }
-        .input-wrapper .eye-toggle{ position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:0; color:#94a3b8; cursor:pointer; padding:6px; display:flex; font-size:.95rem; }
-        .input-wrapper:has(.eye-toggle) input{ padding-right:44px; }
-        .remember-me{ display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.85rem; color:var(--text-p); margin:-4px 0 18px; }
-        .remember-me input{ width:16px; height:16px; padding:0; accent-color:var(--accent); }
-        .strength-bars{ display:flex; gap:5px; margin-top:10px; }
-        .strength-bars i{ height:5px; flex:1; border-radius:99px; background:var(--card-border); transition:background .3s; }
-        .strength-label{ font-size:.72rem; color:var(--text-p); margin-top:5px; }
-        .hidden{ display:none !important; }
 
         @media (prefers-reduced-motion:reduce){ *,*::before,*::after{ animation:none !important; transition:none !important; } }
 
@@ -245,7 +236,6 @@
     <div class="boot-ring"></div>
     <div class="boot-label" id="boot-label">Loading MathClass…</div>
 </div>
-
 <div id="ready-pill" aria-live="polite"><span class="r-dot"></span><span id="ready-text">Syncing…</span></div>
 
 <!-- ============================ AUTH ============================ -->
@@ -375,14 +365,14 @@
 <div id="portal-student" class="portal-layout hidden">
     <aside class="sidebar">
         <div class="sidebar-brand"><img src="NCC.png" alt="Logo"><span>MathClass</span></div>
-        <div class="nav-group" style="flex:1">
+        <nav style="flex:1">
             <button class="nav-link active" id="nav-dashboard" onclick="showTab('dashboard')"><i class="fas fa-house-chimney"></i> Dashboard</button>
             <button class="nav-link" id="nav-modules" onclick="showTab('modules')"><i class="fas fa-book-open"></i> Curriculum</button>
             <button class="nav-link" id="nav-assignments" onclick="showTab('assignments')"><i class="fas fa-clipboard-list"></i> Assignments</button>
             <button class="nav-link" id="nav-grades" onclick="showTab('grades')"><i class="fas fa-graduation-cap"></i> My Grades</button>
-        </div>
+        </nav>
         <div style="padding-top:20px; border-top:1px solid rgba(255,255,255,.1);">
-            <div id="user-info" style="margin-bottom:20px; padding:0 12px;">
+            <div style="margin-bottom:20px; padding:0 12px;">
                 <p id="display-name" style="color:#fff; font-weight:700; font-size:.9rem;"></p>
                 <p id="display-id" style="color:#64748b; font-size:.75rem;"></p>
             </div>
@@ -393,7 +383,7 @@
 
     <main class="main-content">
         <header style="margin-bottom:40px;">
-            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v6.0</span>
+            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v6.2</span>
             <h2 id="tab-title" style="font-size:2.5rem; font-weight:800; letter-spacing:-1px;">Dashboard</h2>
         </header>
 
@@ -404,7 +394,7 @@
             </div>
             <div class="card" style="margin-bottom:32px;">
                 <h3 style="margin-bottom:16px;"><i class="fas fa-bullhorn" style="color:#ea580c; margin-right:8px;"></i>Announcements</h3>
-                <div id="student-announcements"><div class="skel card-skel"></div><div class="skel card-skel"></div></div>
+                <div id="student-announcements"><div class="skel card-skel"></div></div>
             </div>
             <div class="card">
                 <h3>Status Report</h3>
@@ -415,8 +405,8 @@
             </div>
         </div>
 
-        <div id="tab-modules" class="tab-content hidden"><div class="card"><div id="modules-container"><div class="skel card-skel"></div><div class="skel card-skel"></div></div></div></div>
-        <div id="tab-assignments" class="tab-content hidden"><div class="card"><div id="assignments-container"><div class="skel card-skel"></div><div class="skel card-skel"></div></div></div></div>
+        <div id="tab-modules" class="tab-content hidden"><div class="card"><div id="modules-container"><div class="skel card-skel"></div></div></div></div>
+        <div id="tab-assignments" class="tab-content hidden"><div class="card"><div id="assignments-container"><div class="skel card-skel"></div></div></div></div>
 
         <div id="tab-grades" class="tab-content hidden">
             <div class="card">
@@ -521,7 +511,7 @@
     </main>
 </div>
 
-<!-- ============================ UPLOAD MODAL ============================ -->
+<!-- ============================ UPLOAD RESOURCE MODAL ============================ -->
 <div id="resource-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width:100%; max-width:460px; max-height:90vh; overflow-y:auto;">
         <h2 style="margin-bottom:20px; font-weight:800;">Upload Resource</h2>
@@ -537,7 +527,7 @@
             <label style="font-size:.8rem; font-weight:600; display:block; margin-bottom:6px;">Submission Links per Section <span style="color:#94a3b8; font-weight:400;">(optional — students only see their own section's bin)</span></label>
             <div id="sec-links-list"></div>
             <button type="button" class="btn btn-ghost" onclick="addSecLinkRow()" style="padding:9px 14px; font-size:.8rem; margin-bottom:6px;"><i class="fas fa-plus"></i> Add submission bin</button>
-            <p style="font-size:.72rem; color:#94a3b8; margin-bottom:14px;"><i class="fas fa-circle-info"></i> Sections without a bin simply show no submit button.</p>
+            <p style="font-size:.72rem; color:#94a3b8; margin-bottom:14px;"><i class="fas fa-circle-info"></i> Sections without a bin simply show no submit button for those students.</p>
 
             <label style="font-size:.8rem; font-weight:600; display:block; margin-bottom:6px;">Deadline <span style="color:#94a3b8; font-weight:400;">(optional — blocks submission after this)</span></label>
             <input type="datetime-local" id="res-deadline" style="margin-bottom:14px;">
@@ -545,8 +535,7 @@
             <textarea id="res-instructions" placeholder="e.g., Answer pages 120–125. Show complete solutions." style="margin-bottom:18px;"></textarea>
         </div>
 
-        <!-- ✚ REVISED: attachment is OPTIONAL for everything -->
-        <div id="file-upload-zone" class="file-input-wrapper">
+        <div class="file-input-wrapper">
             <label style="font-size:.8rem; font-weight:600; color:var(--text-p); display:block; margin-bottom:10px;">ATTACH FILE (optional — PDF, DOCX, IMG)</label>
             <input type="file" id="res-file" style="border:none; margin:0; padding:0; background:transparent; width:100%;">
         </div>
@@ -561,6 +550,7 @@
     </div>
 </div>
 
+<!-- ============================ DEADLINE MODAL ============================ -->
 <div id="deadline-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width:100%; max-width:400px;">
         <h2 style="margin-bottom:6px; font-weight:800;">Extend Deadline</h2>
@@ -579,7 +569,7 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0IihZjy8w3AsAZjRJp3wLu2iZvMafRJIfCTFPZC6qqeF8BzENs01-reOX4A-cYLvF/exec';
     const SESSION_KEY = 'mathClass_user';
-    const CACHE_TTL = 30000;   // ✚ 30-second cache → much snappier tab switching
+    const CACHE_TTL = 30000;   /* 30-second cache → snappy tab switching */
 
     const SECTIONS = ['UNIVERSAL SBE','UNIVERSAL STE','BSN 1B','BSN 1C','BSN 1D','BSN 1E','BSN 1G','BSN 1H','BSN 1M'];
 
@@ -588,12 +578,12 @@
     let selectedRole = 'student';
     let dlTargetId = null;
     let allStudents = [];
-    let resCache = null, resCacheAt = 0;   // ✚ resources cache
+    let resCache = null, resCacheAt = 0;
 
-    /* ---------- ✚ ready indicator helpers ---------- */
+    /* ---------- ready indicator helpers ---------- */
     function setReady(state, text) {
         const pill = document.getElementById('ready-pill');
-        pill.className = state;                       // '' | 'ready' | 'error'
+        pill.className = state;
         document.getElementById('ready-text').textContent = text;
     }
     function bootDone(label) {
@@ -708,8 +698,8 @@
         document.getElementById('tab-title').innerText = titles[tabName];
         document.querySelectorAll('#portal-student .tab-content').forEach(t => t.classList.add('hidden'));
         document.querySelectorAll('#portal-student .sidebar .nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById('nav-' + tabName).classList.add('active');
         document.querySelectorAll('#mobile-menu-student .nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById('nav-' + tabName).classList.add('active');
         document.getElementById('m-nav-' + tabName).classList.add('active');
         document.getElementById('tab-' + tabName).classList.remove('hidden');
         if (tabName === 'dashboard') updateDashboardStats();
@@ -717,7 +707,7 @@
         else fetchResources();
     }
 
-    /* ---------- ✚ FAST FETCH: cached resources + parallel requests ---------- */
+    /* ---------- FAST FETCH: cached resources + parallel requests ---------- */
     async function getCachedResources() {
         const now = Date.now();
         if (resCache && (now - resCacheAt) < CACHE_TTL) return resCache;
@@ -729,7 +719,6 @@
 
     async function updateDashboardStats() {
         setReady('', 'Syncing…');
-        // ✚ all three requests fire in parallel — no waiting in sequence
         const [progRes, annRes, resRes] = await Promise.all([
             apiCall({ action:'fetchProgress', userId:currentUser.id }),
             apiCall({ action:'fetchAnnouncements' }),
@@ -773,77 +762,37 @@
         return `<span class="dl-badge dl-open"><i class="fas fa-calendar-day"></i> Due ${when}</span>`;
     }
 
-    /* ---------- deadline badge ---------- */
-    function deadlineBadge(deadlineIso) {
-        if (!deadlineIso) return '';
-        const dl = new Date(deadlineIso);
-        const diff = dl - new Date();
-        const when = dl.toLocaleString(undefined, { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
-        if (diff < 0) return `<span class="dl-badge dl-closed"><i class="fas fa-lock"></i> Deadline passed · ${when}</span>`;
-        if (diff < 864e5) return `<span class="dl-badge dl-soon"><i class="fas fa-clock"></i> Due soon · ${when}</span>`;
-        return `<span class="dl-badge dl-open"><i class="fas fa-calendar-day"></i> Due ${when}</span>`;
-    }
-
-    /* ---------- ✚ RESTORED: submit — opens link instantly, logs in background ---------- */
-    function attemptSubmit(resourceId, btnEl) {
-        const subUrl = btnEl.dataset.sub;
-        if (!subUrl) return showToast('No submission link for your section yet.', 'error');
-        window.open(subUrl, '_blank', 'noopener');   // open FIRST so popup blockers don't kill it
-        btnEl.classList.add('is-loading');
-        apiCall(SCRIPT_URL, { action:'logSubmission', userId:currentUser.id, resourceId:String(resourceId) })
-            .then(res => {
-                btnEl.classList.remove('is-loading');
-                if (res.success) showToast('Submission recorded — good luck! 🍀', 'success');
-                else showToast(res.message || 'Submission not recorded.', 'error');
-            });
-    }
-
-    /* ---------- ✚ RESTORED: mark done / pending ---------- */
-    async function toggleTaskStatus(id) {
-        const badge = document.getElementById('badge-' + id);
-        const btn = document.getElementById('done-btn-' + id);
-        const res = await apiCall(SCRIPT_URL, { action:'toggleTask', userId:currentUser.id, resourceId:id.toString() });
-        if (!res.success) return showToast('Failed to update status.', 'error');
-        if (res.status === 'added') {
-            completedTaskIds.add(id.toString());
-            badge.className = "status-badge badge-done";
-            badge.innerHTML = `<i class="fas fa-circle-check"></i> Completed`;
-            btn.style.opacity = "0.5";
-            showToast('Marked as completed ✓', 'success');
-        } else {
-            completedTaskIds.delete(id.toString());
-            badge.className = "status-badge badge-pending";
-            badge.innerHTML = `<i class="fas fa-clock"></i> Pending`;
-            btn.style.opacity = "1";
-        }
-    }
-
-    /* ---------- ✚ FIXED: fetchResources — now loads progress + deadline handling ---------- */
+    /* ---------- STUDENT RESOURCES — buttons only render when content exists ---------- */
     async function fetchResources() {
-        const mContainer = document.getElementById('modules-container');
-        const aContainer = document.getElementById('assignments-container');
+        setReady('', 'Syncing…');
         const [progRes, resRes] = await Promise.all([
-            apiCall(SCRIPT_URL, { action:'fetchProgress', userId:currentUser.id }),
-            apiCall(SCRIPT_URL, { action:'fetchResources', userId:currentUser.id })
+            apiCall({ action:'fetchProgress', userId:currentUser.id }),
+            getCachedResources()
         ]);
         if (progRes.success) completedTaskIds = new Set(progRes.completedTaskIds);
-        if (!resRes.success) { showToast('Could not load assignments.', 'error'); return; }
+        if (!resRes.success) { setReady('error','Sync failed'); return; }
+
+        const mContainer = document.getElementById('modules-container');
+        const aContainer = document.getElementById('assignments-container');
         mContainer.innerHTML = ""; aContainer.innerHTML = "";
+        setReady('ready','Ready ✓');
 
         let mods = '', asg = '';
         resRes.resources.forEach(item => {
             const type = (item.type || "module").toLowerCase();
+
             if (type === 'assignment') {
                 const isDone = completedTaskIds.has(item.id.toString());
                 const closed = item.deadline && (new Date(item.deadline) - new Date() < 0);
 
-                const submitBtn = !item.submissionUrl ? '' :
-                    closed
+                const submitBtn = item.submissionUrl
+                    ? (closed
                         ? `<button class="btn btn-locked" disabled title="The deadline has passed"><i class="fas fa-lock"></i> Submission Closed</button>`
-                        : `<button class="btn btn-submit" onclick="attemptSubmit('${item.id}', this)" data-sub="${escapeHtml_(item.submissionUrl)}"><i class="fas fa-paper-plane"></i> Submit Work</button>`;
+                        : `<button class="btn btn-submit" onclick="attemptSubmit('${item.id}')" data-sub="${escapeHtml_(item.submissionUrl)}" title="Submit your work"><i class="fas fa-paper-plane"></i> Submit Work</button>`)
+                    : '';
 
                 const viewBtn = item.url
-                    ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary" title="Open attachment"><i class="fas fa-paperclip"></i> Attachment</a>`
+                    ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary" title="Open attachment"><i class="fas fa-file-arrow-down"></i> Attachment</a>`
                     : '';
 
                 const instrBox = item.instructions
@@ -863,8 +812,11 @@
                                 </div>
                             </div>
                             <div class="action-group">
-                                ${viewBtn}${submitBtn}
-                                <button id="done-btn-${item.id}" class="btn btn-success" style="opacity:${isDone ? '0.5' : '1'};" onclick="toggleTaskStatus('${item.id}')" title="Toggle done status"><i class="fas fa-check-double"></i></button>
+                                ${viewBtn}
+                                ${submitBtn}
+                                <button id="done-btn-${item.id}" class="btn btn-success" style="opacity:${isDone ? '0.5' : '1'};" onclick="toggleTaskStatus('${item.id}')" title="Toggle done status">
+                                    <i class="fas fa-check-double"></i>
+                                </button>
                             </div>
                         </div>
                         ${deadlineBadge(item.deadline)}
@@ -872,20 +824,55 @@
                     </div>`;
             } else {
                 const openBtn = item.url
-                    ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-book-open"></i> Open</a>`
+                    ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary" title="Open module"><i class="fas fa-book-open"></i> Open</a>`
                     : '';
                 mods += `
                     <div class="list-item">
                         <div class="resource-info">
                             <div class="resource-icon icon-module"><i class="fas fa-book"></i></div>
-                            <h4>${escapeHtml_(item.title)}</h4>
+                            <div style="min-width:0; flex:1;"><h4 style="margin:0;" title="${escapeHtml_(item.title)}">${escapeHtml_(item.title)}</h4></div>
                         </div>
                         ${openBtn}
                     </div>`;
             }
         });
+
         mContainer.innerHTML = mods || '<div class="ann-empty">No modules yet.</div>';
         aContainer.innerHTML = asg || '<div class="ann-empty">No assignments yet. 🎉</div>';
+    }
+
+    /* ---------- DIRECT OPEN: link opens instantly, log fires in background ---------- */
+    function attemptSubmit(resourceId, btnEl) {
+        const subUrl = btnEl.dataset.sub;
+        if (!subUrl) return showToast('No submission link for your section yet.', 'error');
+        window.open(subUrl, '_blank', 'noopener');
+        btnEl.classList.add('is-loading');
+        apiCall({ action:'logSubmission', userId:currentUser.id, resourceId:String(resourceId) })
+            .then(res => {
+                btnEl.classList.remove('is-loading');
+                if (res.success) showToast('Submission recorded — good luck! 🍀', 'success');
+                else { showToast(res.message || 'Submission not recorded.', 'error'); invalidateCache(); fetchResources(); }
+            })
+            .catch(() => btnEl.classList.remove('is-loading'));
+    }
+
+    async function toggleTaskStatus(id) {
+        const badge = document.getElementById('badge-' + id);
+        const btn = document.getElementById('done-btn-' + id);
+        const res = await apiCall({ action:'toggleTask', userId:currentUser.id, resourceId:id.toString() });
+        if (!res.success) return showToast('Failed to update status.', 'error');
+        if (res.status === 'added') {
+            completedTaskIds.add(id.toString());
+            badge.className = "status-badge badge-done";
+            badge.innerHTML = `<i class="fas fa-circle-check"></i> Completed`;
+            btn.style.opacity = "0.5";
+            showToast('Marked as completed ✓', 'success');
+        } else {
+            completedTaskIds.delete(id.toString());
+            badge.className = "status-badge badge-pending";
+            badge.innerHTML = `<i class="fas fa-clock"></i> Pending`;
+            btn.style.opacity = "1";
+        }
     }
 
     /* ---------- STUDENT GRADES ---------- */
@@ -1085,7 +1072,7 @@
         else showToast('Failed to delete.', 'error');
     }
 
-    /* ---------- UPLOAD (✚ attachments & links now optional) ---------- */
+    /* ---------- UPLOAD: attachments & links optional ---------- */
     function openResourceModal() {
         document.getElementById('sec-links-list').innerHTML = '';
         toggleModal(true);
@@ -1121,13 +1108,11 @@
         const btn = document.getElementById('publish-btn');
 
         if (!title) return showToast('Please enter a title', 'error');
-        /* ✚ REVISED: no attachment/link required — an assignment can be
-             instructions + deadline + section bins only. */
 
         btn.classList.add('is-loading');
         const payload = {
             title, type, url:urlInput || "",
-            submissionUrl:JSON.stringify(collectSecLinks()),
+            submissionUrls:JSON.stringify(collectSecLinks()),
             deadline:document.getElementById('res-deadline').value,
             instructions:(document.getElementById('res-instructions').value || '').trim()
         };
@@ -1231,7 +1216,6 @@
     if (savedUser) {
         openPortal(JSON.parse(savedUser));
     } else {
-        // auth screen needs no data — ready immediately
         bootDone('Welcome!');
         setReady('ready','Ready ✓');
     }
