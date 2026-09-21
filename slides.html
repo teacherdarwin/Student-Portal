@@ -281,7 +281,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
 <main id="shelfView" class="view">
   <div class="banner" id="demoBanner" hidden>
     <i data-lucide="unplug"></i>
-    <span><b>Demo mode.</b> Books live only in this browser — connect your Google Sheet to publish for the whole class.</span>
+    <span><b>Demo mode.</b> Books live only in this browser — connect your Google Drive folder to publish for the whole class.</span>
     <button class="btn small" id="bannerSetup">Connect</button>
   </div>
   <div class="shelf-wrap"><div id="shelfRows"></div></div>
@@ -332,11 +332,11 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
     <div class="tabs">
       <button class="tab active" data-tab="add">Add a book</button>
       <button class="tab" data-tab="manage">Manage shelf</button>
-      <button class="tab" data-tab="setup">Connect Sheets</button>
+      <button class="tab" data-tab="setup">Connect Drive</button>
     </div>
 
     <section class="tabpane" data-pane="add">
-      <p class="warn" id="addWarn" hidden>Not connected yet — paste your Web App URL in the <b>Connect Sheets</b> tab first.</p>
+      <p class="warn" id="addWarn" hidden>Not connected yet — paste your Web App URL in the <b>Connect Drive</b> tab first.</p>
       <label class="fld"><span>Teacher PIN</span><input id="pinInput" type="password" placeholder="only you know it — set it in the Apps Script"></label>
       <div id="dropzone">
         <i data-lucide="file-up"></i>
@@ -349,7 +349,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
       <div class="fld"><span>Spine colour</span><div id="swatches"></div></div>
       <div class="up-progress" id="upProgress" hidden><div class="up-bar"><div id="upBar"></div></div><span id="upPct">0%</span></div>
       <button class="btn primary wide" id="uploadBtn" disabled><i data-lucide="upload"></i>Put it on the shelf</button>
-      <p class="hint">Files are saved to a folder in your Google Drive; the book list lives in your Google Sheet.</p>
+      <p class="hint">Files are saved to a folder in your Google Drive; the book list lives in the same folder as a tiny <b>library.json</b> file.</p>
     </section>
 
     <section class="tabpane" data-pane="manage" hidden>
@@ -358,11 +358,11 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
 
     <section class="tabpane" data-pane="setup" hidden>
       <ol class="steps">
-        <li>Create a Google Sheet (any name) and open <b>Extensions → Apps Script</b>.</li>
-        <li>Delete the sample code, paste the code below, and change the <b>SHARED_SECRET</b> PIN at the top.</li>
-        <li><b>Deploy → New deployment</b> → type: <b>Web app</b> → <i>Execute as: Me</i>, <i>Who has access: Anyone</i> → Deploy &amp; authorise.</li>
-        <li>Copy the Web app URL (ends in <b>/exec</b>) and paste it below — press <b>Save &amp; connect</b>.</li>
-        <li>For students, also paste the same URL into <b>CONFIG.API_URL</b> at the top of this file, then push to GitHub.</li>
+        <li>Go to <b>script.google.com</b> → <b>New project</b> — no Google Sheet needed.</li>
+        <li>Delete the sample code, paste the code below, and set your <b>PIN</b> at the top.</li>
+        <li>Save, press <b>Run ▶ setup</b> once, and authorise — your Drive folder is created automatically.</li>
+        <li><b>Deploy → New deployment → Web app</b> → Execute as <b>Me</b>, access <b>Anyone</b> → Deploy.</li>
+        <li>Copy the <b>/exec</b> URL, paste it below, press <b>Save &amp; connect</b> — and put the same URL in <b>CONFIG.API_URL</b> for students.</li>
       </ol>
       <div class="api-row">
         <input type="text" id="apiInput" placeholder="https://script.google.com/macros/s/…/exec">
@@ -380,79 +380,135 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
 <canvas id="confetti"></canvas>
 <div id="toasts"></div>
 
-<!-- ============ APPS SCRIPT BACKEND (shown in the Connect tab) ============ -->
+<!-- ============ APPS SCRIPT BACKEND — Drive-only (shown in the Connect Drive tab) ============ -->
 <script type="text/plain" id="gasCode">
-//////  CLASSROOM LIBRARY — backend (Google Apps Script)  //////
-const SHARED_SECRET = 'teach2025';  // <-- change this PIN (only you should know it)
-const SHEET_NAME    = 'Books';
-const FOLDER_NAME   = 'Classroom Library PDFs';
+//////  CLASSROOM LIBRARY — Drive-only backend (no Google Sheet needed)  //////
+// Paste this whole file into script.google.com → New project.
+// One Drive folder holds everything: the PDFs + a tiny library.json manifest.
+const PIN         = 'teach2025';               // <-- change this PIN (only you should know it)
+const FOLDER_NAME = 'Classroom Library PDFs';  // used only if FOLDER_ID is empty
+const FOLDER_ID   = '';                        // optional: paste an ID from a folder URL to reuse it
+const MANIFEST    = 'library.json';
+
+/** Run this ONCE from the editor (Run ▶ setup) to create the folder + manifest. */
+function setup() {
+  const f = getFolder();
+  if (!manifestFile(f)) f.createFile(MANIFEST, '[]', 'application/json');
+  Logger.log('Folder ready: ' + f.getUrl());
+}
 
 function doGet(e) {
-  const p = e.parameter || {};
-  if (p.action === 'list') return json({ ok: true, books: readBooks() }, p.callback);
-  if (p.action === 'file' && p.id) {
-    const file = DriveApp.getFileById(p.id);
-    return json({ ok: true, name: file.getName(), data: Utilities.base64Encode(file.getBlob().getBytes()) }, p.callback);
+  const p = (e && e.parameter) || {};
+  try {
+    if (p.action === 'list') return out({ ok: true, books: readBooks() }, p.callback);
+    if (p.action === 'file' && p.id) {
+      const file = DriveApp.getFileById(p.id);
+      return out({ ok: true, name: file.getName(),
+                   data: Utilities.base64Encode(file.getBlob().getBytes()) }, p.callback);
+    }
+    return out({ ok: false, error: 'Unknown action' }, p.callback);
+  } catch (err) {
+    return out({ ok: false, error: String(err) }, p.callback);
   }
-  return json({ ok: false, error: 'Unknown request' }, p.callback);
 }
 
 function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
   try {
     const b = JSON.parse(e.postData.contents);
-    if (b.pin !== SHARED_SECRET) return json({ ok: false, error: 'Wrong PIN' });
+    if (b.pin !== PIN) return out({ ok: false, error: 'Wrong PIN' });
+
     if (b.action === 'upload') {
-      const lock = LockService.getScriptLock(); lock.waitLock(30000);
-      const file = getFolder().createFile(
-        Utilities.newBlob(Utilities.base64Decode(b.data), 'application/pdf', b.title + '.pdf'));
-      const id = Utilities.getUuid();
-      getSheet().appendRow([id, b.title, file.getId(), b.pages || 0, b.color || '#FF6B57', new Date().toISOString()]);
-      lock.releaseLock();
-      return json({ ok: true, book: { id: id, title: b.title, fileId: file.getId(),
-        pages: b.pages, color: b.color, created: new Date().toISOString() } });
+      const file = getFolder().createFile(Utilities.newBlob(
+        Utilities.base64Decode(b.data), 'application/pdf',
+        String(b.title || 'book').replace(/[\\/:*?"<>|]/g, '').trim() + '.pdf'));
+      const book = { id: Utilities.getUuid(), title: b.title || 'Untitled',
+                     fileId: file.getId(), pages: Number(b.pages) || 0,
+                     color: b.color || '#FF6B57', created: new Date().toISOString() };
+      writeBooks(readBooks().concat([book]));
+      return out({ ok: true, book: book });
     }
+
     if (b.action === 'delete') {
-      const sheet = getSheet(), rows = sheet.getDataRange().getValues();
-      for (let i = rows.length - 1; i >= 1; i--) {
-        if (rows[i][0] === b.id) {
-          try { DriveApp.getFileById(rows[i][2]).setTrashed(true); } catch (err) {}
-          sheet.deleteRow(i + 1);
-        }
-      }
-      return json({ ok: true });
+      const keep = [], gone = [];
+      readBooks().forEach(bk => (String(bk.id) === String(b.id) ? gone : keep).push(bk));
+      gone.forEach(bk => { try { DriveApp.getFileById(bk.fileId).setTrashed(true); } catch (err) {} });
+      writeBooks(keep);
+      return out({ ok: true });
     }
-    return json({ ok: false, error: 'Unknown action' });
-  } catch (err) { return json({ ok: false, error: String(err) }); }
-}
 
-function readBooks() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  if (!sheet || sheet.getLastRow() < 2) return [];
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, 6).getValues().map(function (r) {
-    return { id: r[0], title: r[1], fileId: r[2], pages: Number(r[3]) || 0, color: r[4], created: r[5] };
-  });
-}
-
-function getSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let s = ss.getSheetByName(SHEET_NAME);
-  if (!s) { s = ss.insertSheet(SHEET_NAME); s.appendRow(['id','title','fileId','pages','color','created']); }
-  return s;
+    return out({ ok: false, error: 'Unknown action' });
+  } catch (err) {
+    return out({ ok: false, error: String(err && err.message ? err.message : err) });
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function getFolder() {
+  if (FOLDER_ID) return DriveApp.getFolderById(FOLDER_ID);
   const it = DriveApp.getFoldersByName(FOLDER_NAME);
   return it.hasNext() ? it.next() : DriveApp.createFolder(FOLDER_NAME);
 }
 
-function json(obj, callback) {
-  const out = JSON.stringify(obj);
+function manifestFile(folder) {
+  const it = folder.getFilesByName(MANIFEST);
+  return it.hasNext() ? it.next() : null;
+}
+
+function readBooks() {
+  const folder = getFolder(), mf = manifestFile(folder);
+  if (!mf) return rebuild(folder);               // first run or manifest lost → rescan
+  try {
+    const books = JSON.parse(mf.getBlob().getDataAsString());
+    return Array.isArray(books) ? books : [];
+  } catch (err) { return rebuild(folder); }
+}
+
+function writeBooks(books) {
+  const folder = getFolder(), json = JSON.stringify(books);
+  const mf = manifestFile(folder);
+  if (mf) mf.setContent(json);
+  else folder.createFile(MANIFEST, json, 'application/json');
+  return books;
+}
+
+/** Recovery: rebuild the list from PDFs found in the folder (title = filename). */
+function rebuild(folder) {
+  const books = [], it = folder.getFilesByType('application/pdf');
+  while (it.hasNext()) {
+    const f = it.next();
+    books.push({ id: f.getId(), title: f.getName().replace(/\.pdf$/i, ''),
+                 fileId: f.getId(), pages: 0, color: '#FF6B57',
+                 created: f.getDateCreated().toISOString() });
+  }
+  writeBooks(books);
+  return books;
+}
+
+function out(obj, callback) {
+  const body = JSON.stringify(obj);
   if (callback) {
     const cb = String(callback).replace(/[^A-Za-z0-9_.]/g, '');
-    return ContentService.createTextOutput(cb + '(' + out + ');')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    return ContentService.createTextOutput(cb + '(' + body + ');')
+                         .setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
-  return ContentService.createTextOutput(out).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(body)
+                       .setMimeType(ContentService.MimeType.JSON);
+}
+
+/** OPTIONAL one-time import from an old Sheet version:
+    paste your old Sheet's ID between the quotes, then Run ▶ importFromSheet once. */
+function importFromSheet() {
+  const SHEET_ID = '';
+  const sh = SpreadsheetApp.openById(SHEET_ID).getSheets()[0];
+  const books = sh.getDataRange().getValues().slice(1).filter(r => r[0]).map(r => ({
+    id: String(r[0]), title: String(r[1]), fileId: String(r[2]),
+    pages: Number(r[3]) || 0, color: String(r[4]), created: String(r[5])
+  }));
+  writeBooks(books);
+  Logger.log('Imported ' + books.length + ' books.');
 }
 </script>
 
@@ -464,7 +520,7 @@ function json(obj, callback) {
 <script>
 /* ================= CONFIG — edit me ================= */
 const CONFIG = {
-  API_URL:   'https://script.google.com/macros/s/AKfycbxwzvWOkX56l8JK7Bnz-Sccc5sjGwqRKigy36fTGNOgCfgjHJ9IUFDDWCceHFEwKuS0/exec',                              // <-- paste your Apps Script /exec URL here for everyone
+  API_URL:   'https://script.google.com/macros/s/AKfycbxwzvWOkX56l8JK7Bnz-Sccc5sjGwqRKigy36fTGNOgCfgjHJ9IUFDDWCceHFEwKuS0/exec',  // <-- your Apps Script /exec URL
   SITE_NAME: 'Our Classroom Library',
   TAGLINE:   'Flip through your slides like a real book',
 };
@@ -723,7 +779,7 @@ const pageCache=new Map();
 async function getBookImages(b){
   if(b.demo) return demoPages();
   if(pageCache.has(b.id)) return pageCache.get(b.id);
-  if(!api.get()) throw new Error('Not connected yet — Teacher’s Desk → Connect Sheets.');
+  if(!api.get()) throw new Error('Not connected yet — Teacher’s Desk → Connect Drive.');
   const res=await apiGet({action:'file',id:b.fileId});
   if(!res||!res.ok) throw new Error((res&&res.error)||'Could not fetch the PDF from Drive.');
   const out=await renderPdf(b64ToBlob(res.data));
@@ -940,7 +996,7 @@ async function demoPages(){
       g.fillStyle=INK; g.font='800 30px '+N; g.textAlign='left'; g.fillText(s[2],x+120,y+44);
       g.globalAlpha=.6; g.font='600 22px '+N; g.fillText(s[3],x+120,y+78); g.globalAlpha=1; });
     g.fillStyle=INK; g.globalAlpha=.55; g.font='600 21px '+N; g.textAlign='center';
-    g.fillText('Files go to your Google Drive; the book list lives in a Google Sheet.',W/2,630);
+    g.fillText('Files go to your Drive folder; the list lives in a tiny library.json right beside the PDFs.',W/2,630);
     g.globalAlpha=1;
     out.push(c.toDataURL('image/jpeg',.92));
   });
@@ -1026,7 +1082,7 @@ async function countPages(file){
 $('#uploadBtn').onclick=async()=>{
   const pin=$('#pinInput').value.trim(), f=state.file;
   if(!f) return;
-  if(!api.get()){ switchTab('setup'); toast('Connect your Google Sheet first','err'); return; }
+  if(!api.get()){ switchTab('setup'); toast('Connect your Drive folder first — see the Connect Drive tab','err'); return; }
   const btn=$('#uploadBtn'); btn.disabled=true;
   $('#upProgress').hidden=false; setUp(.02);
   try{
@@ -1165,43 +1221,11 @@ function buildWordmark(){
       else $('#demoBanner').hidden=false;
     }catch(e){
       $('#demoBanner').hidden=false;
-      toast('Could not reach the Google Sheet — check Teacher’s Desk → Connect Sheets','err');
+      toast('Could not reach the Drive backend — check Teacher’s Desk → Connect Drive','err');
     }
   }
   state.books.push({...DEMO_BOOK});
   renderShelf();
-})();
-</script>
-  <!-- ===== DRIVE-ONLY PATCH — paste immediately before </body> ===== -->
-<script type="text/plain" id="gasDrive">
-/* paste the ENTIRE Drive-only backend from this reply here */
-</script>
-<script>
-(function () {
-  // the Copy button now hands out the Drive-only backend
-  const src = document.getElementById('gasDrive'), pre = document.getElementById('gasPre');
-  if (src && pre) pre.textContent = src.textContent.trim();
-
-  // rewrite the setup steps for the folder flow
-  const steps = document.querySelector('.steps');
-  if (steps) steps.innerHTML =
-    '<li>Go to <b>script.google.com</b> → <b>New project</b> — no Google Sheet needed.</li>' +
-    '<li>Delete the sample code, paste the code below, and set your <b>PIN</b> at the top.</li>' +
-    '<li>Save, press <b>Run ▶ setup</b> once, and authorise — your Drive folder is created automatically.</li>' +
-    '<li><b>Deploy → New deployment → Web app</b> → Execute as <b>Me</b>, access <b>Anyone</b> → Deploy.</li>' +
-    '<li>Copy the <b>/exec</b> URL, paste it below, press <b>Save &amp; connect</b>, and also put it in <b>CONFIG.API_URL</b> for students.</li>';
-
-  // swap the remaining Sheet wording for Drive wording
-  document.querySelectorAll('#deskOverlay .hint, #deskOverlay .warn').forEach(el => {
-    el.innerHTML = el.innerHTML
-      .replace(/the book list lives in your Google Sheet/i,
-               'the book list lives in the same folder as a tiny <b>library.json</b> file')
-      .replace(/Connect Sheets/g, 'Connect Drive')
-      .replace(/Google Sheet/gi, 'Drive folder');
-  });
-  document.querySelectorAll('.tab').forEach(t => {
-    if (t.dataset.tab === 'setup') t.textContent = 'Connect Drive';
-  });
 })();
 </script>
 
