@@ -44,15 +44,14 @@ button{font-family:inherit}
 .btn.wide{width:100%;justify-content:center}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:0 3px 0 var(--ink)}
 .btn svg{width:17px;height:17px}
-input[type=text],input[type=password]{
+.btn.icon{padding:10px;width:40px;height:40px;justify-content:center}
+.btn.spinning svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+input[type=text]{
   width:100%;font:700 15px 'Nunito';padding:11px 14px;border:var(--bd);border-radius:12px;
   background:#fff;color:var(--ink);outline:none;transition:box-shadow .15s}
-input[type=text]:focus,input[type=password]:focus{box-shadow:0 0 0 3px rgba(255,107,87,.35)}
-.fld{display:block;margin-bottom:14px}
-.fld>span{display:block;font:800 12.5px 'Nunito';letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin:0 0 6px 2px}
+input[type=text]:focus{box-shadow:0 0 0 3px rgba(255,107,87,.35)}
 .hint{font:600 12.5px 'Nunito';color:var(--soft);margin-top:10px;line-height:1.5}
-.warn{font:700 13px 'Nunito';color:#8A3A1F;background:#FFE9D6;border:var(--bd);border-left:7px solid var(--tang);
-  border-radius:10px;padding:9px 12px;margin-bottom:14px}
 
 /* ============ HEADER ============ */
 header{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;
@@ -165,31 +164,14 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
 .tab{font:800 13.5px 'Nunito';padding:8px 15px;border:var(--bd);border-radius:999px;background:transparent;
   cursor:pointer;color:var(--soft)}
 .tab.active{background:var(--ink);color:#fff;border-color:var(--ink)}
-#dropzone{border:2.5px dashed var(--ink);border-radius:16px;padding:24px 18px;text-align:center;
-  cursor:pointer;transition:.2s;background:#fff;margin-bottom:14px}
-#dropzone svg{width:34px;height:34px;color:var(--coral);animation:bob 2.6s ease-in-out infinite}
-#dropzone.over,#dropzone:hover{background:#FFF3D6;border-color:var(--coral)}
-#dropzone b{font:800 15px 'Nunito';display:block;margin-top:6px}
-#dropzone span{font:600 12.5px 'Nunito';color:var(--soft)}
-.file-chip{display:inline-block;font:700 13px 'Nunito';background:#FFF3D6;border:var(--bd);
-  border-radius:10px;padding:7px 12px;margin-bottom:12px}
-#swatches{display:flex;gap:9px;flex-wrap:wrap}
-.swatch{width:34px;height:34px;border-radius:10px;border:var(--bd);cursor:pointer;
-  transition:transform .15s;box-shadow:0 2px 0 var(--ink)}
-.swatch:hover{transform:translateY(-3px)}
-.swatch.on{outline:3px solid var(--ink);outline-offset:2px;transform:scale(1.08)}
-.up-progress{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.up-bar,.load-bar{flex:1;height:12px;border:var(--bd);border-radius:99px;background:#fff;overflow:hidden}
-.up-bar>div,.load-bar>div{height:100%;width:0%;background:var(--coral);border-radius:99px;transition:width .2s}
-.up-progress span{font:800 12.5px 'Nunito';color:var(--soft);min-width:38px;text-align:right}
 .m-row{display:flex;align-items:center;gap:11px;border:var(--bd);border-radius:12px;padding:10px 12px;
   margin-bottom:9px;background:#fff}
 .m-row .dot{width:16px;height:16px;border-radius:5px;border:2px solid var(--ink);flex:none}
 .m-row .t{font:800 14.5px 'Nunito';flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .m-row .m{font:700 12px 'Nunito';color:var(--soft);flex:none}
-.del-btn{font:800 12px 'Nunito';border:var(--bd);background:#FFE3DE;color:#B3401F;border-radius:9px;
-  padding:6px 10px;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
-.del-btn.armed{background:#D6452F;color:#fff}
+.drive-btn{font:800 12px 'Nunito';border:var(--bd);background:#EAF6FB;color:#1F6E8C;border-radius:9px;
+  padding:6px 10px;box-shadow:0 2px 0 var(--ink);text-decoration:none;flex:none}
+.drive-btn:hover{transform:translateY(-2px)}
 .steps{margin:0 0 16px 4px;padding:0;list-style:none;counter-reset:s}
 .steps li{counter-increment:s;position:relative;padding:0 0 13px 40px;font:600 14px 'Nunito';line-height:1.5}
 .steps li::before{content:counter(s);position:absolute;left:0;top:-2px;width:26px;height:26px;
@@ -273,6 +255,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
   </div>
   <div class="head-right">
     <div class="count-pill"><i data-lucide="library"></i><span id="bookCount">0</span>&nbsp;books</div>
+    <button class="btn small icon" id="refreshBtn" title="Check the Drive folder for new PDFs" aria-label="Refresh shelf"><i data-lucide="refresh-cw"></i></button>
     <button class="btn primary" id="deskBtn"><i data-lucide="pencil-line"></i>Teacher’s Desk</button>
   </div>
 </header>
@@ -281,7 +264,7 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
 <main id="shelfView" class="view">
   <div class="banner" id="demoBanner" hidden>
     <i data-lucide="unplug"></i>
-    <span><b>Demo mode.</b> Books live only in this browser — connect your Google Drive folder to publish for the whole class.</span>
+    <span><b>Demo mode.</b> Connect your Google Drive folder and every PDF inside it becomes a book on this shelf.</span>
     <button class="btn small" id="bannerSetup">Connect</button>
   </div>
   <div class="shelf-wrap"><div id="shelfRows"></div></div>
@@ -330,39 +313,17 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
   <div class="modal">
     <button class="modal-x" id="deskClose" aria-label="Close"><i data-lucide="x"></i></button>
     <div class="tabs">
-      <button class="tab active" data-tab="add">Add a book</button>
-      <button class="tab" data-tab="manage">Manage shelf</button>
-      <button class="tab" data-tab="setup">Connect Drive</button>
+      <button class="tab active" data-tab="setup">Connect Drive</button>
+      <button class="tab" data-tab="list">Books &amp; folder</button>
     </div>
 
-    <section class="tabpane" data-pane="add">
-      <p class="warn" id="addWarn" hidden>Not connected yet — paste your Web App URL in the <b>Connect Drive</b> tab first.</p>
-      <label class="fld"><span>Teacher PIN</span><input id="pinInput" type="password" placeholder="only you know it — set it in the Apps Script"></label>
-      <div id="dropzone">
-        <i data-lucide="file-up"></i>
-        <b>Drop a PDF here, or click to browse</b>
-        <span>export your PowerPoint as a PDF first · up to 15 MB</span>
-        <input type="file" id="fileInput" accept="application/pdf,.pdf" hidden>
-      </div>
-      <div class="file-chip" id="fileChip" hidden></div>
-      <label class="fld"><span>Book title</span><input id="titleInput" type="text" placeholder="e.g. Chapter 4 — Volcanoes"></label>
-      <div class="fld"><span>Spine colour</span><div id="swatches"></div></div>
-      <div class="up-progress" id="upProgress" hidden><div class="up-bar"><div id="upBar"></div></div><span id="upPct">0%</span></div>
-      <button class="btn primary wide" id="uploadBtn" disabled><i data-lucide="upload"></i>Put it on the shelf</button>
-      <p class="hint">Files are saved to a folder in your Google Drive; the book list lives in the same folder as a tiny <b>library.json</b> file.</p>
-    </section>
-
-    <section class="tabpane" data-pane="manage" hidden>
-      <div id="manageList"></div>
-    </section>
-
-    <section class="tabpane" data-pane="setup" hidden>
+    <section class="tabpane" data-pane="setup">
       <ol class="steps">
         <li>Go to <b>script.google.com</b> → <b>New project</b> — no Google Sheet needed.</li>
-        <li>Delete the sample code, paste the code below, and set your <b>PIN</b> at the top.</li>
-        <li>Save, press <b>Run ▶ setup</b> once, and authorise — your Drive folder is created automatically.</li>
+        <li>Delete the sample code, paste the code below, and Save. There is <b>no PIN</b> — the site only reads your folder.</li>
+        <li>Press <b>Run ▶ setup</b> once and authorise — a folder named <b>Classroom Library PDFs</b> is created and its link is printed in the log.</li>
         <li><b>Deploy → New deployment → Web app</b> → Execute as <b>Me</b>, access <b>Anyone</b> → Deploy.</li>
-        <li>Copy the <b>/exec</b> URL, paste it below, press <b>Save &amp; connect</b> — and put the same URL in <b>CONFIG.API_URL</b> for students.</li>
+        <li>Paste the <b>/exec</b> URL below (and into <b>CONFIG.API_URL</b>). From now on: drop PDFs into the folder, press ↻ on the site — done.</li>
       </ol>
       <div class="api-row">
         <input type="text" id="apiInput" placeholder="https://script.google.com/macros/s/…/exec">
@@ -374,33 +335,33 @@ main{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:8px 20px
         <pre id="gasPre"></pre>
       </div>
     </section>
+
+    <section class="tabpane" data-pane="list" hidden>
+      <div id="manageList"></div>
+    </section>
   </div>
 </div>
 
 <canvas id="confetti"></canvas>
 <div id="toasts"></div>
 
-<!-- ============ APPS SCRIPT BACKEND — Drive-only (shown in the Connect Drive tab) ============ -->
+<!-- ============ APPS SCRIPT BACKEND — read-only Drive folder scan ============ -->
 <script type="text/plain" id="gasCode">
-//////  CLASSROOM LIBRARY — Drive-only backend (no Google Sheet needed)  //////
-// Paste this whole file into script.google.com → New project.
-// One Drive folder holds everything: the PDFs + a tiny library.json manifest.
-const PIN         = 'teach2025';               // <-- change this PIN (only you should know it)
+//////  CLASSROOM LIBRARY — read-only backend (just a Drive folder)  //////
+// Paste this whole file into script.google.com → New project. No PIN needed:
+// the site can only LIST and READ the PDFs — it never writes anything.
 const FOLDER_NAME = 'Classroom Library PDFs';  // used only if FOLDER_ID is empty
-const FOLDER_ID   = '';                        // optional: paste an ID from a folder URL to reuse it
-const MANIFEST    = 'library.json';
+const FOLDER_ID   = '';                        // optional: paste the ID from a folder URL to use a folder you already have
 
-/** Run this ONCE from the editor (Run ▶ setup) to create the folder + manifest. */
+/** Run this ONCE from the editor (Run ▶ setup) to create the folder + print its URL. */
 function setup() {
-  const f = getFolder();
-  if (!manifestFile(f)) f.createFile(MANIFEST, '[]', 'application/json');
-  Logger.log('Folder ready: ' + f.getUrl());
+  Logger.log('Folder ready: ' + getFolder().getUrl());
 }
 
 function doGet(e) {
   const p = (e && e.parameter) || {};
   try {
-    if (p.action === 'list') return out({ ok: true, books: readBooks() }, p.callback);
+    if (p.action === 'list') return out({ ok: true, books: scan() }, p.callback);
     if (p.action === 'file' && p.id) {
       const file = DriveApp.getFileById(p.id);
       return out({ ok: true, name: file.getName(),
@@ -412,79 +373,25 @@ function doGet(e) {
   }
 }
 
-function doPost(e) {
-  const lock = LockService.getScriptLock();
-  lock.waitLock(30000);
-  try {
-    const b = JSON.parse(e.postData.contents);
-    if (b.pin !== PIN) return out({ ok: false, error: 'Wrong PIN' });
-
-    if (b.action === 'upload') {
-      const file = getFolder().createFile(Utilities.newBlob(
-        Utilities.base64Decode(b.data), 'application/pdf',
-        String(b.title || 'book').replace(/[\\/:*?"<>|]/g, '').trim() + '.pdf'));
-      const book = { id: Utilities.getUuid(), title: b.title || 'Untitled',
-                     fileId: file.getId(), pages: Number(b.pages) || 0,
-                     color: b.color || '#FF6B57', created: new Date().toISOString() };
-      writeBooks(readBooks().concat([book]));
-      return out({ ok: true, book: book });
-    }
-
-    if (b.action === 'delete') {
-      const keep = [], gone = [];
-      readBooks().forEach(bk => (String(bk.id) === String(b.id) ? gone : keep).push(bk));
-      gone.forEach(bk => { try { DriveApp.getFileById(bk.fileId).setTrashed(true); } catch (err) {} });
-      writeBooks(keep);
-      return out({ ok: true });
-    }
-
-    return out({ ok: false, error: 'Unknown action' });
-  } catch (err) {
-    return out({ ok: false, error: String(err && err.message ? err.message : err) });
-  } finally {
-    lock.releaseLock();
+/** Every PDF sitting directly in the folder becomes a book.
+    Title = file name (minus .pdf) — rename the file to rename the book,
+    and prefix names with 01, 02… to control the shelf order. */
+function scan() {
+  const books = [], it = getFolder().getFilesByType('application/pdf');
+  while (it.hasNext()) {
+    const f = it.next();
+    books.push({ id: f.getId(), title: f.getName().replace(/\.pdf$/i, ''),
+                 fileId: f.getId(), pages: 0, color: '',
+                 created: f.getDateCreated().toISOString() });
   }
+  books.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' }));
+  return books;
 }
 
 function getFolder() {
   if (FOLDER_ID) return DriveApp.getFolderById(FOLDER_ID);
   const it = DriveApp.getFoldersByName(FOLDER_NAME);
   return it.hasNext() ? it.next() : DriveApp.createFolder(FOLDER_NAME);
-}
-
-function manifestFile(folder) {
-  const it = folder.getFilesByName(MANIFEST);
-  return it.hasNext() ? it.next() : null;
-}
-
-function readBooks() {
-  const folder = getFolder(), mf = manifestFile(folder);
-  if (!mf) return rebuild(folder);               // first run or manifest lost → rescan
-  try {
-    const books = JSON.parse(mf.getBlob().getDataAsString());
-    return Array.isArray(books) ? books : [];
-  } catch (err) { return rebuild(folder); }
-}
-
-function writeBooks(books) {
-  const folder = getFolder(), json = JSON.stringify(books);
-  const mf = manifestFile(folder);
-  if (mf) mf.setContent(json);
-  else folder.createFile(MANIFEST, json, 'application/json');
-  return books;
-}
-
-/** Recovery: rebuild the list from PDFs found in the folder (title = filename). */
-function rebuild(folder) {
-  const books = [], it = folder.getFilesByType('application/pdf');
-  while (it.hasNext()) {
-    const f = it.next();
-    books.push({ id: f.getId(), title: f.getName().replace(/\.pdf$/i, ''),
-                 fileId: f.getId(), pages: 0, color: '#FF6B57',
-                 created: f.getDateCreated().toISOString() });
-  }
-  writeBooks(books);
-  return books;
 }
 
 function out(obj, callback) {
@@ -496,19 +403,6 @@ function out(obj, callback) {
   }
   return ContentService.createTextOutput(body)
                        .setMimeType(ContentService.MimeType.JSON);
-}
-
-/** OPTIONAL one-time import from an old Sheet version:
-    paste your old Sheet's ID between the quotes, then Run ▶ importFromSheet once. */
-function importFromSheet() {
-  const SHEET_ID = '';
-  const sh = SpreadsheetApp.openById(SHEET_ID).getSheets()[0];
-  const books = sh.getDataRange().getValues().slice(1).filter(r => r[0]).map(r => ({
-    id: String(r[0]), title: String(r[1]), fileId: String(r[2]),
-    pages: Number(r[3]) || 0, color: String(r[4]), created: String(r[5])
-  }));
-  writeBooks(books);
-  Logger.log('Imported ' + books.length + ' books.');
 }
 </script>
 
@@ -524,8 +418,7 @@ const CONFIG = {
   SITE_NAME: 'Our Classroom Library',
   TAGLINE:   'Flip through your slides like a real book',
 };
-const PAL    = ['#FF6B57','#FFB100','#2EC4B6','#6BBF59','#3FA7D6','#9B5DE5','#F15BB5','#FF8A3D'];
-const MAX_MB = 15;
+const PAL = ['#FF6B57','#FFB100','#2EC4B6','#6BBF59','#3FA7D6','#9B5DE5','#F15BB5','#FF8A3D'];
 /* ==================================================== */
 
 const $ = s => document.querySelector(s);
@@ -537,7 +430,7 @@ if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const state = { books:[], sound: localStorage.getItem('cl_sound') !== '0',
-                color: PAL[0], file:null, busy:false, current:null, finished:false };
+                busy:false, current:null, finished:false };
 const api = {
   get: () => localStorage.getItem('cl_api') || CONFIG.API_URL,
   set: v  => { v ? localStorage.setItem('cl_api', v) : localStorage.removeItem('cl_api'); CONFIG.API_URL = v || ''; }
@@ -649,7 +542,7 @@ function renderShelf(popId){
   const real=state.books.filter(b=>!b.demo);
   if(api.get() && real.length===0){
     const n=document.createElement('div'); n.className='empty-note';
-    n.textContent='The shelf is empty — open the Teacher’s Desk to put the first PDF up.';
+    n.textContent='The shelf is empty — drop some PDFs into your Drive folder, then press ↻.';
     wrap.appendChild(n);
   }
   const rows=[{items:[],used:0}];
@@ -685,7 +578,7 @@ function bookSlot(b,popId){
   const tip=document.createElement('div'); tip.className='tip';
   const h4=document.createElement('h4'); h4.textContent=b.title||'Untitled';
   const meta=document.createElement('div'); meta.className='meta';
-  meta.textContent=(b.demo?'sample · ':'')+(Number(b.pages)||'?')+' pages'+
+  meta.textContent=(b.demo?'sample · ':'')+(Number(b.pages)?b.pages+' pages':'PDF')+
     (b.created&&!b.demo?' · '+new Date(b.created).toLocaleDateString():'');
   const open=document.createElement('span'); open.className='open';
   open.textContent=b.demo?'take a peek':'click to open';
@@ -716,7 +609,7 @@ function showLoader(title){
 function setLoad(f){ $('#loadBar').style.width=Math.round(f*100)+'%'; $('#loadPct').textContent=Math.round(f*100)+'%'; }
 function hideLoader(){ clearInterval(msgTimer); $('#loader').hidden=true; }
 
-/* ============ API (fetch + JSONP fallback) ============ */
+/* ============ API (fetch + JSONP fallback — GET only now) ============ */
 async function apiGet(params){
   try{ const r=await fetch(api.get()+'?'+new URLSearchParams(params).toString()); return await r.json(); }
   catch(e){ return jsonp(params); }
@@ -733,18 +626,29 @@ function jsonp(params){
     setTimeout(()=>{ if(!done){ cleanup(); resolve({ok:false,error:'Request timed out'}); } },60000);
   });
 }
-function xhrPost(payload,onProgress){
-  return new Promise((resolve,reject)=>{
-    const x=new XMLHttpRequest();
-    x.open('POST',api.get());
-    x.setRequestHeader('Content-Type','text/plain;charset=utf-8');
-    x.upload && x.upload.addEventListener('progress',e=>{
-      if(e.lengthComputable && onProgress) onProgress(.06+.9*(e.loaded/e.total)); });
-    x.onload=()=>{ try{ resolve(JSON.parse(x.responseText)); }
-      catch(e){ reject(new Error('Bad response — is the script deployed as a Web App?')); } };
-    x.onerror=()=>reject(new Error('network'));
-    x.send(JSON.stringify(payload));
-  });
+
+/* ============ SHELF REFRESH (reads the Drive folder) ============ */
+async function refreshShelf(){
+  if(!api.get()){
+    $('#demoBanner').hidden=false; openDesk('setup');
+    toast('Connect your Drive folder first','err'); return;
+  }
+  const btn=$('#refreshBtn'); btn.classList.add('spinning'); btn.disabled=true;
+  try{
+    const r=await apiGet({action:'list'});
+    if(r&&r.ok){
+      const before=state.books.filter(b=>!b.demo).length;
+      const learned=new Map(state.books.filter(b=>b.pages).map(b=>[b.id,b.pages]));
+      const fresh=(r.books||[]).map(b=>learned.has(b.id)?{...b,pages:learned.get(b.id)}:b);
+      state.books=[...fresh,...state.books.filter(b=>b.demo)];
+      renderShelf();
+      $('#demoBanner').hidden=true;
+      const after=fresh.length;
+      if(after>before) toast(`${after-before} new book${after-before===1?'':'s'} on the shelf!`);
+      else if(after<before) toast('Shelf updated — '+after+' book'+(after===1?'':'s'));
+    } else toast((r&&r.error)||'Could not read the folder','err');
+  }catch(e){ toast('Could not reach the Drive backend','err'); }
+  btn.classList.remove('spinning'); btn.disabled=false;
 }
 
 /* ============ PDF → PAGE IMAGES ============ */
@@ -833,6 +737,7 @@ async function openBook(b,fromEl){
   document.title=(b.title||'Book')+' · '+CONFIG.SITE_NAME;
   try{
     const data=await getBookImages(b);
+    b.pages=data.images.length;          // spine width learns the real page count
     hideLoader();
     buildFlipbook(b,data.images,data.aspect);
   }catch(err){
@@ -851,10 +756,12 @@ function backToShelf(){
   state.current=null; state.finished=false;
   document.title=CONFIG.SITE_NAME;
   showView('shelf');
+  renderShelf();
   if(id){
     const el=document.querySelector(`.book-slot[data-id="${CSS.escape(id)}"] .book`);
     if(el){ const fly=flyFrom(el.getBoundingClientRect(),col); setTimeout(()=>fly.remove(),800); }
   }
+  if(api.get()) refreshShelf();          // silently pick up PDFs added meanwhile
 }
 function renderChips(activeId){
   const box=$('#chips'); box.innerHTML='';
@@ -985,18 +892,18 @@ async function demoPages(){
     g.fillStyle='#FFFDF7'; g.fillRect(0,0,W,H); dots(g,'#2E2A24',48,2,.06);
     panel(g,60,50,840,90,'#9B5DE5',20);
     g.fillStyle='#fff'; g.font='700 42px '+F; g.textAlign='left';
-    g.fillText('Teachers: add your own PDF slides',92,110);
-    [['1','#FF6B57','Open the “Teacher’s Desk”','button at the top of the page'],
-     ['2','#3FA7D6','Drop in a PDF','export your PowerPoint as a PDF first'],
-     ['3','#6BBF59','It appears on the shelf','as a brand-new colorful book']].forEach((s,i)=>{
+    g.fillText('Teachers: it reads your Drive folder',92,110);
+    [['1','#FF6B57','Drop PDFs into the folder','named “Classroom Library PDFs”'],
+     ['2','#3FA7D6','Press ↻ on the site','the little button beside the book count'],
+     ['3','#6BBF59','They appear as books','rename files to rename books — 01, 02, 03…']].forEach((s,i)=>{
       const y=190+i*140,x=80;
       g.beginPath(); g.arc(x+50,y+50,38,0,7); g.fillStyle=s[1]; g.fill();
       g.lineWidth=4; g.strokeStyle=INK; g.stroke();
       g.fillStyle='#fff'; g.font='700 38px '+F; g.textAlign='center'; g.fillText(s[0],x+50,y+63);
-      g.fillStyle=INK; g.font='800 30px '+N; g.textAlign='left'; g.fillText(s[2],x+120,y+44);
-      g.globalAlpha=.6; g.font='600 22px '+N; g.fillText(s[3],x+120,y+78); g.globalAlpha=1; });
+      g.fillStyle=INK; g.font='800 28px '+N; g.textAlign='left'; g.fillText(s[2],x+120,y+44);
+      g.globalAlpha=.6; g.font='600 21px '+N; g.fillText(s[3],x+120,y+78); g.globalAlpha=1; });
     g.fillStyle=INK; g.globalAlpha=.55; g.font='600 21px '+N; g.textAlign='center';
-    g.fillText('Files go to your Drive folder; the list lives in a tiny library.json right beside the PDFs.',W/2,630);
+    g.fillText('The site simply reads the folder — no PINs, no forms, no fuss.',W/2,630);
     g.globalAlpha=1;
     out.push(c.toDataURL('image/jpeg',.92));
   });
@@ -1024,11 +931,10 @@ async function demoPages(){
 const desk=$('#deskOverlay');
 function openDesk(tab){
   desk.hidden=false; document.body.style.overflow='hidden';
-  $('#addWarn').hidden=!!api.get();
-  switchTab(tab||'add'); renderManage(); icons();
+  switchTab(tab||'setup'); renderBookList(); icons();
 }
 function closeDesk(){ desk.hidden=true; document.body.style.overflow=''; }
-$('#deskBtn').onclick=()=>openDesk('add');
+$('#deskBtn').onclick=()=>openDesk('setup');
 $('#deskClose').onclick=closeDesk;
 $('#bannerSetup').onclick=()=>openDesk('setup');
 desk.addEventListener('click',e=>{ if(e.target===desk) closeDesk(); });
@@ -1036,103 +942,32 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.t
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
   document.querySelectorAll('.tabpane').forEach(p=>p.hidden=p.dataset.pane!==name);
-  if(name==='manage') renderManage();
+  if(name==='list') renderBookList();
 }
 
-/* swatches */
-const swBox=$('#swatches');
-PAL.forEach((c,i)=>{
-  const s=document.createElement('button'); s.type='button';
-  s.className='swatch'+(i===0?' on':''); s.style.background=c; s.setAttribute('aria-label','spine colour');
-  s.onclick=()=>{ state.color=c; swBox.querySelectorAll('.swatch').forEach(x=>x.classList.remove('on')); s.classList.add('on'); };
-  swBox.appendChild(s);
-});
-
-/* dropzone */
-const dz=$('#dropzone'), fi=$('#fileInput');
-dz.onclick=()=>fi.click();
-['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{ e.preventDefault(); dz.classList.add('over'); }));
-['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{ e.preventDefault(); dz.classList.remove('over'); }));
-dz.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) setFile(f); });
-fi.onchange=()=>{ if(fi.files[0]) setFile(fi.files[0]); };
-function setFile(f){
-  if(f.type!=='application/pdf' && !/\.pdf$/i.test(f.name)){
-    toast('That is not a PDF — export your PowerPoint as PDF first','err'); return; }
-  if(f.size>MAX_MB*1024*1024){
-    toast(`Too big — ${(f.size/1048576).toFixed(1)} MB. The limit is ${MAX_MB} MB.`,'err'); return; }
-  state.file=f;
-  const chip=$('#fileChip'); chip.hidden=false;
-  chip.textContent=`${f.name} · ${(f.size/1048576).toFixed(1)} MB`;
-  if(!$('#titleInput').value) $('#titleInput').value=f.name.replace(/\.pdf$/i,'');
-  refreshUploadBtn();
-}
-function refreshUploadBtn(){ $('#uploadBtn').disabled=!(state.file && $('#pinInput').value.trim()); }
-$('#pinInput').addEventListener('input',refreshUploadBtn);
-
-/* upload */
-const setUp=f=>{ $('#upBar').style.width=Math.round(f*100)+'%'; $('#upPct').textContent=Math.round(f*100)+'%'; };
-function fileToB64(file){ return new Promise((res,rej)=>{ const r=new FileReader();
-  r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(file); }); }
-async function countPages(file){
-  try{ const buf=new Uint8Array(await file.arrayBuffer());
-    const d=await pdfjsLib.getDocument({data:buf}).promise; const n=d.numPages;
-    try{ d.destroy(); }catch(e){} return n;
-  }catch(e){ return 0; }
-}
-$('#uploadBtn').onclick=async()=>{
-  const pin=$('#pinInput').value.trim(), f=state.file;
-  if(!f) return;
-  if(!api.get()){ switchTab('setup'); toast('Connect your Drive folder first — see the Connect Drive tab','err'); return; }
-  const btn=$('#uploadBtn'); btn.disabled=true;
-  $('#upProgress').hidden=false; setUp(.02);
-  try{
-    const b64=await fileToB64(f); setUp(.06);
-    const pages=await countPages(f);
-    const res=await xhrPost({action:'upload',pin,
-      title:$('#titleInput').value.trim()||'Untitled', color:state.color, pages, data:b64},setUp);
-    if(!res||!res.ok) throw new Error((res&&res.error)||'Upload failed');
-    state.books.push(res.book);
-    closeDesk(); renderShelf(res.book.id);
-    chime(); burst(innerWidth/2,innerHeight*.35,90);
-    toast(`“${res.book.title}” is on the shelf!`);
-    state.file=null; fi.value=''; $('#fileChip').hidden=true;
-    $('#titleInput').value=''; $('#upProgress').hidden=true; $('#pinInput').value='';
-  }catch(err){
-    $('#upProgress').hidden=true;
-    const m=err.message||'Upload failed';
-    toast(/network|fetch/i.test(m)
-      ?'Upload failed — check the Web App URL and that access is set to “Anyone”'
-      :m,'err');
-  }
-  refreshUploadBtn();
-};
-
-/* manage */
-function renderManage(){
+/* books & folder tab */
+function renderBookList(){
   const box=$('#manageList'); box.innerHTML='';
+  const hint=document.createElement('p'); hint.className='hint'; hint.style.margin='0 0 12px';
+  hint.innerHTML='To add a book: drop a PDF straight into the <b>Classroom Library PDFs</b> folder in your Drive, then press ↻ on the site. '+
+    'Rename the file to rename the book (prefix with 01, 02… to control the order). Delete the PDF to remove the book. '+
+    'Keep files under ~10 MB so they open smoothly. Books appear alphabetically.';
+  box.appendChild(hint);
   const real=state.books.filter(b=>!b.demo);
+  if(!api.get()){ const p=document.createElement('p'); p.className='hint';
+    p.textContent='Not connected yet — finish the Connect Drive tab first.'; box.appendChild(p); return; }
   if(!real.length){ const p=document.createElement('p'); p.className='hint';
-    p.textContent='No books yet — upload one from the “Add a book” tab.'; box.appendChild(p); return; }
+    p.textContent='No PDFs in the folder yet.'; box.appendChild(p); return; }
   real.forEach(b=>{
     const row=document.createElement('div'); row.className='m-row';
     const dot=document.createElement('span'); dot.className='dot'; dot.style.background=colorOf(b);
     const t=document.createElement('span'); t.className='t'; t.textContent=b.title||'Untitled';
-    const m=document.createElement('span'); m.className='m'; m.textContent=(Number(b.pages)||'?')+' pages';
-    const del=document.createElement('button'); del.className='del-btn'; del.textContent='Delete';
-    del.onclick=async()=>{
-      if(!del.dataset.armed){ del.dataset.armed='1'; del.classList.add('armed'); del.textContent='Sure?';
-        setTimeout(()=>{ del.dataset.armed=''; del.classList.remove('armed'); del.textContent='Delete'; },2600);
-        return; }
-      const pin=$('#pinInput').value.trim();
-      if(!pin){ toast('Type your PIN in the “Add a book” tab first','err'); return; }
-      del.disabled=true;
-      const res=await xhrPost({action:'delete',pin,id:b.id}).catch(()=>null);
-      if(res&&res.ok){
-        state.books=state.books.filter(x=>x.id!==b.id);
-        pageCache.delete(b.id); renderShelf(); renderManage(); toast('Removed from the shelf');
-      } else toast((res&&res.error)||'Delete failed','err');
-    };
-    row.append(dot,t,m,del); box.appendChild(row);
+    const m=document.createElement('span'); m.className='m';
+    m.textContent=(Number(b.pages)?b.pages+' pages':'PDF');
+    const link=document.createElement('a'); link.className='drive-btn';
+    link.textContent='Drive ↗'; link.target='_blank'; link.rel='noopener';
+    link.href='https://drive.google.com/file/d/'+encodeURIComponent(b.fileId)+'/view';
+    row.append(dot,t,m,link); box.appendChild(row);
   });
 }
 
@@ -1160,9 +995,11 @@ async function testConnection(){
     const r=await apiGet({action:'list'});
     if(r&&r.ok){
       const n=(r.books||[]).length;
-      state.books=[...(r.books||[]),...state.books.filter(b=>b.demo)];
+      const learned=new Map(state.books.filter(b=>b.pages).map(b=>[b.id,b.pages]));
+      state.books=[...(r.books||[]).map(b=>learned.has(b.id)?{...b,pages:learned.get(b.id)}:b),
+                   ...state.books.filter(b=>b.demo)];
       renderShelf(); $('#demoBanner').hidden=true;
-      toast(`Connected! ${n} book${n===1?'':'s'} on the shelf`); switchTab('add');
+      toast(`Connected! ${n} book${n===1?'':'s'} on the shelf`); renderBookList();
     } else toast((r&&r.error)||'The script replied with an error','err');
   }catch(e){ toast('Could not reach the script — check the URL & “Anyone” access','err'); }
   btn.disabled=false; btn.textContent='Test connection';
@@ -1172,6 +1009,7 @@ async function testConnection(){
 $('#prevBtn').onclick=()=>pageFlip&&pageFlip.flipPrev();
 $('#nextBtn').onclick=()=>pageFlip&&pageFlip.flipNext();
 $('#backBtn').onclick=backToShelf;
+$('#refreshBtn').onclick=refreshShelf;
 const sl=$('#pageSlider');
 sl.addEventListener('input',()=>{ const v=+sl.value;
   $('#pageInfo').textContent=v===0?'Cover':'Page '+(v+1); });
@@ -1189,7 +1027,7 @@ document.addEventListener('keydown',e=>{
   if(!$('#readerView').hidden && pageFlip){
     if(e.key==='ArrowRight') pageFlip.flipNext();
     else if(e.key==='ArrowLeft') pageFlip.flipPrev();
-  }
+  } else if((e.key==='r'||e.key==='R') && $('#readerView').hidden){ refreshShelf(); }
 });
 let rT; addEventListener('resize',()=>{ clearTimeout(rT);
   rT=setTimeout(()=>{ if($('#readerView').hidden) renderShelf(); },250); });
