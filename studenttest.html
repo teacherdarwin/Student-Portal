@@ -383,7 +383,7 @@
 
     <main class="main-content">
         <header style="margin-bottom:40px;">
-            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v6.3</span>
+            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v6.4</span>
             <h2 id="tab-title" style="font-size:2.5rem; font-weight:800; letter-spacing:-1px;">Dashboard</h2>
         </header>
 
@@ -617,6 +617,45 @@
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
+    /* ---------- ✚ v6.4 SUBMISSION LINK RESOLVER ----------
+       Sheet column "submissionUrls" holds JSON like:
+       {"BSN 1B":"https://forms.gle/abc","BSN 1C":"https://forms.gle/def"}
+       Finds the right link for the signed-in student, however the
+       backend passes it through (raw JSON string, object, or single URL). */
+    function parseSubmissionMap(item) {
+        const tryParse = (v) => {
+            if (!v) return null;
+            if (typeof v === 'object') return Object.keys(v).length ? v : null;
+            const s = String(v).trim();
+            if (!s.startsWith('{')) return null;
+            try { const o = JSON.parse(s); return (o && typeof o === 'object' && Object.keys(o).length) ? o : null; }
+            catch (e) { return null; }
+        };
+        return tryParse(item.submissionMap) || tryParse(item.submissionUrls) || tryParse(item.submissionUrl) || {};
+    }
+
+    function resolveSubmissionUrl(item) {
+        const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        const map = parseSubmissionMap(item);
+
+        if (Object.keys(map).length) {
+            const mySec = norm(currentUser.section);
+            if (!mySec) return '';
+            for (const k of Object.keys(map)) if (norm(k) === mySec && map[k]) return String(map[k]).trim();
+            for (const k of Object.keys(map)) {
+                if (map[k] && (norm(k).includes(mySec) || mySec.includes(norm(k)))) return String(map[k]).trim();
+            }
+            return '';
+        }
+
+        // No per-section JSON — fall back to a single direct link if one exists
+        for (const v of [item.submissionUrl, item.submissionUrls]) {
+            const s = String(v || '').trim();
+            if (/^https?:\/\//i.test(s)) return s;
+        }
+        return '';
+    }
+
     /* ---------- section dropdowns ---------- */
     function sectionOptions(selected, placeholder) {
         return `<option value="">${placeholder}</option>` +
@@ -785,12 +824,17 @@
                 const isDone = completedTaskIds.has(item.id.toString());
                 const closed = item.deadline && (new Date(item.deadline) - new Date() < 0);
 
-                /* ✚ FIX: onclick now passes `this` (the button element) — this was the bug */
-                const submitBtn = item.submissionUrl
+                /* ✚ v6.4: resolve the student's own section link from the "submissionUrls" column */
+                const subUrl = resolveSubmissionUrl(item);
+                const hasBins = Object.keys(parseSubmissionMap(item)).length > 0;
+
+                const submitBtn = subUrl
                     ? (closed
                         ? `<button class="btn btn-locked" disabled title="The deadline has passed"><i class="fas fa-lock"></i> Submission Closed</button>`
-                        : `<button class="btn btn-submit" id="submit-btn-${item.id}" onclick="attemptSubmit('${item.id}', this)" data-sub="${escapeHtml_(item.submissionUrl)}" title="Submit your work"><i class="fas fa-paper-plane"></i> Submit Work</button>`)
-                    : '';
+                        : `<button class="btn btn-submit" id="submit-btn-${item.id}" onclick="attemptSubmit('${item.id}', this)" data-sub="${escapeHtml_(subUrl)}" title="Submit your work"><i class="fas fa-paper-plane"></i> Submit Work</button>`)
+                    : (hasBins
+                        ? `<span style="font-size:.72rem; color:#94a3b8;" title="Ask your teacher to add a bin for your section"><i class="fas fa-circle-info"></i> No bin for your section (${escapeHtml_(currentUser.section || 'no section set')})</span>`
+                        : '');
 
                 const viewBtn = item.url
                     ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary" title="Open attachment"><i class="fas fa-file-arrow-down"></i> Attachment</a>`
@@ -842,7 +886,7 @@
         aContainer.innerHTML = asg || '<div class="ann-empty">No assignments yet. 🎉</div>';
     }
 
-    /* ---------- ✚ FIX: DIRECT OPEN — hardened so it works even without btnEl ---------- */
+    /* ---------- DIRECT OPEN: link opens instantly, log fires in background ---------- */
     function attemptSubmit(resourceId, btnEl) {
         /* fallback: find the button by ID if the element wasn't passed */
         btnEl = btnEl || document.getElementById('submit-btn-' + resourceId);
@@ -937,14 +981,14 @@
             const dlCell = dl
                 ? `<span class="dl-cell ${dl < new Date() ? 'overdue' : ''}">${dl.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}${dl < new Date() ? ' · passed' : ''}</span>`
                 : '<span style="color:#94a3b8;">None</span>';
-            let subCell = '<span style="color:#94a3b8;">No bins</span>';
-            const map = r.submissionMap || {};
+            /* ✚ v6.4: parse the raw "submissionUrls" JSON so per-section chips render */
+            const map = parseSubmissionMap(r);
             const keys = Object.keys(map);
-            if (keys.length) {
-                subCell = keys.map(k => `<a class="sec-chip" href="${escapeHtml_(map[k])}" target="_blank" rel="noopener" title="${escapeHtml_(map[k])}"><i class="fas fa-inbox"></i> ${escapeHtml_(k)}</a>`).join('');
-            } else if (r.submissionUrl) {
-                subCell = `<a class="sec-chip" href="${escapeHtml_(r.submissionUrl)}" target="_blank" rel="noopener"><i class="fas fa-inbox"></i> All sections</a>`;
-            }
+            let subCell = keys.length
+                ? keys.map(k => `<a class="sec-chip" href="${escapeHtml_(map[k])}" target="_blank" rel="noopener" title="${escapeHtml_(map[k])}"><i class="fas fa-inbox"></i> ${escapeHtml_(k)}</a>`).join('')
+                : (r.submissionUrl && /^https?:\/\//i.test(String(r.submissionUrl))
+                    ? `<a class="sec-chip" href="${escapeHtml_(r.submissionUrl)}" target="_blank" rel="noopener"><i class="fas fa-inbox"></i> All sections</a>`
+                    : '<span style="color:#94a3b8;">No bins</span>');
             return `
             <tr>
                 <td style="font-weight:600; color:var(--text-p);">${r.id}</td>
