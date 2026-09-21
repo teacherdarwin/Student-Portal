@@ -1172,5 +1172,38 @@ function buildWordmark(){
   renderShelf();
 })();
 </script>
+  <!-- ===== DRIVE-ONLY PATCH — paste immediately before </body> ===== -->
+<script type="text/plain" id="gasDrive">
+/* paste the ENTIRE Drive-only backend from this reply here */
+</script>
+<script>
+(function () {
+  // the Copy button now hands out the Drive-only backend
+  const src = document.getElementById('gasDrive'), pre = document.getElementById('gasPre');
+  if (src && pre) pre.textContent = src.textContent.trim();
+
+  // rewrite the setup steps for the folder flow
+  const steps = document.querySelector('.steps');
+  if (steps) steps.innerHTML =
+    '<li>Go to <b>script.google.com</b> → <b>New project</b> — no Google Sheet needed.</li>' +
+    '<li>Delete the sample code, paste the code below, and set your <b>PIN</b> at the top.</li>' +
+    '<li>Save, press <b>Run ▶ setup</b> once, and authorise — your Drive folder is created automatically.</li>' +
+    '<li><b>Deploy → New deployment → Web app</b> → Execute as <b>Me</b>, access <b>Anyone</b> → Deploy.</li>' +
+    '<li>Copy the <b>/exec</b> URL, paste it below, press <b>Save &amp; connect</b>, and also put it in <b>CONFIG.API_URL</b> for students.</li>';
+
+  // swap the remaining Sheet wording for Drive wording
+  document.querySelectorAll('#deskOverlay .hint, #deskOverlay .warn').forEach(el => {
+    el.innerHTML = el.innerHTML
+      .replace(/the book list lives in your Google Sheet/i,
+               'the book list lives in the same folder as a tiny <b>library.json</b> file')
+      .replace(/Connect Sheets/g, 'Connect Drive')
+      .replace(/Google Sheet/gi, 'Drive folder');
+  });
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.dataset.tab === 'setup') t.textContent = 'Connect Drive';
+  });
+})();
+</script>
+
 </body>
 </html>
