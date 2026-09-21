@@ -773,41 +773,78 @@
         return `<span class="dl-badge dl-open"><i class="fas fa-calendar-day"></i> Due ${when}</span>`;
     }
 
-    /* ---------- ✚ STUDENT RESOURCES — buttons only render when content exists ---------- */
-    async function fetchResources() {
-        setReady('', 'Syncing…');
-        const [progRes, resRes] = await Promise.all([
-            apiCall({ action:'fetchProgress', userId:currentUser.id }),
-            getCachedResources()
-        ]);
-        if (progRes.success) completedTaskIds = new Set(progRes.completedTaskIds);
-        if (!resRes.success) { setReady('error','Sync failed'); return; }
+    /* ---------- deadline badge ---------- */
+    function deadlineBadge(deadlineIso) {
+        if (!deadlineIso) return '';
+        const dl = new Date(deadlineIso);
+        const diff = dl - new Date();
+        const when = dl.toLocaleString(undefined, { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+        if (diff < 0) return `<span class="dl-badge dl-closed"><i class="fas fa-lock"></i> Deadline passed · ${when}</span>`;
+        if (diff < 864e5) return `<span class="dl-badge dl-soon"><i class="fas fa-clock"></i> Due soon · ${when}</span>`;
+        return `<span class="dl-badge dl-open"><i class="fas fa-calendar-day"></i> Due ${when}</span>`;
+    }
 
+    /* ---------- ✚ RESTORED: submit — opens link instantly, logs in background ---------- */
+    function attemptSubmit(resourceId, btnEl) {
+        const subUrl = btnEl.dataset.sub;
+        if (!subUrl) return showToast('No submission link for your section yet.', 'error');
+        window.open(subUrl, '_blank', 'noopener');   // open FIRST so popup blockers don't kill it
+        btnEl.classList.add('is-loading');
+        apiCall(SCRIPT_URL, { action:'logSubmission', userId:currentUser.id, resourceId:String(resourceId) })
+            .then(res => {
+                btnEl.classList.remove('is-loading');
+                if (res.success) showToast('Submission recorded — good luck! 🍀', 'success');
+                else showToast(res.message || 'Submission not recorded.', 'error');
+            });
+    }
+
+    /* ---------- ✚ RESTORED: mark done / pending ---------- */
+    async function toggleTaskStatus(id) {
+        const badge = document.getElementById('badge-' + id);
+        const btn = document.getElementById('done-btn-' + id);
+        const res = await apiCall(SCRIPT_URL, { action:'toggleTask', userId:currentUser.id, resourceId:id.toString() });
+        if (!res.success) return showToast('Failed to update status.', 'error');
+        if (res.status === 'added') {
+            completedTaskIds.add(id.toString());
+            badge.className = "status-badge badge-done";
+            badge.innerHTML = `<i class="fas fa-circle-check"></i> Completed`;
+            btn.style.opacity = "0.5";
+            showToast('Marked as completed ✓', 'success');
+        } else {
+            completedTaskIds.delete(id.toString());
+            badge.className = "status-badge badge-pending";
+            badge.innerHTML = `<i class="fas fa-clock"></i> Pending`;
+            btn.style.opacity = "1";
+        }
+    }
+
+    /* ---------- ✚ FIXED: fetchResources — now loads progress + deadline handling ---------- */
+    async function fetchResources() {
         const mContainer = document.getElementById('modules-container');
         const aContainer = document.getElementById('assignments-container');
+        const [progRes, resRes] = await Promise.all([
+            apiCall(SCRIPT_URL, { action:'fetchProgress', userId:currentUser.id }),
+            apiCall(SCRIPT_URL, { action:'fetchResources', userId:currentUser.id })
+        ]);
+        if (progRes.success) completedTaskIds = new Set(progRes.completedTaskIds);
+        if (!resRes.success) { showToast('Could not load assignments.', 'error'); return; }
         mContainer.innerHTML = ""; aContainer.innerHTML = "";
-        setReady('ready','Ready ✓');
 
         let mods = '', asg = '';
         resRes.resources.forEach(item => {
             const type = (item.type || "module").toLowerCase();
-
             if (type === 'assignment') {
                 const isDone = completedTaskIds.has(item.id.toString());
                 const closed = item.deadline && (new Date(item.deadline) - new Date() < 0);
 
-                /* ✚ submission bin renders ONLY if this section has a link.
-                     Opens the link INSTANTLY; logging happens in background. */
-                const submitBtn = item.submissionUrl
-                    ? (closed
+                const submitBtn = !item.submissionUrl ? '' :
+                    closed
                         ? `<button class="btn btn-locked" disabled title="The deadline has passed"><i class="fas fa-lock"></i> Submission Closed</button>`
-                        : `<button class="btn btn-submit" onclick="attemptSubmit('${item.id}')" data-sub="${escapeHtml_(item.submissionUrl)}" title="Submit your work"><i class="fas fa-paper-plane"></i> Submit Work</button>`)
-                    : '';   // ✚ no bin → no button at all
+                        : `<button class="btn btn-submit" onclick="attemptSubmit('${item.id}', this)" data-sub="${escapeHtml_(item.submissionUrl)}"><i class="fas fa-paper-plane"></i> Submit Work</button>`;
 
-                /* ✚ attachment button renders ONLY if a file/link exists */
                 const viewBtn = item.url
-                    ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary" title="Open attachment"><i class="fas fa-file-arrow-down"></i> Attachment</a>`
-                    : '';   // ✚ no attachment → no button at all
+                    ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary" title="Open attachment"><i class="fas fa-paperclip"></i> Attachment</a>`
+                    : '';
 
                 const instrBox = item.instructions
                     ? `<div class="instr-box"><strong><i class="fas fa-clipboard-list"></i> Instructions</strong>${escapeHtml_(item.instructions)}</div>`
@@ -825,69 +862,30 @@
                                     </span>
                                 </div>
                             </div>
-                            ${(viewBtn || submitBtn || true) ? `<div class="action-group">
-                                ${viewBtn}
-                                ${submitBtn}
-                                <button id="done-btn-${item.id}" class="btn btn-success" style="opacity:${isDone ? '0.5' : '1'};" onclick="toggleTaskStatus('${item.id}')" title="Toggle done status">
-                                    <i class="fas fa-check-double"></i>
-                                </button>
-                            </div>` : ''}
+                            <div class="action-group">
+                                ${viewBtn}${submitBtn}
+                                <button id="done-btn-${item.id}" class="btn btn-success" style="opacity:${isDone ? '0.5' : '1'};" onclick="toggleTaskStatus('${item.id}')" title="Toggle done status"><i class="fas fa-check-double"></i></button>
+                            </div>
                         </div>
                         ${deadlineBadge(item.deadline)}
                         ${instrBox}
                     </div>`;
             } else {
-                /* ✚ module: open-link button only if it has one */
                 const openBtn = item.url
-                    ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary" title="Open module"><i class="fas fa-book-open"></i> Open</a>`
+                    ? `<a href="${escapeHtml_(item.url)}" target="_blank" rel="noopener" class="btn btn-primary"><i class="fas fa-book-open"></i> Open</a>`
                     : '';
                 mods += `
                     <div class="list-item">
                         <div class="resource-info">
                             <div class="resource-icon icon-module"><i class="fas fa-book"></i></div>
-                            <div style="min-width:0; flex:1;"><h4 style="margin:0;" title="${escapeHtml_(item.title)}">${escapeHtml_(item.title)}</h4></div>
+                            <h4>${escapeHtml_(item.title)}</h4>
                         </div>
                         ${openBtn}
                     </div>`;
             }
         });
-
         mContainer.innerHTML = mods || '<div class="ann-empty">No modules yet.</div>';
         aContainer.innerHTML = asg || '<div class="ann-empty">No assignments yet. 🎉</div>';
-    }
-
-    /* ---------- ✚ DIRECT OPEN: link opens immediately, log fires in background ---------- */
-    function attemptSubmit(resourceId, btnEl) {
-        const subUrl = btnEl.dataset.sub;
-        window.open(subUrl, '_blank', 'noopener');   // instant — no server round-trip first
-        btnEl.classList.add('is-loading');
-        // log in background; only surfaces a message if the deadline blocked it
-        apiCall({ action:'logSubmission', userId:currentUser.id, resourceId:String(resourceId) })
-            .then(res => {
-                btnEl.classList.remove('is-loading');
-                if (res.success) showToast('Submission recorded — good luck! 🍀', 'success');
-                else { showToast(res.message || 'Submission not recorded.', 'error'); invalidateCache(); fetchResources(); }
-            })
-            .catch(() => btnEl.classList.remove('is-loading'));
-    }
-
-    async function toggleTaskStatus(id) {
-        const badge = document.getElementById('badge-' + id);
-        const btn = document.getElementById('done-btn-' + id);
-        const res = await apiCall({ action:'toggleTask', userId:currentUser.id, resourceId:id.toString() });
-        if (!res.success) return showToast('Failed to update status.', 'error');
-        if (res.status === 'added') {
-            completedTaskIds.add(id.toString());
-            badge.className = "status-badge badge-done";
-            badge.innerHTML = `<i class="fas fa-circle-check"></i> Completed`;
-            btn.style.opacity = "0.5";
-            showToast('Marked as completed ✓', 'success');
-        } else {
-            completedTaskIds.delete(id.toString());
-            badge.className = "status-badge badge-pending";
-            badge.innerHTML = `<i class="fas fa-clock"></i> Pending`;
-            btn.style.opacity = "1";
-        }
     }
 
     /* ---------- STUDENT GRADES ---------- */
