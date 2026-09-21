@@ -798,10 +798,10 @@
 
                 /* ✚ submission bin renders ONLY if this section has a link.
                      Opens the link INSTANTLY; logging happens in background. */
-                const submitBtn = item.submissionUrls
+                const submitBtn = item.submissionUrl
                     ? (closed
                         ? `<button class="btn btn-locked" disabled title="The deadline has passed"><i class="fas fa-lock"></i> Submission Closed</button>`
-                        : `<button class="btn btn-submit" onclick="attemptSubmit('${item.id}')" data-sub="${escapeHtml_(item.submissionUrls)}" title="Submit your work"><i class="fas fa-paper-plane"></i> Submit Work</button>`)
+                        : `<button class="btn btn-submit" onclick="attemptSubmit('${item.id}')" data-sub="${escapeHtml_(item.submissionUrl)}" title="Submit your work"><i class="fas fa-paper-plane"></i> Submit Work</button>`)
                     : '';   // ✚ no bin → no button at all
 
                 /* ✚ attachment button renders ONLY if a file/link exists */
