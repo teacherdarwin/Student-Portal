@@ -386,7 +386,7 @@
 
     <main class="main-content">
         <header style="margin-bottom:40px;">
-            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v7.2</span>
+            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v7.3</span>
             <h2 id="tab-title" style="font-size:2.5rem; font-weight:800; letter-spacing:-1px;">Dashboard</h2>
         </header>
 
@@ -572,7 +572,7 @@
     </div>
 </div>
 
-<!-- ============================ ✚ v7.2 EDIT-ACCESS MODAL ============================ -->
+<!-- ============================ EDIT-ACCESS MODAL ============================ -->
 <div id="access-modal" class="modal-overlay hidden">
     <div class="card animate__animated animate__zoomIn" style="width:100%; max-width:440px; max-height:90vh; overflow-y:auto;">
         <h2 style="margin-bottom:6px; font-weight:800;">Edit Section Access</h2>
@@ -592,7 +592,9 @@
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0IihZjy8w3AsAZjRJp3wLu2iZvMafRJIfCTFPZC6qqeF8BzENs01-reOX4A-cYLvF/exec';
     const SESSION_KEY = 'mathClass_user';
-    const CACHE_TTL = 30000;
+    /* ✚ v7.3: stale-while-revalidate — cached data shows instantly; refresh happens quietly */
+    const CACHE_TTL = 60000;              /* considered fresh for 60s (no re-fetch at all) */
+    const CACHE_KEY_PREFIX = 'tdc_cache_';
 
     const SECTIONS = ['UNIVERSAL SBE','UNIVERSAL STE','BSN 1B','BSN 1C','BSN 1D','BSN 1E','BSN 1G','BSN 1H','BSN 1M'];
 
@@ -604,8 +606,9 @@
     let resCache = null, resCacheAt = 0;
     let menuOpen = false;
     let lastGrades = [];
-    /* ✚ v7.2: track what the access modal is editing */
-    let accessTarget = null;   /* { type:'resource'|'announcement', id, title } */
+    let accessTarget = null;
+    let lastTeacherResources = [];
+    let lastTeacherAnns = [];
 
     /* ---------- ready helpers ---------- */
     function setReady(state, text) {
@@ -613,9 +616,12 @@
         document.getElementById('ready-text').textContent = text;
     }
     function bootDone(label) {
-        document.getElementById('boot-label').textContent = label || 'Ready!';
-        setTimeout(() => document.getElementById('boot-overlay').classList.add('done'), 350);
+        const el = document.getElementById('boot-label');
+        if (label) el.textContent = label;
+        document.getElementById('boot-overlay').classList.add('done');
     }
+    /* ✚ v7.3: safety net — the boot overlay can NEVER stick more than 3s, whatever happens */
+    setTimeout(() => bootDone(), 3000);
 
     /* ---------- shared helpers ---------- */
     function toggleAuth(type) {
@@ -624,10 +630,8 @@
     }
     function toggleModal(show) { document.getElementById('resource-modal').classList.toggle('hidden', !show); }
     function toggleDeadlineModal(show) { document.getElementById('deadline-modal').classList.toggle('hidden', !show); }
-    /* ✚ v7.2 */
     function toggleAccessModal(show) { document.getElementById('access-modal').classList.toggle('hidden', !show); }
 
-    /* FIX: mobile menu — toggles only the current role's menu */
     function toggleMobileMenu() {
         menuOpen = !menuOpen;
         const stu = document.getElementById('mobile-menu-student');
@@ -663,19 +667,75 @@
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
+    /* ---------- ✚ v7.3: STALE-WHILE-REVALIDATE CACHE ----------
+       1. If we have a cached copy (memory or sessionStorage) → return it IMMEDIATELY.
+       2. Then re-fetch in the background and update the cache silently.
+       Result: tab switching and page refreshes render instantly. */
+    function cacheKey(action) { return CACHE_KEY_PREFIX + action + '_' + (currentUser ? currentUser.id : 'anon'); }
+    function readDiskCache(key) {
+        try { const raw = sessionStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
+    }
+    function writeDiskCache(key, val) {
+        try { sessionStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+    }
+
+    async function cachedApiCall(action, payload) {
+        const key = cacheKey(action);
+        const mem = resCache && resCache._key === key ? resCache : null;
+        const cached = mem || readDiskCache(key);
+        const isFresh = cached && (Date.now() - cached._at) < CACHE_TTL;
+
+        if (cached) {
+            /* serve stale instantly, refresh in background if older than TTL */
+            if (!isFresh) {
+                apiCall({ action, ...payload }).then(res => {
+                    if (res.success) {
+                        const wrapped = { ...res, _at: Date.now(), _key: key };
+                        resCache = wrapped; writeDiskCache(key, wrapped);
+                    }
+                }).catch(() => {});
+            }
+            return cached;
+        }
+        /* nothing cached → must wait for the network (first load only) */
+        const res = await apiCall({ action, ...payload });
+        if (res.success) {
+            const wrapped = { ...res, _at: Date.now(), _key: key };
+            resCache = wrapped; writeDiskCache(key, wrapped);
+        }
+        return res;
+    }
+    function invalidateCache() {
+        resCache = null;
+        if (!currentUser) return;
+        try {
+            Object.keys(sessionStorage)
+                .filter(k => k.startsWith(CACHE_KEY_PREFIX))
+                .forEach(k => sessionStorage.removeItem(k));
+        } catch (e) {}
+    }
+    /* ✚ v7.3: prewarm — fire the likely-first requests the moment the user is known */
+    function prewarmCache() {
+        if (!currentUser) return;
+        cachedApiCall('fetchResources', { userId: currentUser.id }).catch(() => {});
+        if (currentUser.role === 'teacher') {
+            cachedApiCall('fetchResourcesTeacher', { userId: currentUser.id }).catch(() => {});
+        }
+    }
+
     /* ---------- section visibility helpers ---------- */
     function parseTargetSections(item) {
         const raw = item.targetSections || item.visibleSections || item.sections || '';
         if (Array.isArray(raw)) return raw.map(s => String(s).trim()).filter(Boolean);
         const s = String(raw || '').trim();
-        if (!s || s === '[]') return [];              // empty = visible to ALL
+        if (!s || s === '[]') return [];
         try { const arr = JSON.parse(s); return Array.isArray(arr) ? arr.map(x => String(x).trim()) : []; } catch (e) {
             return s.split(',').map(x => x.trim()).filter(Boolean);
         }
     }
     function canSee(item, section) {
         const targets = parseTargetSections(item);
-        if (!targets.length) return true;             // no target = everyone
+        if (!targets.length) return true;
         const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
         const my = norm(section);
         if (!my) return false;
@@ -687,7 +747,6 @@
         return t.map(s => `<span class="visible-chip"><i class="fas fa-users-rectangle"></i> ${escapeHtml_(s)}</span>`).join('');
     }
 
-    /* multi-select section picker */
     function buildSecPicker(containerId, preselected = []) {
         const box = document.getElementById(containerId);
         const set = new Set(preselected.map(s => String(s).trim()));
@@ -698,7 +757,6 @@
         return [...document.querySelectorAll('#' + containerId + ' input:checked')].map(i => i.value);
     }
 
-    /* ---------- register section dropdown ---------- */
     function sectionOptions(selected, placeholder) {
         return `<option value="">${placeholder}</option>` +
             SECTIONS.map(s => `<option value="${escapeHtml_(s)}" ${s === selected ? 'selected' : ''}>${escapeHtml_(s)}</option>`).join('');
@@ -726,6 +784,7 @@
             if (document.getElementById('remember-me').checked) localStorage.setItem('tdc_remember_email', email);
             else localStorage.removeItem('tdc_remember_email');
             sessionStorage.setItem(SESSION_KEY, JSON.stringify(res.user));
+            prewarmCache();                    /* ✚ v7.3: start fetching before the portal even renders */
             openPortal(res.user);
         } else showToast(res.message || 'Invalid email or password.', 'error');
     }
@@ -757,6 +816,8 @@
         closeMobileMenu();
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('mobile-navigation-bar').classList.remove('hidden');
+        /* ✚ v7.3 FIX: hide the boot overlay on EVERY portal-open path (was missing → stuck on refresh) */
+        bootDone('Welcome back, ' + (user.display_name || 'user') + '!');
         if (user.role === 'teacher') {
             document.getElementById('portal-teacher').classList.remove('hidden');
             document.getElementById('teacher-name').innerText = user.display_name || 'Teacher';
@@ -772,7 +833,11 @@
             updateDashboardStats();
         }
     }
-    function signOut() { sessionStorage.removeItem(SESSION_KEY); location.reload(); }
+    function signOut() {
+        sessionStorage.removeItem(SESSION_KEY);
+        invalidateCache();
+        location.reload();
+    }
 
     /* ---------- STUDENT TABS ---------- */
     function showTab(tabName) {
@@ -790,26 +855,17 @@
         else fetchResources();
     }
 
-    async function getCachedResources() {
-        const now = Date.now();
-        if (resCache && (now - resCacheAt) < CACHE_TTL) return resCache;
-        const res = await apiCall({ action:'fetchResources', userId:currentUser.id });
-        if (res.success) { resCache = res; resCacheAt = now; }
-        return res;
-    }
-    function invalidateCache() { resCache = null; }
-
     async function updateDashboardStats() {
         setReady('', 'Syncing…');
         const [progRes, annRes, resRes] = await Promise.all([
             apiCall({ action:'fetchProgress', userId:currentUser.id }),
-            apiCall({ action:'fetchAnnouncements' }),
-            getCachedResources()
+            cachedApiCall('fetchAnnouncements', {}),                       /* ✚ v7.3: cached */
+            cachedApiCall('fetchResources', { userId: currentUser.id })    /* ✚ v7.3: cached */
         ]);
         if (progRes.success) completedTaskIds = new Set(progRes.completedTaskIds);
 
         const myAnns = (annRes.success ? annRes.announcements : []).filter(a => canSee(a, currentUser.section));
-        renderAnnouncements('student-announcements', myAnns, false);   /* students get no edit/delete tools */
+        renderAnnouncements('student-announcements', myAnns, false);
 
         if (!resRes.success) { setReady('error','Sync failed'); return; }
         const resources = resRes.resources.filter(i => canSee(i, currentUser.section));
@@ -825,7 +881,6 @@
         setReady('ready','Ready ✓');
     }
 
-    /* ✚ v7.2: renderAnnouncements now takes showTools — edit/delete only on the teacher list */
     function renderAnnouncements(boxId, anns, showTools = false) {
         const box = document.getElementById(boxId);
         if (!anns.length) { box.innerHTML = '<div class="ann-empty">No announcements yet. You\'re all caught up! 🎉</div>'; return; }
@@ -855,12 +910,11 @@
         return `<span class="dl-badge dl-open"><i class="fas fa-calendar-day"></i> Due ${when}</span>`;
     }
 
-    /* ---------- STUDENT RESOURCES — section-filtered, single submit link ---------- */
+    /* ---------- STUDENT RESOURCES — renders instantly from cache ---------- */
     async function fetchResources() {
-        setReady('', 'Syncing…');
         const [progRes, resRes] = await Promise.all([
             apiCall({ action:'fetchProgress', userId:currentUser.id }),
-            getCachedResources()
+            cachedApiCall('fetchResources', { userId: currentUser.id })    /* ✚ v7.3: cached */
         ]);
         if (progRes.success) completedTaskIds = new Set(progRes.completedTaskIds);
         if (!resRes.success) { setReady('error','Sync failed'); return; }
@@ -972,7 +1026,7 @@
         }
     }
 
-    /* ---------- STUDENT GRADES — exact values, no rounding ---------- */
+    /* ---------- STUDENT GRADES ---------- */
     async function loadStudentGrades() {
         const box = document.getElementById('grades-container');
         box.innerHTML = '<div class="skel card-skel"></div>';
@@ -1021,10 +1075,13 @@
 
     async function loadTeacherData() {
         setReady('', 'Syncing…');
-        const json = await apiCall({ action:'fetchResourcesTeacher', userId:currentUser.id });
+        const json = await cachedApiCall('fetchResourcesTeacher', { userId: currentUser.id });   /* ✚ v7.3: cached */
         if (!json.success) { setReady('error','Sync failed'); showToast(json.message || 'Failed to load data.', 'error'); return; }
 
         const items = json.resources || [];
+        lastTeacherResources = items;
+        lastTeacherAnns = json.announcements || [];
+
         document.getElementById('stat-m-count').innerText = items.filter(r => String(r.type).toLowerCase() === 'module').length;
         document.getElementById('stat-a-count').innerText = items.filter(r => String(r.type).toLowerCase() === 'assignment').length;
         document.getElementById('stat-s-count').innerText = items.length;
@@ -1056,8 +1113,7 @@
             </tr>`;
         }).join('');
 
-        /* ✚ v7.2: teacher list now shows edit-access + delete tools */
-        renderAnnouncements('ann-list', json.announcements || [], true);
+        renderAnnouncements('ann-list', lastTeacherAnns, true);
         setReady('ready','Ready ✓');
     }
 
@@ -1065,7 +1121,7 @@
         const title = document.getElementById(titleId).value.trim();
         const body = document.getElementById(bodyId).value.trim();
         if (!title || !body) return showToast('Please add a title and a message.', 'error');
-        const targets = readSecPicker(pickerId);      /* [] = everyone */
+        const targets = readSecPicker(pickerId);
         const btn = document.getElementById(btnId);
         btn.classList.add('is-loading');
         const res = await apiCall({ action:'postAnnouncement', userId:currentUser.id, title, body, targetSections:JSON.stringify(targets) });
@@ -1075,16 +1131,16 @@
             document.getElementById(titleId).value = '';
             document.getElementById(bodyId).value = '';
             buildSecPicker(pickerId);
+            invalidateCache();
             loadTeacherData();
         } else showToast(res.message || 'Failed to publish.', 'error');
     }
 
-    /* ---------- ✚ v7.2: EDIT SECTION ACCESS (resources + announcements) ---------- */
+    /* ---------- EDIT SECTION ACCESS ---------- */
     function editAccess(type, id, title) {
         accessTarget = { type, id: String(id), title };
         document.getElementById('access-label').innerHTML =
             `Update which sections can see <strong>${escapeHtml_(title)}</strong>.`;
-        /* pre-fill the picker with the current targets */
         const src = (type === 'announcement')
             ? (lastTeacherAnns.find(a => String(a.id) === String(id)) || {})
             : (lastTeacherResources.find(r => String(r.id) === String(id)) || {});
@@ -1111,11 +1167,12 @@
                 : 'Access updated — now visible to everyone.', 'success');
             toggleAccessModal(false);
             accessTarget = null;
+            invalidateCache();
             loadTeacherData();
         } else showToast(res.message || 'Failed to update access.', 'error');
     }
 
-    /* ---------- ✚ v7.2: DELETE RESOURCE ---------- */
+    /* ---------- DELETE ---------- */
     async function deleteResource(resourceId, title) {
         if (!confirm(`Delete "${title}"?\n\nStudents will no longer see it. This cannot be undone.`)) return;
         const res = await apiCall({ action:'deleteResource', userId:currentUser.id, resourceId:String(resourceId) });
@@ -1129,7 +1186,7 @@
     async function deleteAnnouncement(id) {
         if (!confirm('Delete this announcement? Students will no longer see it.')) return;
         const res = await apiCall({ action:'deleteAnnouncement', userId:currentUser.id, announcementId:id });
-        if (res.success) { showToast('Announcement deleted.', 'success'); loadTeacherData(); }
+        if (res.success) { showToast('Announcement deleted.', 'success'); invalidateCache(); loadTeacherData(); }
         else showToast('Failed to delete.', 'error');
     }
 
@@ -1148,7 +1205,7 @@
         btn.classList.add('is-loading');
         const res = await apiCall({ action:'extendDeadline', userId:currentUser.id, resourceId:dlTargetId, deadline:val });
         btn.classList.remove('is-loading');
-        if (res.success) { showToast('Deadline updated ⏰', 'success'); toggleDeadlineModal(false); loadTeacherData(); }
+        if (res.success) { showToast('Deadline updated ⏰', 'success'); toggleDeadlineModal(false); invalidateCache(); loadTeacherData(); }
         else showToast(res.message || 'Failed to update deadline.', 'error');
     }
 
@@ -1373,24 +1430,11 @@
     document.getElementById("login-password").addEventListener("keydown", e => { if (e.key === "Enter") signIn(); });
     document.getElementById("login-email").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("login-password").focus(); });
 
-    /* ---------- ✚ v7.2: keep latest teacher lists in memory so the access modal can pre-fill ---------- */
-    let lastTeacherResources = [];
-    let lastTeacherAnns = [];
-    /* wrap loadTeacherData's fetch to capture the raw lists */
-    const _origLoadTeacherData = loadTeacherData;
-    async function loadTeacherData() {
-        setReady('', 'Syncing…');
-        const json = await apiCall({ action:'fetchResourcesTeacher', userId:currentUser.id });
-        if (!json.success) { setReady('error','Sync failed'); showToast(json.message || 'Failed to load data.', 'error'); return; }
-        lastTeacherResources = json.resources || [];
-        lastTeacherAnns = json.announcements || [];
-        await _origLoadTeacherData();
-    }
-
     /* ---------- BOOT ---------- */
     const savedUser = sessionStorage.getItem(SESSION_KEY);
     if (savedUser) {
-        openPortal(JSON.parse(savedUser));
+        openPortal(JSON.parse(savedUser));   /* openPortal now calls bootDone — overlay always clears */
+        prewarmCache();                       /* ✚ v7.3: refresh data in the background on refresh */
     } else {
         bootDone('Welcome!');
         setReady('ready','Ready ✓');
