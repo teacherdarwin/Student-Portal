@@ -105,7 +105,6 @@
         .badge-pending{ background:#f1f5f9; color:#64748b; }
         .badge-done{ background:#ecfdf5; color:#10b981; border:1px solid rgba(16,185,129,.2); }
 
-        /* section picker (multi-select pills) */
         .sec-picker{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
         .sec-pick{ display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--card-border); border-radius:99px; padding:7px 13px; font-size:.78rem; font-weight:700; cursor:pointer; user-select:none; transition:.2s; color:var(--text-p); }
         .sec-pick input{ width:14px; height:14px; padding:0; margin:0; accent-color:var(--accent); cursor:pointer; }
@@ -386,7 +385,7 @@
 
     <main class="main-content">
         <header style="margin-bottom:40px;">
-            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v7.3</span>
+            <span style="color:var(--accent); font-weight:700; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;">Portal v8.0</span>
             <h2 id="tab-title" style="font-size:2.5rem; font-weight:800; letter-spacing:-1px;">Dashboard</h2>
         </header>
 
@@ -590,10 +589,11 @@
 
 <!-- ============================ MAIN SCRIPT ============================ -->
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzkHxOpAcUdnw6HKgG-8FZO1tOuyhIRSPADyYMyECm7UP1Yvh5-wud1BM7hBe00eVUg1A/exec';
+    /* ⚠️ Paste your web app URL here (Deploy → Manage deployments — the ACTIVE one) */
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwl9chnStggjpwbh0ejpPjLRJ6veBkmBLQd-0Rs0oGa9_5HlE6sVR6OQNDuUYuYMTM2/exec';
+
     const SESSION_KEY = 'mathClass_user';
-    /* ✚ v7.3: stale-while-revalidate — cached data shows instantly; refresh happens quietly */
-    const CACHE_TTL = 60000;              /* considered fresh for 60s (no re-fetch at all) */
+    const CACHE_TTL = 60000;
     const CACHE_KEY_PREFIX = 'tdc_cache_';
 
     const SECTIONS = ['UNIVERSAL SBE','UNIVERSAL STE','BSN 1B','BSN 1C','BSN 1D','BSN 1E','BSN 1G','BSN 1H','BSN 1M'];
@@ -603,27 +603,80 @@
     let selectedRole = 'student';
     let dlTargetId = null;
     let allStudents = [];
-    let resCache = null, resCacheAt = 0;
     let menuOpen = false;
     let lastGrades = [];
     let accessTarget = null;
     let lastTeacherResources = [];
     let lastTeacherAnns = [];
 
-    /* ---------- ready helpers ---------- */
+    /* =================== API LAYER — single request path, always checked =================== */
+    async function apiCall(payload) {
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            const text = await res.text();
+            let json;
+            try { json = JSON.parse(text); }
+            catch (e) {
+                /* server returned HTML (wrong deployment/access) or an error page */
+                console.error('Non-JSON response (check deployment URL & access):', text.slice(0, 200));
+                setReady('error', 'Server error');
+                return { success: false, message: 'Server returned an invalid response. Check the Apps Script deployment.' };
+            }
+            return json;
+        } catch (err) {
+            console.error('API Error:', err);
+            setReady('error', 'Offline');
+            return { success: false, message: 'Server connection error.' };
+        }
+    }
+
+    /* ---------- stale-while-revalidate cache ---------- */
+    function cacheKey(action) { return CACHE_KEY_PREFIX + action + '_' + (currentUser ? currentUser.id : 'anon'); }
+    function readDiskCache(key) { try { const r = sessionStorage.getItem(key); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+    function writeDiskCache(key, val) { try { sessionStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+    async function cachedApiCall(action, payload = {}) {
+        const key = cacheKey(action);
+        const cached = readDiskCache(key);
+        const isFresh = cached && (Date.now() - cached._at) < CACHE_TTL;
+        if (cached) {
+            if (!isFresh) {
+                apiCall({ action, ...payload }).then(res => {
+                    if (res.success) { const w = { ...res, _at: Date.now(), _key: key }; writeDiskCache(key, w); }
+                }).catch(() => {});
+            }
+            return cached;
+        }
+        const res = await apiCall({ action, ...payload });
+        if (res.success) { const w = { ...res, _at: Date.now(), _key: key }; writeDiskCache(key, w); }
+        return res;
+    }
+    function invalidateCache() {
+        try {
+            Object.keys(sessionStorage).filter(k => k.startsWith(CACHE_KEY_PREFIX)).forEach(k => sessionStorage.removeItem(k));
+        } catch (e) {}
+    }
+    function prewarmCache() {
+        if (!currentUser) return;
+        cachedApiCall('fetchResources', { userId: currentUser.id }).catch(() => {});
+        if (currentUser.role === 'teacher') cachedApiCall('fetchResourcesTeacher', { userId: currentUser.id }).catch(() => {});
+    }
+
+    /* ---------- helpers ---------- */
     function setReady(state, text) {
         document.getElementById('ready-pill').className = state;
         document.getElementById('ready-text').textContent = text;
     }
     function bootDone(label) {
-        const el = document.getElementById('boot-label');
-        if (label) el.textContent = label;
+        if (label) document.getElementById('boot-label').textContent = label;
         document.getElementById('boot-overlay').classList.add('done');
     }
-    /* ✚ v7.3: safety net — the boot overlay can NEVER stick more than 3s, whatever happens */
-    setTimeout(() => bootDone(), 3000);
+    setTimeout(() => bootDone(), 3000);   /* safety net: never stuck */
 
-    /* ---------- shared helpers ---------- */
     function toggleAuth(type) {
         document.getElementById('login-form').classList.toggle('hidden', type === 'register');
         document.getElementById('register-form').classList.toggle('hidden', type === 'login');
@@ -636,13 +689,8 @@
         menuOpen = !menuOpen;
         const stu = document.getElementById('mobile-menu-student');
         const tea = document.getElementById('mobile-menu-teacher');
-        if (currentUser && currentUser.role === 'teacher') {
-            tea.classList.toggle('show', menuOpen);
-            stu.classList.remove('show');
-        } else {
-            stu.classList.toggle('show', menuOpen);
-            tea.classList.remove('show');
-        }
+        if (currentUser && currentUser.role === 'teacher') { tea.classList.toggle('show', menuOpen); stu.classList.remove('show'); }
+        else { stu.classList.toggle('show', menuOpen); tea.classList.remove('show'); }
         document.getElementById('hamburger-icon').className = menuOpen ? 'fas fa-xmark' : 'fas fa-bars';
     }
     function closeMobileMenu() {
@@ -657,81 +705,18 @@
         t.textContent = msg; t.className = 'toast show ' + type;
         clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 3200);
     }
-    async function apiCall(payload) {
-        try {
-            const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
-            return await res.json();
-        } catch (err) { console.error('API Error:', err); setReady('error','Offline'); return { success:false, message:'Server connection error.' }; }
-    }
     function escapeHtml_(s) {
         return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
-    /* ---------- ✚ v7.3: STALE-WHILE-REVALIDATE CACHE ----------
-       1. If we have a cached copy (memory or sessionStorage) → return it IMMEDIATELY.
-       2. Then re-fetch in the background and update the cache silently.
-       Result: tab switching and page refreshes render instantly. */
-    function cacheKey(action) { return CACHE_KEY_PREFIX + action + '_' + (currentUser ? currentUser.id : 'anon'); }
-    function readDiskCache(key) {
-        try { const raw = sessionStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
-    }
-    function writeDiskCache(key, val) {
-        try { sessionStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
-    }
-
-    async function cachedApiCall(action, payload) {
-        const key = cacheKey(action);
-        const mem = resCache && resCache._key === key ? resCache : null;
-        const cached = mem || readDiskCache(key);
-        const isFresh = cached && (Date.now() - cached._at) < CACHE_TTL;
-
-        if (cached) {
-            /* serve stale instantly, refresh in background if older than TTL */
-            if (!isFresh) {
-                apiCall({ action, ...payload }).then(res => {
-                    if (res.success) {
-                        const wrapped = { ...res, _at: Date.now(), _key: key };
-                        resCache = wrapped; writeDiskCache(key, wrapped);
-                    }
-                }).catch(() => {});
-            }
-            return cached;
-        }
-        /* nothing cached → must wait for the network (first load only) */
-        const res = await apiCall({ action, ...payload });
-        if (res.success) {
-            const wrapped = { ...res, _at: Date.now(), _key: key };
-            resCache = wrapped; writeDiskCache(key, wrapped);
-        }
-        return res;
-    }
-    function invalidateCache() {
-        resCache = null;
-        if (!currentUser) return;
-        try {
-            Object.keys(sessionStorage)
-                .filter(k => k.startsWith(CACHE_KEY_PREFIX))
-                .forEach(k => sessionStorage.removeItem(k));
-        } catch (e) {}
-    }
-    /* ✚ v7.3: prewarm — fire the likely-first requests the moment the user is known */
-    function prewarmCache() {
-        if (!currentUser) return;
-        cachedApiCall('fetchResources', { userId: currentUser.id }).catch(() => {});
-        if (currentUser.role === 'teacher') {
-            cachedApiCall('fetchResourcesTeacher', { userId: currentUser.id }).catch(() => {});
-        }
-    }
-
-    /* ---------- section visibility helpers ---------- */
+    /* ---------- section visibility ---------- */
     function parseTargetSections(item) {
         const raw = item.targetSections || item.visibleSections || item.sections || '';
         if (Array.isArray(raw)) return raw.map(s => String(s).trim()).filter(Boolean);
         const s = String(raw || '').trim();
         if (!s || s === '[]') return [];
-        try { const arr = JSON.parse(s); return Array.isArray(arr) ? arr.map(x => String(x).trim()) : []; } catch (e) {
-            return s.split(',').map(x => x.trim()).filter(Boolean);
-        }
+        try { const arr = JSON.parse(s); return Array.isArray(arr) ? arr.map(x => String(x).trim()) : []; }
+        catch (e) { return s.split(',').map(x => x.trim()).filter(Boolean); }
     }
     function canSee(item, section) {
         const targets = parseTargetSections(item);
@@ -778,27 +763,27 @@
         if (!email || !password) return showToast('Please fill in both fields.', 'error');
         const btn = document.getElementById('signin-btn');
         btn.classList.add('is-loading');
-        const res = await apiCall({ action:'signIn', email, password });
+        const res = await apiCall({ action: 'signIn', email, password });
         btn.classList.remove('is-loading');
         if (res.success) {
             if (document.getElementById('remember-me').checked) localStorage.setItem('tdc_remember_email', email);
             else localStorage.removeItem('tdc_remember_email');
             sessionStorage.setItem(SESSION_KEY, JSON.stringify(res.user));
-            prewarmCache();                    /* ✚ v7.3: start fetching before the portal even renders */
+            prewarmCache();
             openPortal(res.user);
         } else showToast(res.message || 'Invalid email or password.', 'error');
     }
 
     async function signUp() {
         const payload = {
-            action:'signUp',
-            email:document.getElementById('reg-email').value.trim(),
-            password:document.getElementById('reg-password').value,
-            display_name:document.getElementById('reg-username').value.trim(),
-            student_id:document.getElementById('reg-id').value.trim(),
-            section:document.getElementById('reg-section').value,
-            role:selectedRole,
-            teacher_code:document.getElementById('reg-teacher-code').value
+            action: 'signUp',
+            email: document.getElementById('reg-email').value.trim(),
+            password: document.getElementById('reg-password').value,
+            display_name: document.getElementById('reg-username').value.trim(),
+            student_id: document.getElementById('reg-id').value.trim(),
+            section: document.getElementById('reg-section').value,
+            role: selectedRole,
+            teacher_code: document.getElementById('reg-teacher-code').value
         };
         if (!payload.display_name || !payload.email || !payload.password) return showToast('Please fill in all required fields.', 'error');
         if (payload.role === 'student' && !payload.section) return showToast('Please select your section.', 'error');
@@ -816,7 +801,6 @@
         closeMobileMenu();
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('mobile-navigation-bar').classList.remove('hidden');
-        /* ✚ v7.3 FIX: hide the boot overlay on EVERY portal-open path (was missing → stuck on refresh) */
         bootDone('Welcome back, ' + (user.display_name || 'user') + '!');
         if (user.role === 'teacher') {
             document.getElementById('portal-teacher').classList.remove('hidden');
@@ -833,11 +817,7 @@
             updateDashboardStats();
         }
     }
-    function signOut() {
-        sessionStorage.removeItem(SESSION_KEY);
-        invalidateCache();
-        location.reload();
-    }
+    function signOut() { sessionStorage.removeItem(SESSION_KEY); invalidateCache(); location.reload(); }
 
     /* ---------- STUDENT TABS ---------- */
     function showTab(tabName) {
@@ -858,16 +838,16 @@
     async function updateDashboardStats() {
         setReady('', 'Syncing…');
         const [progRes, annRes, resRes] = await Promise.all([
-            apiCall({ action:'fetchProgress', userId:currentUser.id }),
-            cachedApiCall('fetchAnnouncements', {}),                       /* ✚ v7.3: cached */
-            cachedApiCall('fetchResources', { userId: currentUser.id })    /* ✚ v7.3: cached */
+            apiCall({ action: 'fetchProgress', userId: currentUser.id }),
+            cachedApiCall('fetchAnnouncements'),
+            cachedApiCall('fetchResources', { userId: currentUser.id })
         ]);
         if (progRes.success) completedTaskIds = new Set(progRes.completedTaskIds);
 
         const myAnns = (annRes.success ? annRes.announcements : []).filter(a => canSee(a, currentUser.section));
         renderAnnouncements('student-announcements', myAnns, false);
 
-        if (!resRes.success) { setReady('error','Sync failed'); return; }
+        if (!resRes.success) { setReady('error', 'Sync failed'); return; }
         const resources = resRes.resources.filter(i => canSee(i, currentUser.section));
         const modules = resources.filter(i => (i.type || 'module').toLowerCase() !== 'assignment').length;
         const totalTasks = resources.filter(i => (i.type || '').toLowerCase() === 'assignment').length;
@@ -878,7 +858,7 @@
         document.getElementById('welcome-msg').innerHTML = actualPending > 0
             ? `Greetings, <strong>${name}</strong>. There are <strong>${actualPending}</strong> assignments awaiting.`
             : `Greetings, <strong>${name}</strong>. Everything is up to date.`;
-        setReady('ready','Ready ✓');
+        setReady('ready', 'Ready ✓');
     }
 
     function renderAnnouncements(boxId, anns, showTools = false) {
@@ -910,18 +890,18 @@
         return `<span class="dl-badge dl-open"><i class="fas fa-calendar-day"></i> Due ${when}</span>`;
     }
 
-    /* ---------- STUDENT RESOURCES — renders instantly from cache ---------- */
+    /* ---------- STUDENT RESOURCES ---------- */
     async function fetchResources() {
         const [progRes, resRes] = await Promise.all([
-            apiCall({ action:'fetchProgress', userId:currentUser.id }),
-            cachedApiCall('fetchResources', { userId: currentUser.id })    /* ✚ v7.3: cached */
+            apiCall({ action: 'fetchProgress', userId: currentUser.id }),
+            cachedApiCall('fetchResources', { userId: currentUser.id })
         ]);
         if (progRes.success) completedTaskIds = new Set(progRes.completedTaskIds);
-        if (!resRes.success) { setReady('error','Sync failed'); return; }
+        if (!resRes.success) { setReady('error', 'Sync failed'); return; }
 
         const mContainer = document.getElementById('modules-container');
         const aContainer = document.getElementById('assignments-container');
-        setReady('ready','Ready ✓');
+        setReady('ready', 'Ready ✓');
 
         let mods = '', asg = '';
         resRes.resources
@@ -998,7 +978,7 @@
         window.open(subUrl, '_blank', 'noopener');
         if (btnEl) btnEl.classList.add('is-loading');
 
-        apiCall({ action:'logSubmission', userId:currentUser.id, resourceId:String(resourceId) })
+        apiCall({ action: 'logSubmission', userId: currentUser.id, resourceId: String(resourceId) })
             .then(res => {
                 if (btnEl) btnEl.classList.remove('is-loading');
                 if (res.success) showToast('Submission recorded — good luck! 🍀', 'success');
@@ -1010,7 +990,7 @@
     async function toggleTaskStatus(id) {
         const badge = document.getElementById('badge-' + id);
         const btn = document.getElementById('done-btn-' + id);
-        const res = await apiCall({ action:'toggleTask', userId:currentUser.id, resourceId:id.toString() });
+        const res = await apiCall({ action: 'toggleTask', userId: currentUser.id, resourceId: id.toString() });
         if (!res.success) return showToast('Failed to update status.', 'error');
         if (res.status === 'added') {
             completedTaskIds.add(id.toString());
@@ -1030,16 +1010,13 @@
     async function loadStudentGrades() {
         const box = document.getElementById('grades-container');
         box.innerHTML = '<div class="skel card-skel"></div>';
-        const res = await apiCall({ action:'fetchGrades', userId:currentUser.id });
+        const res = await apiCall({ action: 'fetchGrades', userId: currentUser.id });
         if (!res.success) { box.innerHTML = '<div class="ann-empty">Could not load grades. Try again later.</div>'; return; }
         if (!res.grades.length) { box.innerHTML = '<div class="ann-empty">No grades posted yet. Check back after your first quiz! 📊</div>'; return; }
         const order = ['Prelims','Midterms','Semi-Finals','Finals'];
         res.grades.sort((a,b) => order.indexOf(a.term) - order.indexOf(b.term));
 
-        const formatGrade = (v) => {
-            const n = parseFloat(v);
-            return isNaN(n) ? String(v || '') : String(n);
-        };
+        const formatGrade = (v) => { const n = parseFloat(v); return isNaN(n) ? String(v || '') : String(n); };
         const avgNum = res.grades.reduce((s,g) => s + parseFloat(g.grade || 0), 0) / res.grades.length;
         const avg = isNaN(avgNum) ? '—' : String(Math.round(avgNum * 100) / 100);
 
@@ -1075,8 +1052,8 @@
 
     async function loadTeacherData() {
         setReady('', 'Syncing…');
-        const json = await cachedApiCall('fetchResourcesTeacher', { userId: currentUser.id });   /* ✚ v7.3: cached */
-        if (!json.success) { setReady('error','Sync failed'); showToast(json.message || 'Failed to load data.', 'error'); return; }
+        const json = await cachedApiCall('fetchResourcesTeacher', { userId: currentUser.id });
+        if (!json.success) { setReady('error', 'Sync failed'); showToast(json.message || 'Failed to load data.', 'error'); return; }
 
         const items = json.resources || [];
         lastTeacherResources = items;
@@ -1114,7 +1091,7 @@
         }).join('');
 
         renderAnnouncements('ann-list', lastTeacherAnns, true);
-        setReady('ready','Ready ✓');
+        setReady('ready', 'Ready ✓');
     }
 
     async function postAnnouncement(titleId, bodyId, btnId, pickerId) {
@@ -1124,7 +1101,7 @@
         const targets = readSecPicker(pickerId);
         const btn = document.getElementById(btnId);
         btn.classList.add('is-loading');
-        const res = await apiCall({ action:'postAnnouncement', userId:currentUser.id, title, body, targetSections:JSON.stringify(targets) });
+        const res = await apiCall({ action: 'postAnnouncement', userId: currentUser.id, title, body, targetSections: JSON.stringify(targets) });
         btn.classList.remove('is-loading');
         if (res.success) {
             showToast(targets.length ? `Announcement published to ${targets.length} section${targets.length > 1 ? 's' : ''} 📢` : 'Announcement published to everyone 📢', 'success');
@@ -1175,17 +1152,14 @@
     /* ---------- DELETE ---------- */
     async function deleteResource(resourceId, title) {
         if (!confirm(`Delete "${title}"?\n\nStudents will no longer see it. This cannot be undone.`)) return;
-        const res = await apiCall({ action:'deleteResource', userId:currentUser.id, resourceId:String(resourceId) });
-        if (res.success) {
-            showToast('Resource deleted.', 'success');
-            invalidateCache();
-            loadTeacherData();
-        } else showToast(res.message || 'Failed to delete resource.', 'error');
+        const res = await apiCall({ action: 'deleteResource', userId: currentUser.id, resourceId: String(resourceId) });
+        if (res.success) { showToast('Resource deleted.', 'success'); invalidateCache(); loadTeacherData(); }
+        else showToast(res.message || 'Failed to delete resource.', 'error');
     }
 
     async function deleteAnnouncement(id) {
         if (!confirm('Delete this announcement? Students will no longer see it.')) return;
-        const res = await apiCall({ action:'deleteAnnouncement', userId:currentUser.id, announcementId:id });
+        const res = await apiCall({ action: 'deleteAnnouncement', userId: currentUser.id, announcementId: id });
         if (res.success) { showToast('Announcement deleted.', 'success'); invalidateCache(); loadTeacherData(); }
         else showToast('Failed to delete.', 'error');
     }
@@ -1203,7 +1177,7 @@
         if (!val || !dlTargetId) return showToast('Please pick a date and time.', 'error');
         const btn = document.getElementById('dl-save');
         btn.classList.add('is-loading');
-        const res = await apiCall({ action:'extendDeadline', userId:currentUser.id, resourceId:dlTargetId, deadline:val });
+        const res = await apiCall({ action: 'extendDeadline', userId: currentUser.id, resourceId: dlTargetId, deadline: val });
         btn.classList.remove('is-loading');
         if (res.success) { showToast('Deadline updated ⏰', 'success'); toggleDeadlineModal(false); invalidateCache(); loadTeacherData(); }
         else showToast(res.message || 'Failed to update deadline.', 'error');
@@ -1212,8 +1186,8 @@
     /* ---------- GRADEBOOK ---------- */
     async function loadGradebook() {
         const [stuRes, gradeRes] = await Promise.all([
-            apiCall({ action:'fetchStudents', userId:currentUser.id }),
-            apiCall({ action:'fetchGrades', userId:currentUser.id })
+            apiCall({ action: 'fetchStudents', userId: currentUser.id }),
+            apiCall({ action: 'fetchGrades', userId: currentUser.id })
         ]);
         allStudents = stuRes.success ? stuRes.students : [];
         lastGrades = gradeRes.success ? gradeRes.grades : [];
@@ -1232,19 +1206,11 @@
         const sec = document.getElementById('gb-section').value;
         const term = document.getElementById('gb-term').value;
         const sel = document.getElementById('gb-student');
-
-        const gradedIds = new Set(
-            lastGrades
-                .filter(g => g.term === term)
-                .map(g => String(g.userId))
-        );
-
+        const gradedIds = new Set(lastGrades.filter(g => g.term === term).map(g => String(g.userId)));
         const pool = (sec ? allStudents.filter(s => s.section === sec) : allStudents)
             .filter(s => !gradedIds.has(String(s.id)));
-
         sel.innerHTML = '<option value="">Select student…</option>' +
             pool.map(s => `<option value="${s.id}">${escapeHtml_(s.display_name)}${s.student_id ? ' (' + escapeHtml_(s.student_id) + ')' : ''}${s.section ? ' · ' + escapeHtml_(s.section) : ''}</option>`).join('');
-
         if (!pool.length) {
             sel.innerHTML = `<option value="">${gradedIds.size ? 'All students here are graded for this term ✓' : 'No students found'}</option>`;
         }
@@ -1281,7 +1247,7 @@
         if (grade === '' || +grade < 0 || +grade > 100) return showToast('Enter a grade between 0 and 100.', 'error');
         const btn = document.getElementById('gb-save');
         btn.classList.add('is-loading');
-        const res = await apiCall({ action:'saveGrade', userId:currentUser.id, targetStudentId:studentId, term, grade:+grade, remarks });
+        const res = await apiCall({ action: 'saveGrade', userId: currentUser.id, targetStudentId: studentId, term, grade: +grade, remarks });
         btn.classList.remove('is-loading');
         if (res.success) {
             showToast('Grade saved — the student can now see it. 🎓', 'success');
@@ -1303,17 +1269,16 @@
 
     async function deleteGrade(gradeId) {
         if (!confirm('Delete this grade entry?')) return;
-        const res = await apiCall({ action:'deleteGrade', userId:currentUser.id, gradeId });
+        const res = await apiCall({ action: 'deleteGrade', userId: currentUser.id, gradeId });
         if (res.success) { showToast('Grade deleted.', 'success'); loadGradebook(); }
         else showToast('Failed to delete.', 'error');
     }
 
-    /* ---------- UPLOAD ---------- */
+    /* ---------- UPLOAD — v8: single path via apiCall, action included, errors surfaced ---------- */
     function openResourceModal() {
         buildSecPicker('res-sec-picker');
         toggleModal(true);
     }
-
     function onTypeChange() {
         document.getElementById('assignment-fields').classList.toggle('hidden', document.getElementById('res-type').value !== 'assignment');
     }
@@ -1321,7 +1286,6 @@
     async function handleResourceSubmission() {
         const title = document.getElementById('res-title').value.trim();
         const type = document.getElementById('res-type').value;
-        const urlInput = document.getElementById('res-url').value.trim();
         const fileInput = document.getElementById('res-file').files[0];
         const btn = document.getElementById('publish-btn');
 
@@ -1329,42 +1293,47 @@
 
         btn.classList.add('is-loading');
         const payload = {
-            title, type, url:urlInput || "",
-            submissionUrl:document.getElementById('res-submission-url').value.trim(),
-            targetSections:JSON.stringify(readSecPicker('res-sec-picker')),
-            deadline:document.getElementById('res-deadline').value,
-            instructions:(document.getElementById('res-instructions').value || '').trim()
+            action: 'saveResource',
+            userId: currentUser.id,
+            title, type,
+            url: document.getElementById('res-url').value.trim() || "",
+            submissionUrl: document.getElementById('res-submission-url').value.trim(),
+            targetSections: JSON.stringify(readSecPicker('res-sec-picker')),
+            deadline: document.getElementById('res-deadline').value,
+            instructions: (document.getElementById('res-instructions').value || '').trim()
         };
 
         if (fileInput) {
+            if (fileInput.size > 8 * 1024 * 1024) {
+                btn.classList.remove('is-loading');
+                return showToast('File too large — max 8 MB. Use a Drive link instead.', 'error');
+            }
             const reader = new FileReader();
             reader.onload = async function (e) {
                 payload.fileData = e.target.result;
                 payload.fileName = fileInput.name;
                 payload.fileMime = fileInput.type;
-                await sendToGoogleAppsScript(payload);
+                await sendResource(payload, btn);
             };
             reader.readAsDataURL(fileInput);
         } else {
-            await sendToGoogleAppsScript(payload);
+            await sendResource(payload, btn);
         }
     }
 
-    async function sendToGoogleAppsScript(payload) {
-        const btn = document.getElementById('publish-btn');
-        try {
-            await fetch(SCRIPT_URL, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body:JSON.stringify(payload) });
+    async function sendResource(payload, btn) {
+        const res = await apiCall(payload);      /* response is always checked */
+        btn.classList.remove('is-loading');
+        if (res.success) {
             showToast('Resource successfully saved!', 'success');
             toggleModal(false);
             ['res-title','res-url','res-file','res-deadline','res-instructions','res-submission-url'].forEach(id => document.getElementById(id).value = '');
             buildSecPicker('res-sec-picker');
             onTypeChange();
             invalidateCache();
-            setTimeout(loadTeacherData, 1500);
-        } catch (err) {
-            showToast('Upload failed: ' + err.message, 'error');
-        } finally {
-            btn.classList.remove('is-loading');
+            loadTeacherData();
+        } else {
+            showToast(res.message || 'Save failed — check the console.', 'error');
         }
     }
 
@@ -1380,7 +1349,7 @@
         if (!email) return showToast('Please enter your email.', 'error');
         const btn = document.getElementById('forgot-submit');
         btn.classList.add('is-loading');
-        const res = await apiCall({ action:'resetPassword', email });
+        const res = await apiCall({ action: 'resetPassword', email });
         btn.classList.remove('is-loading');
         showToast(res.success ? 'If that account exists, a reset link has been sent.' : 'Could not send reset link right now.', res.success ? 'success' : 'error');
         if (res.success) { document.getElementById('forgot-email').value = ''; closeForgot(); }
@@ -1433,11 +1402,11 @@
     /* ---------- BOOT ---------- */
     const savedUser = sessionStorage.getItem(SESSION_KEY);
     if (savedUser) {
-        openPortal(JSON.parse(savedUser));   /* openPortal now calls bootDone — overlay always clears */
-        prewarmCache();                       /* ✚ v7.3: refresh data in the background on refresh */
+        openPortal(JSON.parse(savedUser));
+        prewarmCache();
     } else {
         bootDone('Welcome!');
-        setReady('ready','Ready ✓');
+        setReady('ready', 'Ready ✓');
     }
 </script>
 </body>
